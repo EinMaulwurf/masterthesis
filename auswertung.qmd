@@ -1,0 +1,58 @@
+---
+title: "Auswertung"
+format: html
+---
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(sf)
+```
+
+```{r}
+data_raw_12_2023 <- readxl::read_xlsx("Daten/Breitbandatlas/bba_01_2024.xlsx", sheet = "Privathaushalte", skip = 4,
+                              col_names = c("ags", "name", "verwaltungsebene", "land", "kreis", "raumkategorie", "alle_16", "alle_30", "alle_50", "alle_100", "alle_200", "alle_400", "alle_1000", "fttbh_1000", "fttc_16", "fttc_30", "fttc_50", "fttc_100", "fttc_200", "hfc_16", "hfc_30", "hfc_50", "hfc_100", "hfc_200", "hfc_400", "hfc_1000", "sonstige_16", "sonstige_30", "sonstige_50", "sonstige_100", "sonstige_200", "mobil_2g", "mobil_4g", "mobil_5gdss", "mobil_5g"))
+
+data_raw_12_2022 <- readxl::read_xlsx("Daten/Breitbandatlas/bba_12_2022.xlsx", sheet = "Privathaushalte", skip = 4,
+                              col_names = c("ags", "name", "verwaltungsebene", "land", "kreis", "raumkategorie", "alle_16", "alle_30", "alle_50", "alle_100", "alle_200", "alle_400", "alle_1000", "fttbh_1000", "fttc_16", "fttc_30", "fttc_50", "fttc_100", "fttc_200", "hfc_16", "hfc_30", "hfc_50", "hfc_100", "hfc_200", "hfc_400", "hfc_1000", "sonstige_16", "sonstige_30", "mobil_2g", "mobil_4g", "mobil_5gdss", "mobil_5g"))
+```
+
+```{r}
+data_merged <- data_raw_12_2022 %>%
+  filter(verwaltungsebene == "4 - Gemeinde") %>%
+  select(ags, name, land, fttbh_2022 = fttbh_1000) %>%
+  left_join(data_raw_12_2023 %>% select(ags, fttbh_2023 = fttbh_1000), by = "ags") %>%
+  mutate(fiber_diff = fttbh_2023 - fttbh_2022)
+
+data_merged %>%
+  filter(fiber_diff >= 0) %>%
+  ggplot(aes(x = fiber_diff))+
+  geom_density()
+```
+
+```{r}
+#st_layers("Daten/DE_VG5000.gpkg")
+data_gemeinden <- st_read("Daten/DE_VG5000.gpkg", layer = "vg5000_gem")
+
+# test2 <- st_read("Daten/DE_VG250.gpkg", layer = "vg250_gem")
+# test3 <- giscoR::gisco_get_communes(country = "DE")
+# test4 <- giscoR::gisco_get_lau(country = "DE")
+
+# Es fehlen überall die Bezirke der Städte
+
+data_gemeinden %>%
+  left_join(data_merged, by = join_by(AGS == ags)) %>%
+  filter(fiber_diff > -5) %>%
+  ggplot(aes(fill = fiber_diff))+
+  geom_sf(color = "NA")+
+  scale_fill_viridis_c(trans = scales::transform_pseudo_log())
+```
+
+```{r}
+data_gemeinden %>%
+  anti_join(data_merged, by = join_by(AGS == ags)) %>%
+  tibble()
+```
+
