@@ -1,0 +1,263 @@
+---
+title: "scraping"
+format: html
+---
+
+```{r}
+library(httr)
+library(jsonlite)
+library(tidyverse)
+library(sf)
+library(arrow)
+#library(geoarrow)
+library(sfarrow)
+```
+
+```{r}
+germany <- giscoR::gisco_get_countries(country = "DE")
+```
+
+
+```
+curl 'https://buergerplattform-prod2.production.netzda-mig.org/server/rest/services/Hosted/verwaltungsgebiete_004/FeatureServer/1/query?f=geojson&geometry=%7B%22xmin%22%3A46
+9629.1017840004%2C%22ymin%22%3A5537709.825203005%2C%22xmax%22%3A489196.98102500045%2C%22ymax%22%3A5557277.704444005%7D&maxRecordCountFactor=3&orderByFields=objectid&outFields=
+*&outSR=25832&quantizationParameters=%7B%22extent%22%3A%7B%22spatialReference%22%3A%7B%22wkid%22%3A25832%7D%2C%22xmin%22%3A469629.1017840004%2C%22ymin%22%3A5537709.825203005%2
+C%22xmax%22%3A489196.98102500045%2C%22ymax%22%3A5557277.704444005%7D%2C%22mode%22%3A%22view%22%2C%22originPosition%22%3A%22upperLeft%22%2C%22tolerance%22%3A38.21851414257816%7
+D&resultType=tile&returnCentroid=true&returnExceededLimitFeatures=false&spatialRel=esriSpatialRelIntersects&where=1%3D1&geometryType=esriGeometryEnvelope&inSR=25832' --compres
+sed -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:131.0) Gecko/20100101 Firefox/131.0' -H 'Accept: */*' -H 'Accept-Language: de,en-US;q=0.7,en;q=0.3' -H 'Ac
+cept-Encoding: gzip, deflate, br, zstd' -H 'Referer: https://webclient.eks.production.netzda-mig.org/' -H 'Origin: https://webclient.eks.production.netzda-mig.org' -H 'DNT: 1'
+ -H 'Connection: keep-alive' -H 'Sec-Fetch-Dest: empty' -H 'Sec-Fetch-Mode: cors' -H 'Sec-Fetch-Site: same-site' -H 'Priority: u=4'
+```
+
+```
+curl 'https://buergerplattform-prod2.production.netzda-mig.org/server/rest/services/Hosted/festnetz_010/FeatureServer/0/query?f=geojson&geometry=%7B%22xmin%22%3A467183.11687
+88754%2C%22ymin%22%3A5515695.96105688%2C%22xmax%22%3A469629.1017840004%2C%22ymax%22%3A5518141.945962004%7D&maxRecordCountFactor=3&orderByFields=objectid&outFields=*&outSR=2583
+2&quantizationParameters=%7B%22extent%22%3A%7B%22spatialReference%22%3A%7B%22wkid%22%3A25832%7D%2C%22xmin%22%3A467183.1168788754%2C%22ymin%22%3A5515695.96105688%2C%22xmax%22%3
+A469629.1017840004%2C%22ymax%22%3A5518141.945962004%7D%2C%22mode%22%3A%22view%22%2C%22originPosition%22%3A%22upperLeft%22%2C%22tolerance%22%3A4.77731426782227%7D&resultType=ti
+le&returnCentroid=true&returnExceededLimitFeatures=false&spatialRel=esriSpatialRelIntersects&where=1%3D1&geometryType=esriGeometryEnvelope&inSR=25832' --compressed -H 'User-Ag
+ent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:131.0) Gecko/20100101 Firefox/131.0' -H 'Accept: */*' -H 'Accept-Language: de,en-US;q=0.7,en;q=0.3' -H 'Accept-Encoding: 
+gzip, deflate, br, zstd' -H 'Referer: https://webclient.eks.production.netzda-mig.org/' -H 'Origin: https://webclient.eks.production.netzda-mig.org' -H 'DNT: 1' -H 'Connection
+: keep-alive' -H 'Sec-Fetch-Dest: empty' -H 'Sec-Fetch-Mode: cors' -H 'Sec-Fetch-Site: same-site' -H 'Priority: u=4' -H 'TE: trailers' --output testdata3.geojson
+```
+
+Für verschiedene Jahre: 
+- `festnetz_001` für 12.2018
+- `festnetz_002` für 07.2019
+- `festnetz_003` für 12.2019
+- ...
+- `festnetz_010` für 07.2023
+
+```{r}
+fetch_geojson <- function(
+  geometry = NULL,
+  outFields = "*",
+  where = "1=1",
+  base_url = "https://buergerplattform-prod2.production.netzda-mig.org/server/rest/services/Hosted/festnetz_010/FeatureServer/0/query",
+  additional_params = list(),
+  custom_headers = add_headers(
+    `User-Agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:131.0) Gecko/20100101 Firefox/131.0",
+    `Accept` = "*/*",
+    `Accept-Language` = "de,en-US;q=0.7,en;q=0.3",
+    `Accept-Encoding` = "gzip, deflate, br, zstd",
+    `Referer` = "https://webclient.eks.production.netzda-mig.org/",
+    `Origin` = "https://webclient.eks.production.netzda-mig.org/",
+    `DNT` = "1",
+    `Connection` = "keep-alive",
+    `Sec-Fetch-Dest` = "empty",
+    `Sec-Fetch-Mode` = "cors",
+    `Sec-Fetch-Site` = "same-site",
+    `Priority` = "u=4",
+    `TE` = "trailers"
+  )
+) {
+  
+  # Construct the query parameters
+  query_params <- list(
+    f = "geojson",
+    maxRecordCountFactor = 3,
+    orderByFields = "objectid",
+    outFields = outFields,
+    outSR = 25832,
+    resultType = "tile",
+    returnCentroid = "true",
+    returnExceededLimitFeatures = "false",
+    spatialRel = "esriSpatialRelIntersects",
+    where = where,
+    geometryType = "esriGeometryEnvelope",
+    inSR = 25832
+  )
+  
+  # Add geometry if provided
+  if (!is.null(geometry)) {
+    # Ensure geometry is a list with xmin, ymin, xmax, ymax
+    if (!all(c("xmin", "ymin", "xmax", "ymax") %in% names(geometry))) {
+      stop("Geometry must be a list with xmin, ymin, xmax, ymax")
+    }
+    
+    # Convert geometry list to JSON string
+    geometry_json <- toJSON(geometry, auto_unbox = TRUE)
+    query_params$geometry <- geometry_json
+  }
+  
+  # Merge any additional parameters
+  if (length(additional_params) > 0) {
+    query_params <- c(query_params, additional_params)
+  }
+  
+  # Make the GET request
+  response <- GET(
+    url = base_url,
+    query = query_params,
+    custom_headers
+  )
+  
+  # Check for successful request
+  if (http_error(response)) {
+    stop("Request failed with status: ", status_code(response), " - ", http_status(response)$message)
+  }
+  
+  # Parse the response content as text
+  content_text <- content(response, as = "text", encoding = "UTF-8")
+  
+  if(fromJSON(content_text)$properties$exceededTransferLimit) {
+    stop("Transfer Limit Exceeded")
+  }
+  
+  # Read the GeoJSON using sf
+  sf_data <- st_read(content_text, quiet = TRUE, as_tibble = TRUE)
+  
+  if(nrow(sf_data) %>% is.null() | nrow(sf_data) == 0) return(NULL)
+  
+  #return(list(sf_data, content_text))
+  return(sf_data)
+}
+```
+
+## Get data from function
+
+```{r}
+# Define the geometry parameters
+geometry <- list(
+  xmin = 467183.1168788754,
+  ymin = 5515695.96105688,
+  xmax = 469629.1017840004,
+  ymax = 5518141.945962004
+)
+
+# Fetch the GeoJSON data
+sf_data <- fetch_geojson(
+  geometry = geometry
+)
+
+# Inspect the fetched data
+#print(sf_data)
+
+sf_data %>%
+  ggplot(aes(fill = down_fn_gew_alle_400))+
+  geom_sf()
+```
+
+## For whole germany
+
+```{r}
+# Germany's approximate bounding box (EPSG:25832)
+# de_bbox <- list(
+#   xmin = 650000,
+#   ymin = 5900000,
+#   xmax = 1700000,
+#   ymax = 7500000
+# )
+
+de_bbox <- germany %>% 
+  st_transform(25832) %>% 
+  st_bbox() %>% 
+  as.list()
+
+# Create grid
+n_rows <- 96
+n_cols <- 96
+
+x_seq <- seq(de_bbox$xmin, de_bbox$xmax, length.out = n_cols + 1)
+y_seq <- seq(de_bbox$ymin, de_bbox$ymax, length.out = n_rows + 1)
+
+grid_cells <- expand.grid(
+  x = head(x_seq, -1),
+  y = head(y_seq, -1)
+) %>%
+  purrr::pmap(\(x, y) list(
+    xmin = x,
+    ymin = y,
+    xmax = x + (de_bbox$xmax - de_bbox$xmin)/n_cols,
+    ymax = y + (de_bbox$ymax - de_bbox$ymin)/n_rows
+  ))
+
+#grid_cells_sample <- grid_cells[sample(1:length(grid_cells), 100)]
+grid_cells_sample <- grid_cells[500:1000]
+
+results <- purrr::map(grid_cells_sample, fetch_geojson, .progress = TRUE)
+
+# result <- fetch_geojson(grid_cells[[1]])
+# 
+# result %>%
+#   ggplot()+
+#   geom_sf()
+
+result <- results %>%
+  discard(is.null) %>%
+  map(~ .x %>% mutate(across(starts_with("down_"), as.numeric))) %>%
+  bind_rows()
+
+result %>%
+  ggplot(aes(geometry = geometry))+
+  geom_sf()+
+  geom_sf(data = germany, fill = NA)
+```
+
+```{r}
+results[[641]] %>%
+  mutate(across(starts_with("down_"), as.numeric))
+
+results[1:3] %>%
+  map(~ .x %>% mutate(across(starts_with("down_"), as.numeric))) %>%
+  bind_rows() %>%
+  ggplot()+
+  geom_sf()
+```
+
+```{r}
+germany_grid_cells <- germany %>%
+  st_transform(25832) %>%
+  st_make_grid(n = c(96, 96), square = TRUE, what = "polygons") %>%
+  st_as_sf() %>%
+  filter(st_intersects(., st_transform(germany, 25832), sparse = FALSE)[,1])
+
+# germany_grid_cells %>%
+#   ggplot()+
+#   geom_sf()+
+#   geom_sf(data = germany, fill = NA)
+
+
+grid_cells <- germany_grid_cells %>%
+  st_geometry() %>%
+  map(~ as.list(st_bbox(.)))
+
+grid_cells_sample <- grid_cells
+
+results <- map(grid_cells_sample, fetch_geojson, .progress = TRUE)
+
+result <- results %>%
+  discard(is.null) %>%
+  map(~ .x %>% mutate(across(starts_with("down_"), as.numeric))) %>%
+  bind_rows()
+
+st_write_parquet(result, "grid_data.parquet")
+#st_write(result, "grid_data.gpkg")
+
+result <- st_read_parquet("grid_data.parquet") %>% tibble() %>% st_as_sf()
+
+# result %>%
+#   ggplot(aes(geometry = geometry))+
+#   geom_sf()+
+#   geom_sf(data = germany, fill = NA)
+```
+
