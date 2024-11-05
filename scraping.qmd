@@ -4,17 +4,18 @@ format: html
 ---
 
 ```{r}
-library(httr)
-library(jsonlite)
+#library(httr)
+library(httr2)
+#library(jsonlite)
 library(tidyverse)
 library(sf)
 library(arrow)
 #library(geoarrow)
-library(sfarrow)
+#library(sfarrow)
 ```
 
 ```{r}
-germany <- giscoR::gisco_get_countries(country = "DE") %>% st_transform(3035)
+deutschland <- giscoR::gisco_get_countries(country = "DE") %>% st_transform(3035)
 gemeinden <- giscoR::gisco_get_communes(country = "DE") %>% st_transform(3035)
 bundesländer <- giscoR::gisco_get_nuts(country = "DE", nuts_level = 1) %>% st_transform(3035)
 hessen <- bundesländer %>% filter(NUTS_NAME == "HESSEN")
@@ -51,39 +52,30 @@ Für verschiedene Jahre:
 - `festnetz_010` für 12.2023
 
 ```{r}
-# Construct the query parameters
-query_params <- list(
-  f = "geojson",
-  maxRecordCountFactor = 3,
-  orderByFields = "objectid",
-  outFields = "*",
-  outSR = 3035,
-  resultType = "tile",
-  returnCentroid = "true",
-  returnExceededLimitFeatures = "false",
-  spatialRel = "esriSpatialRelIntersects",
-  where = "1=1",
-  geometryType = "esriGeometryEnvelope",
-  inSR = 3035
-)
+# Base request template
+base_req <- request("https://buergerplattform-prod2.production.netzda-mig.org") %>%
+  req_url_path_append("server/rest/services/Hosted") %>%
+  req_headers(
+    `User-Agent` = "Mozilla/5.0",
+    `Accept` = "*/*",
+    `Origin` = "https://webclient.eks.production.netzda-mig.org/",
+    `Referer` = "https://webclient.eks.production.netzda-mig.org/"
+  ) %>%
+  req_url_query(
+    f = "geojson",
+    maxRecordCountFactor = 3,
+    orderByFields = "objectid",
+    outFields = "*",
+    outSR = 3035,
+    resultType = "tile",
+    returnCentroid = "true",
+    returnExceededLimitFeatures = "false",
+    spatialRel = "esriSpatialRelIntersects",
+    where = "1=1",
+    geometryType = "esriGeometryEnvelope",
+    inSR = 3035
+  )
 
-custom_headers = add_headers(
-  `User-Agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:131.0) Gecko/20100101 Firefox/131.0",
-  `Accept` = "*/*",
-  `Accept-Language` = "de,en-US;q=0.7,en;q=0.3",
-  `Accept-Encoding` = "gzip, deflate, br, zstd",
-  `Referer` = "https://webclient.eks.production.netzda-mig.org/",
-  `Origin` = "https://webclient.eks.production.netzda-mig.org/",
-  `DNT` = "1",
-  `Connection` = "keep-alive",
-  `Sec-Fetch-Dest` = "empty",
-  `Sec-Fetch-Mode` = "cors",
-  `Sec-Fetch-Site` = "same-site",
-  `Priority` = "u=4",
-  `TE` = "trailers"
-)
-
-# Lookup for year
 dates <- c("010" = "202312", 
   "009" = "202306", 
   "008" = "202212", 
@@ -95,85 +87,106 @@ dates <- c("010" = "202312",
   "002" = "201907", 
   "001" = "201812")
 
-fetch_api <- function(geometry, date = "202312") {
-  # Base URL
-  base_url = "https://buergerplattform-prod2.production.netzda-mig.org/server/rest/services/Hosted/festnetz_010/FeatureServer/0/query"
+fetch_api <- function(geometry) {
+  # Create requests for all dates
+  requests <- names(dates) %>%
+    map(\(x) {
+      base_req %>%
+        req_url_path_append(paste0("festnetz_", x)) %>%
+        req_url_path_append("FeatureServer/0/query") %>%
+        req_url_query(geometry = toJSON(geometry, auto_unbox = TRUE))
+    })
   
-  # Convert geometry list to JSON string
-  geometry_json <- toJSON(geometry, auto_unbox = TRUE)
-  query_params$geometry <- geometry_json
+  # Perform requests in parallel
+  responses <- req_perform_parallel(requests)
   
-  # Make the GET request
-  response <- GET(
-    url = base_url,
-    query = query_params,
-    custom_headers
-  )
-  
-  # Check for successful request
-  if (http_error(response)) {
-    stop("Request failed with status: ", status_code(response), " - ", http_status(response)$message)
-  }
-  
-  # Parse the response content as text
-  content_text <- content(response, as = "text", encoding = "UTF-8") %>%
-    fromJSON()
-  
-  if(content_text$properties$exceededTransferLimit) {
-    stop("Transfer Limit Exceeded")
-  }
-  
-  if(length(content_text$features) == 0 | nrow(content_text$features) %>% is.null()) return(NULL)
-  
-  data_content <- content_text$features$properties %>%
-    select(id, gem, starts_with("down")) %>%
-    mutate(across(starts_with("down"), as.numeric))
-
-  data_geom <- content_text$features$centroid %>% 
-    unnest_wider(coordinates, names_sep = "_") %>%
-    select(x_mp = coordinates_1, y_mp = coordinates_2)
-  
-  data_api <- cbind(data_geom, data_content)
-  
-  #return(list(sf_data, content_text))
-  return(data_api)
+  # Process responses
+  map2_dfr(responses, dates, \(resp, date) {
+    content <- resp %>%
+      resp_body_json(simplifyVector = TRUE)
+    
+    if(content$properties$exceededTransferLimit) {
+      print("Transfer Limit Exceeded at\n")
+      print(geometry)
+      return(NULL)
+    }
+    if(length(content$features) == 0) return(NULL)
+    
+    data_geom <- content %>%
+      pluck("features") %>%
+      pluck("centroid") %>% 
+      unnest_wider(coordinates, names_sep = "_") %>%
+      select(x_mp = coordinates_1, y_mp = coordinates_2)
+    
+    data_content <- content %>%
+      pluck("features") %>%
+      pluck("properties") %>%
+      select(starts_with("down") & contains("_hh_")) %>%
+      mutate(across(everything(), as.numeric))
+    
+    cbind(data_geom, data_content) %>%
+      mutate(date = date, .before = 1) %>%
+      as_tibble() %>%
+      return()
+  })
 }
 ```
 
 ```{r}
+#| eval: false
+
 hessen_grid_cells <- hessen %>%
   #st_transform(25832) %>%
   st_make_grid(n = c(32, 32), square = TRUE, what = "polygons") %>%
   st_as_sf() %>%
-  filter(st_intersects(., hessen, sparse = FALSE)[,1])
-
-# hessen_grid_cells %>%
-#   ggplot()+
-#   geom_sf()+
-#   geom_sf(data = germany, fill = NA)
-
-hessen_grid_cells <- germany_grid_cells %>%
+  filter(st_intersects(., hessen, sparse = FALSE)[,1]) %>%
   st_geometry() %>%
   map(~ as.list(st_bbox(.)))
 
-#grid_cells_sample <- grid_cells[1:100]
-
-hessen_result <- map(hessen_grid_cells, fetch_api, .progress = TRUE) %>%
+hessen_result_all_years <- map(hessen_grid_cells, fetch_api, .progress = TRUE) %>%
   list_rbind()
+
+arrow::write_parquet(hessen_result_all_years, "hessen_result_all_years.parquet")
+
+hessen_result_all_years %>%
+  mutate(date = ym(date)) %>%
+  group_by(date) %>%
+  summarise(sum_ftthb = sum(down_fn_hh_ftthb_1000, na.rm = TRUE)) %>%
+  ggplot(aes(x = date, y = sum_ftthb))+
+  geom_line()
 ```
 
+## Gesamtabfrage
 ```{r}
-ggplot()+
-  geom_sf(data = hessen_result %>%
-            drop_na(down_fn_gew_ftthb_1000) %>%
-            st_as_sf(coords = c("x_mp", "y_mp"), 
-                     crs = 3035), 
-          aes(color = down_fn_gew_ftthb_1000),
-          size = .2)+
-  geom_sf(data = hessen, fill = NA)
+# Create grid cells
+deutschland_grid_cells <- deutschland %>%
+  st_make_grid(n = c(80, 80), square = TRUE, what = "polygons") %>%
+  st_as_sf() %>%
+  filter(st_intersects(., deutschland, sparse = FALSE)[,1]) %>%
+  st_geometry() %>%
+  map(~ as.list(st_bbox(.)))
 
-hessen_result %>%
-            drop_na(down_fn_gew_ftthb_1000) %>%
-            st_as_sf(coords = c("x_mp", "y_mp"), 
-                     crs = 3035)
+# Process in chunks
+chunk_size <- 200
+grid_chunks <- split(deutschland_grid_cells, ceiling(seq_along(deutschland_grid_cells)/chunk_size))
+
+# Process each chunk
+for(i in seq_along(grid_chunks)) {
+  str_glue("{i} von {length(grid_chunks)}") %>% print()
+  
+  chunk_result <- map(grid_chunks[[i]], fetch_api, .progress = TRUE) %>% list_rbind()
+  
+  write_parquet(chunk_result, str_glue("./Daten/Breitbandatlas/chunk_{i}.parquet"))
+  rm(chunk_result)
+  gc()
+}
+
+# Combine all chunks
+final_result <- list.files(path = "./Daten/Breitbandatlas", pattern = "chunk_.*\\.parquet") %>%
+  map(read_parquet) %>%
+  list_rbind() %>%
+  select(date, x_mp, y_mp, everything())
+
+write_parquet(final_result, "./Daten/Breitbandatlas/deutschland_result_all_years.parquet")
 ```
+
