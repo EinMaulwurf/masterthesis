@@ -4,44 +4,30 @@ format: html
 ---
 
 ```{r}
+#| message: false
+#| warning: false
+
 #library(httr)
 library(httr2)
-#library(jsonlite)
+library(jsonlite)
 library(tidyverse)
 library(sf)
 library(arrow)
 #library(geoarrow)
 #library(sfarrow)
+library(furrr)
 ```
 
 ```{r}
 deutschland <- giscoR::gisco_get_countries(country = "DE") %>% st_transform(3035)
-gemeinden <- giscoR::gisco_get_communes(country = "DE") %>% st_transform(3035)
+#gemeinden <- giscoR::gisco_get_communes(country = "DE") %>% st_transform(3035)
 bundesländer <- giscoR::gisco_get_nuts(country = "DE", nuts_level = 1) %>% st_transform(3035)
 hessen <- bundesländer %>% filter(NUTS_NAME == "HESSEN")
 ```
 
-
+Beispielabfrage der Rasterdaten für einen bestimmten Breich mit `curl`. Genau so sieht die Abfrage aus, die von der Website gesendet wird, mit einem Unterschied: Als Dateiformat wird `pbf` verwendet (`?f=pbf`).
 ```
-curl 'https://buergerplattform-prod2.production.netzda-mig.org/server/rest/services/Hosted/verwaltungsgebiete_004/FeatureServer/1/query?f=geojson&geometry=%7B%22xmin%22%3A46
-9629.1017840004%2C%22ymin%22%3A5537709.825203005%2C%22xmax%22%3A489196.98102500045%2C%22ymax%22%3A5557277.704444005%7D&maxRecordCountFactor=3&orderByFields=objectid&outFields=
-*&outSR=25832&quantizationParameters=%7B%22extent%22%3A%7B%22spatialReference%22%3A%7B%22wkid%22%3A25832%7D%2C%22xmin%22%3A469629.1017840004%2C%22ymin%22%3A5537709.825203005%2
-C%22xmax%22%3A489196.98102500045%2C%22ymax%22%3A5557277.704444005%7D%2C%22mode%22%3A%22view%22%2C%22originPosition%22%3A%22upperLeft%22%2C%22tolerance%22%3A38.21851414257816%7
-D&resultType=tile&returnCentroid=true&returnExceededLimitFeatures=false&spatialRel=esriSpatialRelIntersects&where=1%3D1&geometryType=esriGeometryEnvelope&inSR=25832' --compres
-sed -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:131.0) Gecko/20100101 Firefox/131.0' -H 'Accept: */*' -H 'Accept-Language: de,en-US;q=0.7,en;q=0.3' -H 'Ac
-cept-Encoding: gzip, deflate, br, zstd' -H 'Referer: https://webclient.eks.production.netzda-mig.org/' -H 'Origin: https://webclient.eks.production.netzda-mig.org' -H 'DNT: 1'
- -H 'Connection: keep-alive' -H 'Sec-Fetch-Dest: empty' -H 'Sec-Fetch-Mode: cors' -H 'Sec-Fetch-Site: same-site' -H 'Priority: u=4'
-```
-
-```
-curl 'https://buergerplattform-prod2.production.netzda-mig.org/server/rest/services/Hosted/festnetz_010/FeatureServer/0/query?f=geojson&geometry=%7B%22xmin%22%3A467183.11687
-88754%2C%22ymin%22%3A5515695.96105688%2C%22xmax%22%3A469629.1017840004%2C%22ymax%22%3A5518141.945962004%7D&maxRecordCountFactor=3&orderByFields=objectid&outFields=*&outSR=2583
-2&quantizationParameters=%7B%22extent%22%3A%7B%22spatialReference%22%3A%7B%22wkid%22%3A25832%7D%2C%22xmin%22%3A467183.1168788754%2C%22ymin%22%3A5515695.96105688%2C%22xmax%22%3
-A469629.1017840004%2C%22ymax%22%3A5518141.945962004%7D%2C%22mode%22%3A%22view%22%2C%22originPosition%22%3A%22upperLeft%22%2C%22tolerance%22%3A4.77731426782227%7D&resultType=ti
-le&returnCentroid=true&returnExceededLimitFeatures=false&spatialRel=esriSpatialRelIntersects&where=1%3D1&geometryType=esriGeometryEnvelope&inSR=25832' --compressed -H 'User-Ag
-ent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:131.0) Gecko/20100101 Firefox/131.0' -H 'Accept: */*' -H 'Accept-Language: de,en-US;q=0.7,en;q=0.3' -H 'Accept-Encoding: 
-gzip, deflate, br, zstd' -H 'Referer: https://webclient.eks.production.netzda-mig.org/' -H 'Origin: https://webclient.eks.production.netzda-mig.org' -H 'DNT: 1' -H 'Connection
-: keep-alive' -H 'Sec-Fetch-Dest: empty' -H 'Sec-Fetch-Mode: cors' -H 'Sec-Fetch-Site: same-site' -H 'Priority: u=4' -H 'TE: trailers' --output testdata3.geojson
+curl 'https://buergerplattform-prod2.production.netzda-mig.org/server/rest/services/Hosted/festnetz_010/FeatureServer/0/query?f=geojson&geometry=%7B%22xmin%22%3A467183.1168788754%2C%22ymin%22%3A5515695.96105688%2C%22xmax%22%3A469629.1017840004%2C%22ymax%22%3A5518141.945962004%7D&maxRecordCountFactor=3&orderByFields=objectid&outFields=*&outSR=25832&quantizationParameters=%7B%22extent%22%3A%7B%22spatialReference%22%3A%7B%22wkid%22%3A25832%7D%2C%22xmin%22%3A467183.1168788754%2C%22ymin%22%3A5515695.96105688%2C%22xmax%22%3A469629.1017840004%2C%22ymax%22%3A5518141.945962004%7D%2C%22mode%22%3A%22view%22%2C%22originPosition%22%3A%22upperLeft%22%2C%22tolerance%22%3A4.77731426782227%7D&resultType=tile&returnCentroid=true&returnExceededLimitFeatures=false&spatialRel=esriSpatialRelIntersects&where=1%3D1&geometryType=esriGeometryEnvelope&inSR=25832' --compressed -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:131.0) Gecko/20100101 Firefox/131.0' -H 'Accept: */*' -H 'Accept-Language: de,en-US;q=0.7,en;q=0.3' -H 'Accept-Encoding: gzip, deflate, br, zstd' -H 'Referer: https://webclient.eks.production.netzda-mig.org/' -H 'Origin: https://webclient.eks.production.netzda-mig.org' -H 'DNT: 1' -H 'Connection: keep-alive' -H 'Sec-Fetch-Dest: empty' -H 'Sec-Fetch-Mode: cors' -H 'Sec-Fetch-Site: same-site' -H 'Priority: u=4' -H 'TE: trailers' --output testdata3.geojson
 ```
 
 Für verschiedene Jahre: 
@@ -132,30 +118,6 @@ fetch_api <- function(geometry) {
 }
 ```
 
-```{r}
-#| eval: false
-
-hessen_grid_cells <- hessen %>%
-  #st_transform(25832) %>%
-  st_make_grid(n = c(32, 32), square = TRUE, what = "polygons") %>%
-  st_as_sf() %>%
-  filter(st_intersects(., hessen, sparse = FALSE)[,1]) %>%
-  st_geometry() %>%
-  map(~ as.list(st_bbox(.)))
-
-hessen_result_all_years <- map(hessen_grid_cells, fetch_api, .progress = TRUE) %>%
-  list_rbind()
-
-arrow::write_parquet(hessen_result_all_years, "hessen_result_all_years.parquet")
-
-hessen_result_all_years %>%
-  mutate(date = ym(date)) %>%
-  group_by(date) %>%
-  summarise(sum_ftthb = sum(down_fn_hh_ftthb_1000, na.rm = TRUE)) %>%
-  ggplot(aes(x = date, y = sum_ftthb))+
-  geom_line()
-```
-
 ## Gesamtabfrage
 ```{r}
 # Create grid cells
@@ -171,22 +133,57 @@ chunk_size <- 200
 grid_chunks <- split(deutschland_grid_cells, ceiling(seq_along(deutschland_grid_cells)/chunk_size))
 
 # Process each chunk
+plan(multisession, workers = 4)
 for(i in seq_along(grid_chunks)) {
   str_glue("{i} von {length(grid_chunks)}") %>% print()
   
-  chunk_result <- map(grid_chunks[[i]], fetch_api, .progress = TRUE) %>% list_rbind()
+  chunk_result <- future_map(grid_chunks[[i]], fetch_api, .progress = TRUE) %>% list_rbind()
   
-  write_parquet(chunk_result, str_glue("./Daten/Breitbandatlas/chunk_{i}.parquet"))
+  write_parquet(chunk_result, str_glue("./Daten/Breitbandatlas/raster_chunk_{i}.parquet"))
   rm(chunk_result)
   gc()
 }
+plan(sequential)
+```
 
-# Combine all chunks
-final_result <- list.files(path = "./Daten/Breitbandatlas", pattern = "chunk_.*\\.parquet") %>%
-  map(read_parquet) %>%
-  list_rbind() %>%
-  select(date, x_mp, y_mp, everything())
+Neu schreiben als Arrow Dataset, gruppiert nach Date und ohne Duplikate. Ich benutze ein Foor-Loop, weil der Datensatz zu groß ist um komplett in RAM zu passen. Daher suche ich in jedem Jahr einzeln nach Duplikaten.
+```{r}
+dataset_old <- list.files(path = "./Daten/Breitbandatlas", 
+                           pattern = "raster_chunk_.*\\.parquet", 
+                           full.names = TRUE) %>%
+    open_dataset()
 
-write_parquet(final_result, "./Daten/Breitbandatlas/deutschland_result_all_years.parquet")
+for(d in unname(dates)) {
+  print(d)
+  
+  dataset_old %>%
+    filter(date == d) %>%
+    distinct() %>%
+    group_by(date) %>%
+    write_dataset("./Daten/Breitbandatlas/Raster")
+    
+    gc()
+}
+```
+
+Der Datensatz kann jetzt wie folgt verwendet werden (beachte, dass die `date` Variable jetzt numeric ist):
+```{r}
+final_result <- open_dataset("./Daten/Breitbandatlas/Raster/")
+
+raster_2023 <- final_result %>%
+  filter(date == 202312) %>%
+  collect()
+
+final_result %>%
+  group_by(date) %>%
+  summarise(down_fn_hh_ftthb_1000 = sum(down_fn_hh_ftthb_1000, na.rm = TRUE)) %>%
+  collect() %>%
+  mutate(date = ym(date)) %>%
+  ggplot(aes(x = date, y = down_fn_hh_ftthb_1000))+
+  geom_line()
+
+final_result %>%
+  count() %>%
+  collect()
 ```
 
