@@ -153,7 +153,7 @@ plan(sequential)
 ```
 
 Nun werden die Daten noch von Duplikaten bereinigt und als gruppierten Arrow-Dataset abgespeichert.
-Ich benutze einen Foor-Loop, weil der Datensatz zu groß ist um komplett in RAM zu passen. Daher suche ich in jedem Jahr einzeln nach Duplikaten.
+Ich benutze einen Foor-Loop, weil der Datensatz zu groß ist um komplett in RAM zu passen. Daher suche ich in jedem Jahr einzeln nach Duplikaten. Den Mittelpunkt jeder Gitterzelle runde ich auf 50 um die Zellen am LAEA Grid auszurichten.
 
 ```{r}
 dataset_old <- list.files(path = "./Daten/Breitbandatlas", 
@@ -166,6 +166,8 @@ for(d in unname(dates)) {
   
   dataset_old %>%
     filter(date == d) %>%
+    mutate(x_mp = floor(x_mp / 100) * 100 + 50,
+           y_mp = floor(y_mp / 100) * 100 + 50) %>%
     distinct() %>%
     group_by(date) %>%
     write_dataset("./Daten/Breitbandatlas/Raster")
