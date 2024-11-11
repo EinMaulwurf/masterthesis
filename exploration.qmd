@@ -1,0 +1,178 @@
+---
+title: "exploration"
+format: html
+---
+
+# Setup
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(sf)
+library(sfheaders)
+library(arrow)
+```
+
+# Loading Data
+
+## Geodaten von Gisco
+
+```{r}
+gemeinden <- giscoR::gisco_get_communes(epsg = "3035", country = "DE")
+darmstadt <- gemeinden %>% filter(COMM_NAME == "Darmstadt")
+berlin <- gemeinden %>% filter(COMM_NAME == "Berlin")
+# Hamburg hat zwei Exklaven die ich hier entferne
+hamburg <- gemeinden %>% 
+  filter(COMM_NAME == "Hamburg") %>%
+  st_cast("POLYGON") %>%
+  mutate(area = st_area(.)) %>%
+  slice_max(area, n = 1) %>%
+  st_cast("MULTIPOLYGON")
+```
+
+
+## Breitbandatlas
+
+```{r}
+# Laden des Arrow Datensatz
+breitband_arrow <- open_dataset("./Daten/Breitbandatlas/Raster/")
+
+# So können konkrete Datenpunkte geladen werden, wichtig ist das `collect()` am Ende
+breitband_2023_glasfaser <- breitband_arrow %>%
+  select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  filter(date == 202312) %>%
+  collect()
+
+# Funktion um automatisch Daten einer bestimmen Stadt zu laden
+get_breitband_stadt <- function(stadt_name, variables = everything()) {
+  stadt <- gemeinden %>% 
+    filter(COMM_NAME == stadt_name) %>%
+    st_cast("POLYGON") %>%
+    mutate(area = st_area(.)) %>%
+    slice_max(area, n = 1) %>%
+    st_cast("MULTIPOLYGON")
+  
+  breitband_arrow %>%
+  select(date, x_mp, y_mp, {{variables}}) %>%
+  filter(x_mp %>% between(st_bbox(stadt)["xmin"], st_bbox(stadt)["xmax"]),
+         y_mp %>% between(st_bbox(stadt)["ymin"], st_bbox(stadt)["ymax"])) %>%
+  collect()
+}
+
+# Beispielabfrage
+breitband_glasfaser_berlin <- get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000)
+```
+
+## Zensusdaten
+
+```{r}
+einwohner <- read_csv2("./Daten/Zensus/Zensus2022_Bevoelkerungszahl/Zensus2022_Bevoelkerungszahl_100m-Gitter.csv",
+                       col_select = c(x_mp_100m, y_mp_100m, einwohner = Einwohner))
+
+
+```
+
+## LAEA Grid
+
+```{r}
+
+```
+
+# Funktion um Grid zu erstellen
+
+Erstelle Grid zu sf Objekt
+```{r}
+make_laea_grid <- function(obj, size = 100) {
+  obj_bbox <- st_bbox(obj)
+  obj_offset_x <- floor(obj_bbox["xmin"]/size)*size - (size/2)
+  obj_offset_y <- floor(obj_bbox["ymin"]/size)*size - (size/2)
+  
+  st_make_grid(obj, cellsize = size, offset = c(obj_offset_x, obj_offset_y))
+}
+
+darmstadt %>%
+  make_laea_grid() %>%
+  ggplot()+
+  geom_sf()+
+  geom_sf(data = darmstadt, fill = NA)
+```
+
+Füge Grid zu Daten hinzu
+```{r}
+add_laea_grid <- function(obj, size = 100, x_mp = "x_mp", y_mp = "y_mp") {
+  obj %>%
+    st_as_sf(coords = c(x_mp, y_mp), crs = 3035) %>%
+    st_buffer(dist = size/2, endCapStyle = "SQUARE")
+}
+
+breitband_2023_glasfaser_darmstadt <- breitband_2023_glasfaser %>%
+  filter(x_mp %>% between(st_bbox(darmstadt)["xmin"], st_bbox(darmstadt)["xmax"]),
+         y_mp %>% between(st_bbox(darmstadt)["ymin"], st_bbox(darmstadt)["ymax"]))
+
+breitband_2023_glasfaser_darmstadt %>%
+  add_laea_grid() %>%
+  ggplot()+
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000))
+```
+
+
+# Aggregating Breitbandatlas Daten
+
+Die Sozio und Immo Daten sind nur auf einem 1x1km Raster verfügbar. Deswegen aggregiere ich die Breitband Daten auf dieses gröbere Raster.
+```{r}
+breitband_2023_glasfaser_1km <- breitband_2023_glasfaser %>%
+  left_join(einwohner, by = join_by(x_mp == x_mp_100m, y_mp == y_mp_100m)) %>%
+  mutate(x_mp_1km = floor(x_mp/1000)*1000 + 500,
+         y_mp_1km = floor(y_mp/1000)*1000 + 500) %>%
+  mutate(down_fn_hh_ftthb_1000 = replace_na(down_fn_hh_ftthb_1000, 0),
+         einwohner = replace_na(einwohner, 0)) %>%
+  group_by(date, x_mp_1km, y_mp_1km) %>%
+  summarise(down_fn_hh_ftthb_1000 = weighted.mean(down_fn_hh_ftthb_1000, einwohner, na.rm = TRUE)) %>%
+  ungroup()
+  
+breitband_2023_glasfaser_1km %>%
+  filter(x_mp_1km %>% between(st_bbox(berlin)["xmin"], st_bbox(berlin)["xmax"]),
+         y_mp_1km %>% between(st_bbox(berlin)["ymin"], st_bbox(berlin)["ymax"])) %>%
+  left_join(laea_1km, by = join_by(x_mp_1km == x_mp, y_mp_1km == y_mp)) %>%
+  ggplot()+
+  geom_sf(aes(geometry = geom, fill = down_fn_hh_ftthb_1000))+
+  geom_sf(data = berlin, fill = NA, color = "red")
+```
+
+# Plots
+
+```{r}
+get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000) %>%
+  filter(date == 202312) %>%
+  add_laea_grid() %>%
+  ggplot()+
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
+  scale_fill_viridis_c()+
+  theme_void()
+
+get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000) %>%
+  filter(date %in% c(202312, 202206)) %>%
+  arrange(x_mp, y_mp, date) %>%
+  group_by(x_mp, y_mp) %>%
+  mutate(delta = down_fn_hh_ftthb_1000 - lag(down_fn_hh_ftthb_1000, n = 1)) %>%
+  ungroup() %>%
+  filter(date == 202312) %>%
+  add_laea_grid() %>%
+  ggplot()+
+  geom_sf(aes(fill = delta), color = NA)+
+  scale_fill_viridis_c()+
+  theme_void()
+```
+
+# Regression
+
+Regression um Anteil Glasfaser durch die Zensus Daten zu erklären
+
+```{r}
+breitband_2023_glasfaser
+
+
+```
+
