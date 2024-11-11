@@ -1,0 +1,59 @@
+---
+title: "cleaning.qmd"
+format: html
+---
+
+# Setup
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(arrow)
+library(sf)
+```
+
+# Zensus Daten
+
+```{r}
+# Altersverteilung
+alter_10km <- read_csv2("./Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_10km-Gitter.csv") %>%
+  janitor::clean_names() %>%
+  rename(gitter_id = gitter_id_10km,
+         x_mp = x_mp_10km,
+         y_mp = y_mp_10km) %>%
+  mutate(across(unter10:a80undaelter, as.numeric))
+
+alter_1km <- read_csv2("./Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_1km-Gitter.csv") %>%
+  janitor::clean_names() %>%
+  rename(gitter_id = gitter_id_1km,
+         x_mp = x_mp_1km,
+         y_mp = y_mp_1km) %>%
+  mutate(across(unter10:a80undaelter, as.numeric))
+
+alter_100m <- read_csv2("./Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_100m-Gitter.csv") %>%
+  janitor::clean_names() %>%
+  rename(gitter_id = gitter_id_100m,
+         x_mp = x_mp_100m,
+         y_mp = y_mp_100m) %>%
+  mutate(across(unter10:a80undaelter, as.numeric))
+
+# Durchschnittsalter
+read_csv2("./Daten/Zensus/")
+
+# Gebäude Baujahre
+
+# Bevölerungszahl
+
+# Haushaltsgröße
+
+# Wohnfläche
+
+# Eigentümerquote
+
+# Leerstand
+
+# Miete
+```
+
