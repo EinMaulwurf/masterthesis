@@ -259,3 +259,44 @@ zensus_final %>%
   write_dataset("./Daten/Zensus/Gesamt/")
 ```
 
+# Breitbandatlas Aggregieren
+
+Die Daten des Breitbandatlas sind auf dem 100m Raster gegeben, für die Auswertungen in Verbindung mit den Sozio- bzw. Immodaten benötige ich aber das 1km Raster. Hier führe ich die Aggregation durch.
+
+```{r}
+zensus_arrow <- open_dataset("./Daten/Zensus/Gesamt/")
+
+zensus_haushalte_100m <- zensus_arrow %>%
+  filter(typ == "100m") %>%
+  mutate(anzahl_haushalte = insgesamt_bevoelkerung / durchschn_hh_groesse) %>%
+  select(x_mp, y_mp, anzahl_haushalte) %>%
+  collect()
+```
+
+```{r}
+breitband_arrow <- open_dataset("./Daten/Breitbandatlas/Raster/")
+
+arrow_dates <- breitband_arrow %>% 
+  distinct(date) %>%
+  arrange(date) %>%
+  collect() %>%
+  pull(date)
+
+for(date in arrow_dates) {
+  print(date)
+  
+  breitband_arrow %>%
+    filter(date == date) %>%
+    collect() %>%
+    #slice_head(n = 10000) %>%
+    left_join(zensus_haushalte_100m, by = join_by(x_mp, y_mp)) %>%
+    mutate(x_mp_1km = floor(x_mp/1000)*1000 + 500,
+           y_mp_1km = floor(y_mp/1000)*1000 + 500) %>%
+    group_by(date, x_mp_1km, y_mp_1km) %>%
+    summarise(across(starts_with("down_"), ~weighted.mean(.x, anzahl_haushalte))) %>%
+    group_by(date) %>%
+    write_dataset("./Daten/Breitbandatlas/Raster_1km/")
+  
+  gc()
+}
+```
