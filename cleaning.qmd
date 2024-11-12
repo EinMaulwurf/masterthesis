@@ -16,6 +16,8 @@ library(sf)
 
 # Zensus Daten
 
+Ich lese hier die Daten vom Zensus auf allen drei Rasterebenen (10km, 1km, 100m) ein und benenne die Koordinaten einheitlich. Danach füge ich eine neue Variable hinzu, welche die Rasterebene anzeigt. Anschließend werden die Daten in einem Arrow Dataset gespeichert und können so wesentlich schneller eingelesen werden.
+
 ```{r}
 # Altersverteilung -----------------------------
 alter_10km <- read_csv2("./Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_10km-Gitter.csv") %>%
@@ -219,7 +221,8 @@ nettokaltmiete_100m <- read_csv2("./Daten/Zensus/Zensus2022_Durchschn_Nettokaltm
          y_mp = y_mp_100m)
 ```
 
-Alle Daten verbinden
+Alle Daten verbinden und neue Variable `typ` hinzufügen.
+
 ```{r}
 zensus_df_list <- list(
   list(alter_10km, alter_1km, alter_100m),
@@ -247,6 +250,8 @@ zensus_final <- zensus_df_list %>%
   }) %>%
   reduce(full_join, by = c("typ", "x_mp", "y_mp"))
 ```
+
+Schreiben als Arrow Dataset
 
 ```{r}
 zensus_final %>%
