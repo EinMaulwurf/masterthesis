@@ -278,15 +278,15 @@ zensus_haushalte_100m <- zensus_arrow %>%
 Jetzt loope ich über alle Zeitpunkte und Variablen. Das ist nötig, weil die Operation sonst zu viel RAM benötigt. Ich lade die Daten des jeweiligen Zeitpunktes und Variable und joine die Anzahl der Haushalte. Ich entferne alle Beobachtungen, bei denen entweder die Anzahl der Haushalte oder der Wert der jeweiligen Variable fehlt. Anschließend wird alles im Long Format in einen Arrow Datensatz geschrieben. Im nächsten Schritt werde ich diesen dann ins Wide Format überführen, dafür müssen aber erst alle Variablen eines Jahres aggregiert worden sein.
 
 ```{r}
-breitband_arrow <- open_dataset("./Daten/Breitbandatlas/Raster/")
+breitband_100m_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_100m/")
 
-arrow_dates <- breitband_arrow %>% 
+arrow_dates <- breitband_100m_arrow %>% 
   distinct(date) %>%
   arrange(date) %>%
   collect() %>%
   pull(date)
 
-arrow_variables <- breitband_arrow %>%
+arrow_variables <- breitband_100m_arrow %>%
   filter(date == 202312) %>%
   slice_sample(n = 1) %>%
   collect() %>%
@@ -303,7 +303,7 @@ for(d in arrow_dates) {
   for(v in arrow_variables) {
     if(counter %% 10 == 0) str_glue("{counter} of {total}") %>% print()
 
-    breitband_arrow %>%
+    breitband_100m_arrow %>%
       filter(date == d) %>%
       select(date, x_mp, y_mp, !!sym(v)) %>%
       collect() %>%
@@ -326,12 +326,12 @@ for(d in arrow_dates) {
 Und jetzt wieder zusammenfügen im Wide Format.
 
 ```{r}
-breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km_long/")
+breitband_1km_long_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km_long/")
 
 for(d in arrow_dates) {
   print(d)
 
-  breitband_1km_arrow %>%
+  breitband_1km_long_arrow %>%
     filter(date == d) %>%
     collect() %>%
     pivot_wider(names_from = name, values_from = value) %>%
@@ -339,5 +339,34 @@ for(d in arrow_dates) {
     group_by(date) %>%
     write_dataset("./Daten/Breitbandatlas/Raster_1km/")
 }
+```
+
+Hier noch ein Vergleich der 100m Daten vs den aggregierten 1km Daten anhand Berlin.
+
+```{r}
+breitband_100m_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_100m/")
+breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
+
+breitband_100m_arrow %>%
+  select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  filter(x_mp %>% between(4531081, 4576579),
+         y_mp %>% between(3254012, 3290626)) %>%
+  collect() %>%
+  st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035) %>%
+  st_buffer(dist = 50, endCapStyle = "SQUARE") %>%
+  ggplot()+
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
+  scale_fill_viridis_c()
+
+breitband_1km_arrow %>%
+  select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  filter(x_mp %>% between(4531081, 4576579),
+         y_mp %>% between(3254012, 3290626)) %>%
+  collect() %>%
+  st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035) %>%
+  st_buffer(dist = 500, endCapStyle = "SQUARE") %>%
+  ggplot()+
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
+  scale_fill_viridis_c()
 ```
 
