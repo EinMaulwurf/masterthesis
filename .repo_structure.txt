@@ -1,0 +1,169 @@
+.
+├── Daten
+│   ├── Berlin_Glasfaser
+│   │   ├── Berlin_Bezirke_Versorgungsdaten_Stand_022024.xlsx
+│   │   ├── Berlin_Bezirke_Versorgungsdaten_Stand_042023.xlsx
+│   │   ├── Berlin_LOR_Versorgungsdaten_Stand_022024.xlsx
+│   │   ├── Berlin_LOR_Versorgungsdaten_Stand_042023.xlsx
+│   │   ├── Berlin_Ortsteile_Versorgungsdaten_Stand_022024.xlsx
+│   │   ├── Berlin_Ortsteile_Versorgungsdaten_Stand_042023.xlsx
+│   │   ├── links.txt
+│   │   └── lor_shp_2021
+│   │       ├── lor_bzr.cpg
+│   │       ├── lor_bzr.dbf
+│   │       ├── lor_bzr.prj
+│   │       ├── lor_bzr.shp
+│   │       ├── lor_bzr.shx
+│   │       ├── lor_pgr.cpg
+│   │       ├── lor_pgr.dbf
+│   │       ├── lor_pgr.prj
+│   │       ├── lor_pgr.shp
+│   │       ├── lor_pgr.shx
+│   │       ├── lor_plr.cpg
+│   │       ├── lor_plr.dbf
+│   │       ├── lor_plr.prj
+│   │       ├── lor_plr.shp
+│   │       └── lor_plr.shx
+│   ├── Breitbandatlas
+│   │   ├── Raster_100m
+│   │   │   ├── date=201812
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=201907
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=201912
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202007
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202012
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202107
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202206
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202212
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202306
+│   │   │   │   └── part-0.parquet
+│   │   │   └── date=202312
+│   │   │       └── part-0.parquet
+│   │   ├── Raster_1km
+│   │   │   ├── date=201812
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=201907
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=201912
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202007
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202012
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202107
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202206
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202212
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202306
+│   │   │   │   └── part-0.parquet
+│   │   │   └── date=202312
+│   │   │       └── part-0.parquet
+│   │   ├── bba_01_2024.xlsx
+│   │   ├── bba_06_2022.xlsx
+│   │   ├── bba_06_2023.xlsx
+│   │   ├── bba_12_2022.xlsx
+│   │   ├── links.txt
+│   │   ├── raster_chunk_1.parquet
+│   │   ├── raster_chunk_10.parquet
+│   │   ├── raster_chunk_11.parquet
+│   │   ├── raster_chunk_12.parquet
+│   │   ├── raster_chunk_13.parquet
+│   │   ├── raster_chunk_14.parquet
+│   │   ├── raster_chunk_15.parquet
+│   │   ├── raster_chunk_16.parquet
+│   │   ├── raster_chunk_17.parquet
+│   │   ├── raster_chunk_18.parquet
+│   │   ├── raster_chunk_19.parquet
+│   │   ├── raster_chunk_2.parquet
+│   │   ├── raster_chunk_20.parquet
+│   │   ├── raster_chunk_21.parquet
+│   │   ├── raster_chunk_22.parquet
+│   │   ├── raster_chunk_23.parquet
+│   │   ├── raster_chunk_3.parquet
+│   │   ├── raster_chunk_4.parquet
+│   │   ├── raster_chunk_5.parquet
+│   │   ├── raster_chunk_6.parquet
+│   │   ├── raster_chunk_7.parquet
+│   │   ├── raster_chunk_8.parquet
+│   │   └── raster_chunk_9.parquet
+│   ├── LAEA_Grid
+│   │   ├── DE_Grid_ETRS89-LAEA_100m.gpkg
+│   │   ├── DE_Grid_ETRS89-LAEA_1km.gpkg
+│   │   ├── geogitter.pdf
+│   │   └── links.txt
+│   └── Zensus
+│       ├── Alter_in_10er-Jahresgruppen
+│       │   ├── Datensatzbeschreibung_Alter_in_10er-Jahresgruppen_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Alter_in_10er-Jahresgruppen_100m-Gitter.csv
+│       │   ├── Zensus2022_Alter_in_10er-Jahresgruppen_10km-Gitter.csv
+│       │   └── Zensus2022_Alter_in_10er-Jahresgruppen_1km-Gitter.csv
+│       ├── Durchschnittliche_Haushaltsgroesse_in_Gitterzellen
+│       │   ├── Datensatzbeschreibung_Durchschnittliche_Haushaltsgroesse_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Durchschn_Haushaltsgroesse_100m-Gitter.csv
+│       │   ├── Zensus2022_Durchschn_Haushaltsgroesse_10km-Gitter.csv
+│       │   └── Zensus2022_Durchschn_Haushaltsgroesse_1km-Gitter.csv
+│       ├── Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen
+│       │   ├── Datensatzbeschreibung_Wohnflaeche_Bewohner_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Durchschn_Flaeche_je_Bewohner_100m-Gitter.csv
+│       │   ├── Zensus2022_Durchschn_Flaeche_je_Bewohner_10km-Gitter.csv
+│       │   └── Zensus2022_Durchschn_Flaeche_je_Bewohner_1km-Gitter.csv
+│       ├── Durchschnittsalter_in_Gitterzellen
+│       │   ├── Datensatzbeschreibung_Durchschnittsalter_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Durchschnittsalter_100m-Gitter.csv
+│       │   ├── Zensus2022_Durchschnittsalter_10km-Gitter.csv
+│       │   └── Zensus2022_Durchschnittsalter_1km-Gitter.csv
+│       ├── Eigentuemerquote_in_Gitterzellen
+│       │   ├── Datensatzbeschreibung_Eigentuemerquote_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Eigentuemerquote_100m-Gitter.csv
+│       │   ├── Zensus2022_Eigentuemerquote_10km-Gitter.csv
+│       │   └── Zensus2022_Eigentuemerquote_1km-Gitter.csv
+│       ├── Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen
+│       │   ├── Datensatzbeschreibung_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_in_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_100m-Gitter.csv
+│       │   ├── Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_10km-Gitter.csv
+│       │   └── Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_1km-Gitter.csv
+│       ├── Gesamt
+│       │   ├── typ=100m
+│       │   │   └── part-0.parquet
+│       │   ├── typ=10km
+│       │   │   └── part-0.parquet
+│       │   └── typ=1km
+│       │       └── part-0.parquet
+│       ├── Leerstandsquote_in_Gitterzellen
+│       │   ├── Datensatzbeschreibung_Leerstandsquote_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Leerstandsquote_100m-Gitter.csv
+│       │   ├── Zensus2022_Leerstandsquote_10km-Gitter.csv
+│       │   └── Zensus2022_Leerstandsquote_1km-Gitter.csv
+│       ├── Zensus2022_Bevoelkerungszahl
+│       │   ├── Datensatzbeschreibung_Bevoelkerungszahl_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Bevoelkerungszahl_100m-Gitter.csv
+│       │   ├── Zensus2022_Bevoelkerungszahl_10km-Gitter.csv
+│       │   └── Zensus2022_Bevoelkerungszahl_1km-Gitter.csv
+│       ├── Zensus2022_Durchschn_Nettokaltmiete
+│       │   ├── Datensatzbeschreibung_Durchschn_Nettokaltmiete_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Durchschn_Nettokaltmiete_100m-Gitter.csv
+│       │   ├── Zensus2022_Durchschn_Nettokaltmiete_10km-Gitter.csv
+│       │   └── Zensus2022_Durchschn_Nettokaltmiete_1km-Gitter.csv
+│       └── links.txt
+├── Literatur
+│   └── 220822_Project_Broadband_and_Real_Estate_Draft_compressed.pdf
+├── Masterthesis.Rproj
+├── Output
+│   ├── plot_de_glasfaser_100m.pdf
+│   └── plot_de_glasfaser_1km.pdf
+├── README.md
+├── auswertung.qmd
+├── cleaning.qmd
+├── exploration.qmd
+└── scraping.qmd
+
+44 directories, 123 files
