@@ -11,8 +11,9 @@ format: html
 
 library(tidyverse)
 library(sf)
-library(sfheaders)
+#library(sfheaders)
 library(arrow)
+library(duckdb)
 ```
 
 # Loading Data
@@ -31,7 +32,6 @@ hamburg <- gemeinden %>%
   slice_max(area, n = 1) %>%
   st_cast("MULTIPOLYGON")
 ```
-
 
 ## Breitbandatlas
 
@@ -68,10 +68,18 @@ breitband_glasfaser_berlin <- get_breitband_stadt("Berlin", variables = down_fn_
 ## Zensusdaten
 
 ```{r}
-einwohner <- read_csv2("./Daten/Zensus/Zensus2022_Bevoelkerungszahl/Zensus2022_Bevoelkerungszahl_100m-Gitter.csv",
-                       col_select = c(x_mp_100m, y_mp_100m, einwohner = Einwohner))
+zensus_arrow <- open_dataset("./Daten/Zensus/Gesamt/")
 
+zensus_beispiel <- zensus_arrow %>%
+  filter(typ == "100m") %>%
+  select(x_mp, y_mp, insgesamt_bevoelkerung, durchschnittsalter, eigentuemerquote, durchschn_miete_qm) %>%
+  collect()
 
+zensus_einwohner_100m <- zensus_arrow %>%
+  filter(typ == "100m") %>%
+  select(x_mp, y_mp, durchschn_hh_groesse, insgesamt_bevoelkerung) %>%
+  mutate(anzahl_haushalte = insgesamt_bevoelkerung / durchschn_hh_groesse) %>%
+  collect()
 ```
 
 ## LAEA Grid
@@ -92,8 +100,9 @@ make_laea_grid <- function(obj, size = 100) {
   st_make_grid(obj, cellsize = size, offset = c(obj_offset_x, obj_offset_y))
 }
 
+# Beispiel
 darmstadt %>%
-  make_laea_grid() %>%
+  make_laea_grid(size = 1000) %>%
   ggplot()+
   geom_sf()+
   geom_sf(data = darmstadt, fill = NA)
@@ -107,11 +116,7 @@ add_laea_grid <- function(obj, size = 100, x_mp = "x_mp", y_mp = "y_mp") {
     st_buffer(dist = size/2, endCapStyle = "SQUARE")
 }
 
-breitband_2023_glasfaser_darmstadt <- breitband_2023_glasfaser %>%
-  filter(x_mp %>% between(st_bbox(darmstadt)["xmin"], st_bbox(darmstadt)["xmax"]),
-         y_mp %>% between(st_bbox(darmstadt)["ymin"], st_bbox(darmstadt)["ymax"]))
-
-breitband_2023_glasfaser_darmstadt %>%
+get_breitband_stadt("Darmstadt", variables = down_fn_hh_ftthb_1000) %>%
   add_laea_grid() %>%
   ggplot()+
   geom_sf(aes(fill = down_fn_hh_ftthb_1000))
@@ -141,6 +146,46 @@ breitband_2023_glasfaser_1km %>%
   geom_sf(data = berlin, fill = NA, color = "red")
 ```
 
+```{r}
+breitband_2023_glasfaser_1km <- breitband_2023_glasfaser %>%
+  left_join(zensus_einwohner_100m, by = join_by(x_mp, y_mp)) %>%
+  mutate(x_mp_1km = floor(x_mp/1000)*1000 + 500,
+         y_mp_1km = floor(y_mp/1000)*1000 + 500) %>%
+  drop_na(down_fn_hh_ftthb_1000, anzahl_haushalte) %>%
+  group_by(date, x_mp_1km, y_mp_1km) %>%
+  summarise(down_fn_hh_ftthb_1000 = weighted.mean(down_fn_hh_ftthb_1000, anzahl_haushalte)) %>%
+  ungroup() %>%
+  rename(x_mp = x_mp_1km,
+         y_mp = y_mp_1km)
+
+breitband_2023_glasfaser_1km %>%
+  add_laea_grid(size = 1000) %>%
+  filter(st_intersects(., berlin, sparse = FALSE)[,1]) %>%
+  ggplot()+
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
+  scale_fill_viridis_c()
+
+breitband_2023_glasfaser %>%
+  add_laea_grid(size = 100) %>%
+  filter(st_intersects(., berlin, sparse = FALSE)[,1]) %>%
+  ggplot()+
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
+  scale_fill_viridis_c()
+```
+
+```{r}
+open_dataset("./Daten/Breitbandatlas/Raster_1km/") %>%
+  filter(date == 202312) %>%
+  select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  collect() %>%
+  add_laea_grid(size = 1000) %>%
+  filter(st_intersects(., berlin, sparse = FALSE)[,1]) %>%
+  ggplot()+
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
+  scale_fill_viridis_c()
+```
+
+
 # Plots
 
 ```{r}
@@ -166,13 +211,55 @@ get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000) %>%
   theme_void()
 ```
 
+Ganz Deutschland mit 1km Quadraten
+```{r}
+p <- open_dataset("./Daten/Breitbandatlas/Raster_1km_NEU/") %>%
+  filter(date == 202312,
+         name == "down_fn_hh_ftthb_1000") %>%
+  collect() %>%
+  pivot_wider(names_from = name, values_from = value) %>%
+  add_laea_grid(size = 1000) %>%
+  #filter(st_intersects(., berlin, sparse = FALSE)[,1]) %>%
+  ggplot()+
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
+  scale_fill_viridis_c()+
+  theme_void()+
+  theme(legend.position = "none")
+
+ggsave("./Output/plot_de_glasfaser_1km.pdf", plot = p, width = 10, height = 20)
+```
+
+
 # Regression
 
 Regression um Anteil Glasfaser durch die Zensus Daten zu erklären
 
 ```{r}
-breitband_2023_glasfaser
+# Bestimmte Stadt
+get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000) %>%
+  filter(date %in% c(202312, 202206)) %>%
+  arrange(x_mp, y_mp, date) %>%
+  group_by(x_mp, y_mp) %>%
+  mutate(delta = down_fn_hh_ftthb_1000 - lag(down_fn_hh_ftthb_1000, n = 1)) %>%
+  ungroup() %>%
+  filter(date == 202312) %>%
+  left_join(zensus_beispiel, by = join_by(x_mp, y_mp)) %>%
+  lm(delta ~ insgesamt_bevoelkerung + durchschnittsalter + eigentuemerquote + durchschn_miete_qm, data = .) %>%
+  summary()
 
-
+# Ganz Deutschland
+breitband_arrow %>%
+  select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  filter(date %in% c(202312, 202206)) %>%
+  arrange(x_mp, y_mp, date) %>%
+  to_duckdb() %>%
+  group_by(x_mp, y_mp) %>%
+  mutate(delta = down_fn_hh_ftthb_1000 - lag(down_fn_hh_ftthb_1000, n = 1)) %>%
+  ungroup() %>%
+  filter(date == 202312) %>%
+  collect() %>%
+  left_join(zensus_beispiel, by = join_by(x_mp, y_mp)) %>%
+  lm(delta ~ insgesamt_bevoelkerung + durchschnittsalter + eigentuemerquote + durchschn_miete_qm, data = .) %>%
+  summary()
 ```
 
