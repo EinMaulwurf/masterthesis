@@ -33,6 +33,8 @@ Um Daten für verschiedene Jahre zu erhalten, kann der `festnetz_XXX` Teil angep
 
 Im folgenden wird eine Funktion für die API abfrage definiert. Input ist eine Gitterzelle, bzw. die Koordinaten der Eckpunkt (xmin, xmax, ymin, ymax) als Liste. Die Funktion gibt dann ein Dataframe mit den Daten für diese Zelle für alle Jahre zurück. Alle Koordinaten sind im EPSG:3035 System.
 
+**Achtung:** Bis einschließlich 07.2021 sind die Daten auf einem 200m Raster!
+
 ```{r}
 # Base request template
 base_req <- request("https://buergerplattform-prod2.production.netzda-mig.org") %>%
@@ -170,7 +172,7 @@ for(d in unname(dates)) {
            y_mp = floor(y_mp / 100) * 100 + 50) %>%
     distinct() %>%
     group_by(date) %>%
-    write_dataset("./Daten/Breitbandatlas/Raster")
+    write_dataset("./Daten/Breitbandatlas/Raster_100m")
     
     gc()
 }
@@ -181,7 +183,7 @@ for(d in unname(dates)) {
 Der Datensatz kann jetzt wie folgt verwendet werden (beachte, dass die `date` Variable jetzt numeric ist):
 
 ```{r}
-final_result <- open_dataset("./Daten/Breitbandatlas/Raster/")
+final_result <- open_dataset("./Daten/Breitbandatlas/Raster_100m/")
 
 final_result %>%
   group_by(date) %>%
