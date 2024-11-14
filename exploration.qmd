@@ -24,15 +24,20 @@ library(duckdb)
 deutschland <- giscoR::gisco_get_countries(epsg = "3035", country = "DE", resolution = "10")
 bundesländer <- giscoR::gisco_get_nuts(epsg = "3035", country = "DE", nuts_level = 1, resolution = "10")
 gemeinden <- giscoR::gisco_get_communes(epsg = "3035", country = "DE")
-darmstadt <- gemeinden %>% filter(COMM_NAME == "Darmstadt")
-berlin <- gemeinden %>% filter(COMM_NAME == "Berlin")
-# Hamburg hat zwei Exklaven die ich hier entferne
-hamburg <- gemeinden %>% 
-  filter(COMM_NAME == "Hamburg") %>%
-  st_cast("POLYGON") %>%
-  mutate(area = st_area(.)) %>%
-  slice_max(area, n = 1) %>%
-  st_cast("MULTIPOLYGON")
+
+# z.B. Hamburg hat zwei Exklaven die ich hier entferne
+get_stadt <- function(stadt) {
+  gemeinden %>% 
+    filter(COMM_NAME == stadt) %>%
+    st_cast("POLYGON") %>%
+    mutate(area = st_area(.)) %>%
+    slice_max(area, n = 1) %>%
+    st_cast("MULTIPOLYGON")
+}
+
+darmstadt <- get_stadt("Darmstadt")
+berlin <- get_stadt("Berlin")
+hamburg <- get_stadt("Hamburg")
 ```
 
 ## Breitbandatlas
@@ -110,8 +115,8 @@ add_laea_grid <- function(obj, size = 100, x_mp = "x_mp", y_mp = "y_mp") {
     st_buffer(dist = size/2, endCapStyle = "SQUARE")
 }
 
-get_breitband_stadt("Darmstadt", variables = down_fn_hh_ftthb_1000) %>%
-  add_laea_grid() %>%
+get_breitband_stadt("Darmstadt", size = "1km", variables = down_fn_hh_ftthb_1000) %>%
+  add_laea_grid(size = 1000) %>%
   ggplot()+
   geom_sf(aes(fill = down_fn_hh_ftthb_1000))
 ```
@@ -159,6 +164,35 @@ p <- breitband_1km_arrow %>%
 ggsave("./Output/plot_de_glasfaser_1km.pdf", plot = p, width = 10, height = 20)
 ```
 
+Vergleich über Jahre. Hier habe ich festgestellt, dass bis einschließlich 07.2021 ein 200m Raster verwendet wird.
+```{r}
+stadt <- "Darmstadt"
+
+breitband_dates <- get_breitband_stadt(stadt, size = "100m", variables = down_fn_hh_ftthb_1000) %>%
+  distinct(date) %>%
+  arrange(date) %>%
+  pull()
+
+for(d in breitband_dates) {
+  print(d)
+  
+  p <- get_breitband_stadt(stadt, size = "100m", variables = down_fn_hh_ftthb_1000) %>%
+    filter(date == d) %>%
+    add_laea_grid(size = 100) %>%
+    ggplot()+
+    geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
+    geom_sf(data = get_stadt(stadt), fill = NA, color = "black", linewidth = .5)+
+    #geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5)+
+    #geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2)+
+    scale_fill_viridis_c()+
+    theme_void()+
+    theme(legend.position = "none")
+  
+  ggsave(str_glue("./Output/{str_to_lower(stadt)}_animation/{str_to_lower(stadt)}_glasfaser_100m_{d}.jpg"), plot = p, width = 5, height = 5, create.dir = TRUE)
+}
+```
+
+
 # Summary Statistics
 
 Breitbanddaten
@@ -166,7 +200,7 @@ Breitbanddaten
 breitband_1km_arrow %>%
   select(date, down_fn_hh_ftthb_1000) %>%
   collect() %>%
-  mutate(down_fn_hh_ftthb_1000 = round(down_fn_hh_ftthb_1000, 2)) %>%
+  #mutate(down_fn_hh_ftthb_1000 = round(down_fn_hh_ftthb_1000, 2)) %>%
   group_by(date) %>%
   summarise(n = n(),
             share_0 = mean(down_fn_hh_ftthb_1000 == 0),
