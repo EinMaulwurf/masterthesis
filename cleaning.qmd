@@ -315,6 +315,7 @@ for(d in arrow_dates) {
       summarise(!!v := weighted.mean(!!sym(v), anzahl_haushalte), .groups = "drop") %>%
       rename(x_mp = x_mp_1km, y_mp = y_mp_1km) %>%
       pivot_longer(cols = all_of(v)) %>%
+      mutate(value = round(value, 2)) %>%
       group_by(date, name) %>%
       write_dataset("./Daten/Breitbandatlas/Raster_1km_long/")
 
