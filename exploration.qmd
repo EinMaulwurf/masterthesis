@@ -21,6 +21,8 @@ library(duckdb)
 ## Geodaten von Gisco
 
 ```{r}
+deutschland <- giscoR::gisco_get_countries(epsg = "3035", country = "DE", resolution = "10")
+bundesländer <- giscoR::gisco_get_nuts(epsg = "3035", country = "DE", nuts_level = 1, resolution = "10")
 gemeinden <- giscoR::gisco_get_communes(epsg = "3035", country = "DE")
 darmstadt <- gemeinden %>% filter(COMM_NAME == "Darmstadt")
 berlin <- gemeinden %>% filter(COMM_NAME == "Berlin")
@@ -72,17 +74,6 @@ breitband_glasfaser_berlin <- get_breitband_stadt("Berlin", size = "100m", varia
 
 ```{r}
 zensus_arrow <- open_dataset("./Daten/Zensus/Gesamt/")
-
-zensus_beispiel <- zensus_arrow %>%
-  filter(typ == "100m") %>%
-  select(x_mp, y_mp, insgesamt_bevoelkerung, durchschnittsalter, eigentuemerquote, durchschn_miete_qm) %>%
-  collect()
-
-zensus_einwohner_100m <- zensus_arrow %>%
-  filter(typ == "100m") %>%
-  select(x_mp, y_mp, durchschn_hh_groesse, insgesamt_bevoelkerung) %>%
-  mutate(anzahl_haushalte = insgesamt_bevoelkerung / durchschn_hh_groesse) %>%
-  collect()
 ```
 
 ## LAEA Grid
@@ -159,6 +150,8 @@ p <- breitband_1km_arrow %>%
   add_laea_grid(size = 1000) %>%
   ggplot()+
   geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
+  geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5)+
+  geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2)+
   scale_fill_viridis_c()+
   theme_void()+
   theme(legend.position = "none")
@@ -166,11 +159,49 @@ p <- breitband_1km_arrow %>%
 ggsave("./Output/plot_de_glasfaser_1km.pdf", plot = p, width = 10, height = 20)
 ```
 
-# Regression
+# Summary Statistics
 
-Regression um Anteil Glasfaser durch die Zensus Daten zu erklären
+Breitbanddaten
+```{r}
+breitband_1km_arrow %>%
+  select(date, down_fn_hh_ftthb_1000) %>%
+  collect() %>%
+  mutate(down_fn_hh_ftthb_1000 = round(down_fn_hh_ftthb_1000, 2)) %>%
+  group_by(date) %>%
+  summarise(n = n(),
+            share_0 = mean(down_fn_hh_ftthb_1000 == 0),
+            share_100 = mean(down_fn_hh_ftthb_1000 == 100),
+            mean = mean(down_fn_hh_ftthb_1000),
+            pct_25 = quantile(down_fn_hh_ftthb_1000, 0.25),
+            pct_50 = quantile(down_fn_hh_ftthb_1000, 0.50),
+            pct_75 = quantile(down_fn_hh_ftthb_1000, 0.75))
+```
 
 ```{r}
+breitband_1km_arrow %>%
+  select(date, down_fn_hh_ftthb_1000) %>%
+  collect() %>%
+  ggplot(aes(x = as.factor(date), y = down_fn_hh_ftthb_1000, group = as.factor(date)))+
+  geom_violin()
+
+breitband_1km_arrow %>%
+  select(date, down_fn_hh_ftthb_1000) %>%
+  collect() %>%
+  ggplot(aes(x = down_fn_hh_ftthb_1000))+
+  geom_histogram(bins = 50)
+```
+
+
+# Regression
+
+Regression um Anteil Glasfaser durch die Zensus Daten zu erklären. Problem: Die Residuen sind nicht annähernd normalverteilt. Eventuell sollte ich die Daten also als 0/1 modellieren und mit Logistischen Regressionen versuchen.
+
+```{r}
+zensus_100m_regression <- zensus_arrow %>%
+  filter(typ == "100m") %>%
+  select(x_mp, y_mp, insgesamt_bevoelkerung, durchschnittsalter, eigentuemerquote, durchschn_miete_qm) %>%
+  collect()
+
 # Bestimmte Stadt
 get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000) %>%
   filter(date %in% c(202312, 202206)) %>%
@@ -179,12 +210,12 @@ get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000) %>%
   mutate(delta = down_fn_hh_ftthb_1000 - lag(down_fn_hh_ftthb_1000, n = 1)) %>%
   ungroup() %>%
   filter(date == 202312) %>%
-  left_join(zensus_beispiel, by = join_by(x_mp, y_mp)) %>%
+  left_join(zensus_100m_regression, by = join_by(x_mp, y_mp)) %>%
   lm(delta ~ insgesamt_bevoelkerung + durchschnittsalter + eigentuemerquote + durchschn_miete_qm, data = .) %>%
   summary()
 
 # Ganz Deutschland
-breitband_100m_arrow %>%
+mod1 <- breitband_100m_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
   filter(date %in% c(202312, 202206)) %>%
   arrange(x_mp, y_mp, date) %>%
@@ -194,8 +225,64 @@ breitband_100m_arrow %>%
   ungroup() %>%
   filter(date == 202312) %>%
   collect() %>%
-  left_join(zensus_beispiel, by = join_by(x_mp, y_mp)) %>%
-  lm(delta ~ insgesamt_bevoelkerung + durchschnittsalter + eigentuemerquote + durchschn_miete_qm, data = .) %>%
-  summary()
+  left_join(zensus_100m_regression, by = join_by(x_mp, y_mp)) %>%
+  lm(delta ~ insgesamt_bevoelkerung + durchschnittsalter + eigentuemerquote + durchschn_miete_qm, data = .)
+
+summary(mod1)
+mod1$residuals %>% density() %>% plot()
+```
+
+```{r}
+test <- breitband_100m_arrow %>%
+  select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  filter(date %in% c(202312, 202206)) %>%
+  mutate(has_fiber = case_when(down_fn_hh_ftthb_1000 < 5 ~ FALSE,
+                               down_fn_hh_ftthb_1000 > 95 ~ TRUE,
+                               TRUE ~ NA)) %>%
+  filter(!is.na(has_fiber)) %>%
+  collect()
+
+test %>%
+  arrange(x_mp, y_mp, date) %>%
+  group_by(x_mp, y_mp) %>%
+  #mutate(got_fiber = has_fiber - lag(has_fiber))
+  mutate(got_fiber = if_else(has_fiber - lag(has_fiber) == 1, TRUE, FALSE))
+```
+
+```{r}
+test_got_fiber <- breitband_100m_arrow %>%
+  select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  filter(date %in% c(202312, 202206)) %>%
+  to_duckdb() %>%
+  mutate(has_fiber = case_when(down_fn_hh_ftthb_1000 < 5 ~ 0,
+                               down_fn_hh_ftthb_1000 > 95 ~ 1,
+                               TRUE ~ NA)) %>%
+  filter(!is.na(has_fiber)) %>%
+  arrange(x_mp, y_mp, date) %>%
+  group_by(x_mp, y_mp) %>%
+  mutate(got_fiber = has_fiber - lag(has_fiber)) %>%
+  #mutate(got_fiber = if_else(got_fiber == 1, TRUE, FALSE)) %>%
+  #mutate(got_fiber = if_else(has_fiber - lag(has_fiber) == 1, TRUE, FALSE)) %>%
+  ungroup() %>%
+  filter(date == 202312) %>%
+  filter(!is.na(got_fiber)) %>%
+  collect()
+
+mod2 <- test_got_fiber %>%
+  mutate(got_fiber = if_else(got_fiber == 1, TRUE, FALSE),
+         has_fiber = if_else(has_fiber == 1, TRUE, FALSE)) %>%
+  left_join(zensus_100m_regression, by = join_by(x_mp, y_mp)) %>%
+  glm(got_fiber ~ insgesamt_bevoelkerung + durchschnittsalter + eigentuemerquote + durchschn_miete_qm, data = .,
+      family = binomial())
+  
+summary(mod2)
+mod2$residuals %>% density() %>% plot()
+
+test_got_fiber %>%
+  left_join(zensus_100m_regression, by = join_by(x_mp, y_mp)) %>%
+  slice_sample(n = 10000) %>%
+  ggplot(aes(x = durchschn_miete_qm, y = has_fiber))+
+  geom_point(size = 1, alpha = .01)+
+  scale_x_log10()
 ```
 
