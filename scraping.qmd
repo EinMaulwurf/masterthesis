@@ -33,7 +33,7 @@ Um Daten für verschiedene Jahre zu erhalten, kann der `festnetz_XXX` Teil angep
 
 Im folgenden wird eine Funktion für die API abfrage definiert. Input ist eine Gitterzelle, bzw. die Koordinaten der Eckpunkt (xmin, xmax, ymin, ymax) als Liste. Die Funktion gibt dann ein Dataframe mit den Daten für diese Zelle für alle Jahre zurück. Alle Koordinaten sind im EPSG:3035 System.
 
-**Achtung:** Bis einschließlich 07.2021 sind die Daten auf einem 200m Raster!
+**Achtung:** Bis einschließlich 07.2021 sind die Daten auf einem 250m Raster!
 
 ```{r}
 # Base request template
@@ -147,18 +147,20 @@ for(i in seq_along(grid_chunks)) {
   
   chunk_result <- future_map(grid_chunks[[i]], fetch_api, .progress = TRUE) %>% list_rbind()
   
-  write_parquet(chunk_result, str_glue("./Daten/Breitbandatlas/raster_chunk_{i}.parquet"))
+  write_parquet(chunk_result, str_glue("./Daten/Breitbandatlas/Rohdaten/raster_chunk_{i}.parquet"))
   rm(chunk_result)
   gc()
 }
 plan(sequential)
 ```
 
+# Bereinigen
+
 Nun werden die Daten noch von Duplikaten bereinigt und als gruppierten Arrow-Dataset abgespeichert.
 Ich benutze einen Foor-Loop, weil der Datensatz zu groß ist um komplett in RAM zu passen. Daher suche ich in jedem Jahr einzeln nach Duplikaten. Den Mittelpunkt jeder Gitterzelle runde ich auf 50 um die Zellen am LAEA Grid auszurichten.
 
 ```{r}
-dataset_old <- list.files(path = "./Daten/Breitbandatlas", 
+dataset_old <- list.files(path = "./Daten/Breitbandatlas/Rohdaten", 
                            pattern = "raster_chunk_.*\\.parquet", 
                            full.names = TRUE) %>%
     open_dataset()
@@ -168,9 +170,12 @@ for(d in unname(dates)) {
   
   dataset_old %>%
     filter(date == d) %>%
-    mutate(x_mp = floor(x_mp / 100) * 100 + 50,
-           y_mp = floor(y_mp / 100) * 100 + 50) %>%
+    rename(x_mp_raw = x_mp,
+           y_mp_raw = y_mp) %>%
+    mutate(x_mp = floor(x_mp_raw / 100) * 100 + 50,
+           y_mp = floor(y_mp_raw / 100) * 100 + 50) %>%
     distinct() %>%
+    select(date, x_mp, y_mp, x_mp_raw, y_mp_raw, everything()) %>%
     group_by(date) %>%
     write_dataset("./Daten/Breitbandatlas/Raster_100m")
     
