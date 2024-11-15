@@ -14,6 +14,7 @@ library(sf)
 #library(sfheaders)
 library(arrow)
 library(duckdb)
+library(leaflet)
 ```
 
 # Loading Data
@@ -116,9 +117,11 @@ add_laea_grid <- function(obj, size = 100, x_mp = "x_mp", y_mp = "y_mp") {
 }
 
 get_breitband_stadt("Darmstadt", size = "1km", variables = down_fn_hh_ftthb_1000) %>%
+  filter(date == 202312) %>%
   add_laea_grid(size = 1000) %>%
   ggplot()+
-  geom_sf(aes(fill = down_fn_hh_ftthb_1000))
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
+  scale_fill_viridis_c()
 ```
 
 # Plots
@@ -164,7 +167,7 @@ p <- breitband_1km_arrow %>%
 ggsave("./Output/plot_de_glasfaser_1km.pdf", plot = p, width = 10, height = 20)
 ```
 
-Vergleich über Jahre. Hier habe ich festgestellt, dass bis einschließlich 07.2021 ein 200m Raster verwendet wird.
+Vergleich über Jahre. Hier habe ich festgestellt, dass bis einschließlich 07.2021 ein 250m Raster verwendet wird.
 ```{r}
 stadt <- "Darmstadt"
 
@@ -184,12 +187,31 @@ for(d in breitband_dates) {
     geom_sf(data = get_stadt(stadt), fill = NA, color = "black", linewidth = .5)+
     #geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5)+
     #geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2)+
-    scale_fill_viridis_c()+
+    scale_fill_viridis_c(limits = c(0, 100))+
     theme_void()+
     theme(legend.position = "none")
   
   ggsave(str_glue("./Output/{str_to_lower(stadt)}_animation/{str_to_lower(stadt)}_glasfaser_100m_{d}.jpg"), plot = p, width = 5, height = 5, create.dir = TRUE)
 }
+```
+
+# Karte mit Leaflet
+
+```{r}
+data_leaflet <- get_breitband_stadt("Darmstadt", variables = down_fn_hh_ftthb_1000) %>%
+  filter(date == 202312) %>%
+  add_laea_grid() %>%
+  st_transform(4326)
+
+# Create a continuous palette function
+pal <- colorNumeric(
+  palette = "viridis",
+  domain = data_leaflet$down_fn_hh_ftthb_1000)
+
+data_leaflet %>%
+  leaflet() %>%
+  addTiles() %>%
+  addPolygons(stroke = FALSE, fillOpacity = .5, color = ~ pal(down_fn_hh_ftthb_1000))
 ```
 
 
