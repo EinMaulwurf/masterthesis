@@ -167,3 +167,1216 @@
 └── scraping.qmd
 
 44 directories, 123 files
+.
+├── Daten
+│   ├── Berlin_Glasfaser
+│   │   ├── Berlin_Bezirke_Versorgungsdaten_Stand_022024.xlsx
+│   │   ├── Berlin_Bezirke_Versorgungsdaten_Stand_042023.xlsx
+│   │   ├── Berlin_LOR_Versorgungsdaten_Stand_022024.xlsx
+│   │   ├── Berlin_LOR_Versorgungsdaten_Stand_042023.xlsx
+│   │   ├── Berlin_Ortsteile_Versorgungsdaten_Stand_022024.xlsx
+│   │   ├── Berlin_Ortsteile_Versorgungsdaten_Stand_042023.xlsx
+│   │   ├── links.txt
+│   │   └── lor_shp_2021
+│   │       ├── lor_bzr.cpg
+│   │       ├── lor_bzr.dbf
+│   │       ├── lor_bzr.prj
+│   │       ├── lor_bzr.shp
+│   │       ├── lor_bzr.shx
+│   │       ├── lor_pgr.cpg
+│   │       ├── lor_pgr.dbf
+│   │       ├── lor_pgr.prj
+│   │       ├── lor_pgr.shp
+│   │       ├── lor_pgr.shx
+│   │       ├── lor_plr.cpg
+│   │       ├── lor_plr.dbf
+│   │       ├── lor_plr.prj
+│   │       ├── lor_plr.shp
+│   │       └── lor_plr.shx
+│   ├── Breitbandatlas
+│   │   ├── Raster_100m
+│   │   │   ├── date=201812
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=201907
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=201912
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202007
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202012
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202107
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202206
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202212
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202306
+│   │   │   │   └── part-0.parquet
+│   │   │   └── date=202312
+│   │   │       └── part-0.parquet
+│   │   ├── Raster_1km
+│   │   │   ├── date=201812
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=201907
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=201912
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202007
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202012
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202107
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202206
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202212
+│   │   │   │   └── part-0.parquet
+│   │   │   ├── date=202306
+│   │   │   │   └── part-0.parquet
+│   │   │   └── date=202312
+│   │   │       └── part-0.parquet
+│   │   ├── Raster_1km_long
+│   │   │   ├── date=201812
+│   │   │   │   ├── name=down_fn_hh_alle_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   └── name=down_fn_hh_sonst_16
+│   │   │   │       └── part-0.parquet
+│   │   │   ├── date=201907
+│   │   │   │   ├── name=down_fn_hh_alle_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   └── name=down_fn_hh_sonst_16
+│   │   │   │       └── part-0.parquet
+│   │   │   ├── date=201912
+│   │   │   │   ├── name=down_fn_hh_alle_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   └── name=down_fn_hh_sonst_16
+│   │   │   │       └── part-0.parquet
+│   │   │   ├── date=202007
+│   │   │   │   ├── name=down_fn_hh_alle_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   └── name=down_fn_hh_sonst_16
+│   │   │   │       └── part-0.parquet
+│   │   │   ├── date=202012
+│   │   │   │   ├── name=down_fn_hh_alle_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   └── name=down_fn_hh_sonst_16
+│   │   │   │       └── part-0.parquet
+│   │   │   ├── date=202107
+│   │   │   │   ├── name=down_fn_hh_alle_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   └── name=down_fn_hh_sonst_16
+│   │   │   │       └── part-0.parquet
+│   │   │   ├── date=202206
+│   │   │   │   ├── name=down_fn_hh_alle_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   └── name=down_fn_hh_sonst_50
+│   │   │   │       └── part-0.parquet
+│   │   │   ├── date=202212
+│   │   │   │   ├── name=down_fn_hh_alle_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   └── name=down_fn_hh_sonst_50
+│   │   │   │       └── part-0.parquet
+│   │   │   ├── date=202306
+│   │   │   │   ├── name=down_fn_hh_alle_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_alle_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttb_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_fttc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftth_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_ftthb_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_hfc_50
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_10
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_100
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_1000
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_16
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_200
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_30
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   ├── name=down_fn_hh_sonst_400
+│   │   │   │   │   └── part-0.parquet
+│   │   │   │   └── name=down_fn_hh_sonst_50
+│   │   │   │       └── part-0.parquet
+│   │   │   └── date=202312
+│   │   │       ├── name=down_fn_hh_alle_10
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_alle_100
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_alle_1000
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_alle_16
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_alle_200
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_alle_30
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_alle_400
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_alle_50
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttb_10
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttb_100
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttb_1000
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttb_16
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttb_200
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttb_30
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttb_400
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttb_50
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttc_10
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttc_100
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttc_1000
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttc_16
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttc_200
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttc_30
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttc_400
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_fttc_50
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftth_10
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftth_100
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftth_1000
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftth_16
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftth_200
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftth_30
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftth_400
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftth_50
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftthb_10
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftthb_100
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftthb_1000
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftthb_16
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftthb_200
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftthb_30
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftthb_400
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_ftthb_50
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_hfc_10
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_hfc_100
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_hfc_1000
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_hfc_16
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_hfc_200
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_hfc_30
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_hfc_400
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_hfc_50
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_sonst_10
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_sonst_100
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_sonst_1000
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_sonst_16
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_sonst_200
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_sonst_30
+│   │   │       │   └── part-0.parquet
+│   │   │       ├── name=down_fn_hh_sonst_400
+│   │   │       │   └── part-0.parquet
+│   │   │       └── name=down_fn_hh_sonst_50
+│   │   │           └── part-0.parquet
+│   │   ├── Rohdaten
+│   │   │   ├── raster_chunk_1.parquet
+│   │   │   ├── raster_chunk_10.parquet
+│   │   │   ├── raster_chunk_11.parquet
+│   │   │   ├── raster_chunk_12.parquet
+│   │   │   ├── raster_chunk_13.parquet
+│   │   │   ├── raster_chunk_14.parquet
+│   │   │   ├── raster_chunk_15.parquet
+│   │   │   ├── raster_chunk_16.parquet
+│   │   │   ├── raster_chunk_17.parquet
+│   │   │   ├── raster_chunk_18.parquet
+│   │   │   ├── raster_chunk_19.parquet
+│   │   │   ├── raster_chunk_2.parquet
+│   │   │   ├── raster_chunk_20.parquet
+│   │   │   ├── raster_chunk_21.parquet
+│   │   │   ├── raster_chunk_22.parquet
+│   │   │   ├── raster_chunk_23.parquet
+│   │   │   ├── raster_chunk_24.parquet
+│   │   │   ├── raster_chunk_25.parquet
+│   │   │   ├── raster_chunk_26.parquet
+│   │   │   ├── raster_chunk_27.parquet
+│   │   │   ├── raster_chunk_28.parquet
+│   │   │   ├── raster_chunk_29.parquet
+│   │   │   ├── raster_chunk_3.parquet
+│   │   │   ├── raster_chunk_30.parquet
+│   │   │   ├── raster_chunk_31.parquet
+│   │   │   ├── raster_chunk_32.parquet
+│   │   │   ├── raster_chunk_4.parquet
+│   │   │   ├── raster_chunk_5.parquet
+│   │   │   ├── raster_chunk_6.parquet
+│   │   │   ├── raster_chunk_7.parquet
+│   │   │   ├── raster_chunk_8.parquet
+│   │   │   └── raster_chunk_9.parquet
+│   │   ├── bba_01_2024.xlsx
+│   │   ├── bba_06_2022.xlsx
+│   │   ├── bba_06_2023.xlsx
+│   │   ├── bba_12_2022.xlsx
+│   │   └── links.txt
+│   ├── LAEA_Grid
+│   │   ├── DE_Grid_ETRS89-LAEA_1km.gpkg
+│   │   ├── geogitter.pdf
+│   │   └── links.txt
+│   └── Zensus
+│       ├── Alter_in_10er-Jahresgruppen
+│       │   ├── Datensatzbeschreibung_Alter_in_10er-Jahresgruppen_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Alter_in_10er-Jahresgruppen_100m-Gitter.csv
+│       │   ├── Zensus2022_Alter_in_10er-Jahresgruppen_10km-Gitter.csv
+│       │   └── Zensus2022_Alter_in_10er-Jahresgruppen_1km-Gitter.csv
+│       ├── Durchschnittliche_Haushaltsgroesse_in_Gitterzellen
+│       │   ├── Datensatzbeschreibung_Durchschnittliche_Haushaltsgroesse_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Durchschn_Haushaltsgroesse_100m-Gitter.csv
+│       │   ├── Zensus2022_Durchschn_Haushaltsgroesse_10km-Gitter.csv
+│       │   └── Zensus2022_Durchschn_Haushaltsgroesse_1km-Gitter.csv
+│       ├── Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen
+│       │   ├── Datensatzbeschreibung_Wohnflaeche_Bewohner_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Durchschn_Flaeche_je_Bewohner_100m-Gitter.csv
+│       │   ├── Zensus2022_Durchschn_Flaeche_je_Bewohner_10km-Gitter.csv
+│       │   └── Zensus2022_Durchschn_Flaeche_je_Bewohner_1km-Gitter.csv
+│       ├── Durchschnittsalter_in_Gitterzellen
+│       │   ├── Datensatzbeschreibung_Durchschnittsalter_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Durchschnittsalter_100m-Gitter.csv
+│       │   ├── Zensus2022_Durchschnittsalter_10km-Gitter.csv
+│       │   └── Zensus2022_Durchschnittsalter_1km-Gitter.csv
+│       ├── Eigentuemerquote_in_Gitterzellen
+│       │   ├── Datensatzbeschreibung_Eigentuemerquote_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Eigentuemerquote_100m-Gitter.csv
+│       │   ├── Zensus2022_Eigentuemerquote_10km-Gitter.csv
+│       │   └── Zensus2022_Eigentuemerquote_1km-Gitter.csv
+│       ├── Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen
+│       │   ├── Datensatzbeschreibung_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_in_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_100m-Gitter.csv
+│       │   ├── Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_10km-Gitter.csv
+│       │   └── Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_1km-Gitter.csv
+│       ├── Gesamt
+│       │   ├── typ=100m
+│       │   │   └── part-0.parquet
+│       │   ├── typ=10km
+│       │   │   └── part-0.parquet
+│       │   └── typ=1km
+│       │       └── part-0.parquet
+│       ├── Leerstandsquote_in_Gitterzellen
+│       │   ├── Datensatzbeschreibung_Leerstandsquote_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Leerstandsquote_100m-Gitter.csv
+│       │   ├── Zensus2022_Leerstandsquote_10km-Gitter.csv
+│       │   └── Zensus2022_Leerstandsquote_1km-Gitter.csv
+│       ├── Zensus2022_Bevoelkerungszahl
+│       │   ├── Datensatzbeschreibung_Bevoelkerungszahl_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Bevoelkerungszahl_100m-Gitter.csv
+│       │   ├── Zensus2022_Bevoelkerungszahl_10km-Gitter.csv
+│       │   └── Zensus2022_Bevoelkerungszahl_1km-Gitter.csv
+│       ├── Zensus2022_Durchschn_Nettokaltmiete
+│       │   ├── Datensatzbeschreibung_Durchschn_Nettokaltmiete_Gitterzellen.xlsx
+│       │   ├── Zensus2022_Durchschn_Nettokaltmiete_100m-Gitter.csv
+│       │   ├── Zensus2022_Durchschn_Nettokaltmiete_10km-Gitter.csv
+│       │   └── Zensus2022_Durchschn_Nettokaltmiete_1km-Gitter.csv
+│       └── links.txt
+├── Literatur
+│   └── 220822_Project_Broadband_and_Real_Estate_Draft_compressed.pdf
+├── Masterthesis.Rproj
+├── Output
+│   ├── berlin_animation
+│   │   ├── berlin_glasfaser_100m_201812.jpg
+│   │   ├── berlin_glasfaser_100m_201907.jpg
+│   │   ├── berlin_glasfaser_100m_201912.jpg
+│   │   ├── berlin_glasfaser_100m_202007.jpg
+│   │   ├── berlin_glasfaser_100m_202012.jpg
+│   │   ├── berlin_glasfaser_100m_202107.jpg
+│   │   ├── berlin_glasfaser_100m_202206.jpg
+│   │   ├── berlin_glasfaser_100m_202212.jpg
+│   │   ├── berlin_glasfaser_100m_202306.jpg
+│   │   ├── berlin_glasfaser_100m_202312.jpg
+│   │   ├── berlin_glasfaser_1km_201812.jpg
+│   │   ├── berlin_glasfaser_1km_201907.jpg
+│   │   ├── berlin_glasfaser_1km_201912.jpg
+│   │   ├── berlin_glasfaser_1km_202007.jpg
+│   │   ├── berlin_glasfaser_1km_202012.jpg
+│   │   ├── berlin_glasfaser_1km_202107.jpg
+│   │   ├── berlin_glasfaser_1km_202206.jpg
+│   │   ├── berlin_glasfaser_1km_202212.jpg
+│   │   ├── berlin_glasfaser_1km_202306.jpg
+│   │   ├── berlin_glasfaser_1km_202312.jpg
+│   │   ├── berlin_glasfaser_201812.jpg
+│   │   ├── berlin_glasfaser_201907.jpg
+│   │   ├── berlin_glasfaser_201912.jpg
+│   │   ├── berlin_glasfaser_202007.jpg
+│   │   ├── berlin_glasfaser_202012.jpg
+│   │   ├── berlin_glasfaser_202107.jpg
+│   │   ├── berlin_glasfaser_202206.jpg
+│   │   ├── berlin_glasfaser_202212.jpg
+│   │   ├── berlin_glasfaser_202306.jpg
+│   │   └── berlin_glasfaser_202312.jpg
+│   ├── darmstadt_animation
+│   │   ├── darmstadt_glasfaser_100m_201812.jpg
+│   │   ├── darmstadt_glasfaser_100m_201907.jpg
+│   │   ├── darmstadt_glasfaser_100m_201912.jpg
+│   │   ├── darmstadt_glasfaser_100m_202007.jpg
+│   │   ├── darmstadt_glasfaser_100m_202012.jpg
+│   │   ├── darmstadt_glasfaser_100m_202107.jpg
+│   │   ├── darmstadt_glasfaser_100m_202206.jpg
+│   │   ├── darmstadt_glasfaser_100m_202212.jpg
+│   │   ├── darmstadt_glasfaser_100m_202306.jpg
+│   │   └── darmstadt_glasfaser_100m_202312.jpg
+│   ├── hamburg_animation
+│   │   ├── hamburg_glasfaser_100m_201812.jpg
+│   │   ├── hamburg_glasfaser_100m_201907.jpg
+│   │   ├── hamburg_glasfaser_100m_201912.jpg
+│   │   ├── hamburg_glasfaser_100m_202007.jpg
+│   │   ├── hamburg_glasfaser_100m_202012.jpg
+│   │   ├── hamburg_glasfaser_100m_202107.jpg
+│   │   ├── hamburg_glasfaser_100m_202206.jpg
+│   │   ├── hamburg_glasfaser_100m_202212.jpg
+│   │   ├── hamburg_glasfaser_100m_202306.jpg
+│   │   ├── hamburg_glasfaser_100m_202312.jpg
+│   │   ├── hamburg_glasfaser_201812.jpg
+│   │   ├── hamburg_glasfaser_201907.jpg
+│   │   ├── hamburg_glasfaser_201912.jpg
+│   │   ├── hamburg_glasfaser_202007.jpg
+│   │   ├── hamburg_glasfaser_202012.jpg
+│   │   ├── hamburg_glasfaser_202107.jpg
+│   │   ├── hamburg_glasfaser_202206.jpg
+│   │   ├── hamburg_glasfaser_202212.jpg
+│   │   ├── hamburg_glasfaser_202306.jpg
+│   │   └── hamburg_glasfaser_202312.jpg
+│   ├── plot_de_glasfaser_100m.pdf
+│   └── plot_de_glasfaser_1km.pdf
+├── README.md
+├── auswertung.qmd
+├── cleaning.qmd
+├── exploration.qmd
+├── get_coords.cpp
+└── scraping.qmd
+
+422 directories, 555 files
+.
+├── Daten
+│   ├── Berlin_Glasfaser
+│   │   ├── Berlin_Bezirke_Versorgungsdaten_Stand_022024.xlsx
+│   │   ├── Berlin_Bezirke_Versorgungsdaten_Stand_042023.xlsx
+│   │   ├── Berlin_LOR_Versorgungsdaten_Stand_022024.xlsx
+│   │   ├── Berlin_LOR_Versorgungsdaten_Stand_042023.xlsx
+│   │   ├── Berlin_Ortsteile_Versorgungsdaten_Stand_022024.xlsx
+│   │   ├── Berlin_Ortsteile_Versorgungsdaten_Stand_042023.xlsx
+│   │   ├── links.txt
+│   │   └── lor_shp_2021
+│   ├── Breitbandatlas
+│   │   ├── Raster_100m
+│   │   ├── Raster_1km
+│   │   ├── Raster_1km_long
+│   │   ├── Rohdaten
+│   │   ├── bba_01_2024.xlsx
+│   │   ├── bba_06_2022.xlsx
+│   │   ├── bba_06_2023.xlsx
+│   │   ├── bba_12_2022.xlsx
+│   │   └── links.txt
+│   ├── LAEA_Grid
+│   │   ├── DE_Grid_ETRS89-LAEA_1km.gpkg
+│   │   ├── geogitter.pdf
+│   │   └── links.txt
+│   └── Zensus
+│       ├── Alter_in_10er-Jahresgruppen
+│       ├── Durchschnittliche_Haushaltsgroesse_in_Gitterzellen
+│       ├── Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen
+│       ├── Durchschnittsalter_in_Gitterzellen
+│       ├── Eigentuemerquote_in_Gitterzellen
+│       ├── Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen
+│       ├── Gesamt
+│       ├── Leerstandsquote_in_Gitterzellen
+│       ├── Zensus2022_Bevoelkerungszahl
+│       ├── Zensus2022_Durchschn_Nettokaltmiete
+│       └── links.txt
+├── Literatur
+│   └── 220822_Project_Broadband_and_Real_Estate_Draft_compressed.pdf
+├── Masterthesis.Rproj
+├── Output
+│   ├── berlin_animation
+│   │   ├── berlin_glasfaser_100m_201812.jpg
+│   │   ├── berlin_glasfaser_100m_201907.jpg
+│   │   ├── berlin_glasfaser_100m_201912.jpg
+│   │   ├── berlin_glasfaser_100m_202007.jpg
+│   │   ├── berlin_glasfaser_100m_202012.jpg
+│   │   ├── berlin_glasfaser_100m_202107.jpg
+│   │   ├── berlin_glasfaser_100m_202206.jpg
+│   │   ├── berlin_glasfaser_100m_202212.jpg
+│   │   ├── berlin_glasfaser_100m_202306.jpg
+│   │   ├── berlin_glasfaser_100m_202312.jpg
+│   │   ├── berlin_glasfaser_1km_201812.jpg
+│   │   ├── berlin_glasfaser_1km_201907.jpg
+│   │   ├── berlin_glasfaser_1km_201912.jpg
+│   │   ├── berlin_glasfaser_1km_202007.jpg
+│   │   ├── berlin_glasfaser_1km_202012.jpg
+│   │   ├── berlin_glasfaser_1km_202107.jpg
+│   │   ├── berlin_glasfaser_1km_202206.jpg
+│   │   ├── berlin_glasfaser_1km_202212.jpg
+│   │   ├── berlin_glasfaser_1km_202306.jpg
+│   │   ├── berlin_glasfaser_1km_202312.jpg
+│   │   ├── berlin_glasfaser_201812.jpg
+│   │   ├── berlin_glasfaser_201907.jpg
+│   │   ├── berlin_glasfaser_201912.jpg
+│   │   ├── berlin_glasfaser_202007.jpg
+│   │   ├── berlin_glasfaser_202012.jpg
+│   │   ├── berlin_glasfaser_202107.jpg
+│   │   ├── berlin_glasfaser_202206.jpg
+│   │   ├── berlin_glasfaser_202212.jpg
+│   │   ├── berlin_glasfaser_202306.jpg
+│   │   └── berlin_glasfaser_202312.jpg
+│   ├── darmstadt_animation
+│   │   ├── darmstadt_glasfaser_100m_201812.jpg
+│   │   ├── darmstadt_glasfaser_100m_201907.jpg
+│   │   ├── darmstadt_glasfaser_100m_201912.jpg
+│   │   ├── darmstadt_glasfaser_100m_202007.jpg
+│   │   ├── darmstadt_glasfaser_100m_202012.jpg
+│   │   ├── darmstadt_glasfaser_100m_202107.jpg
+│   │   ├── darmstadt_glasfaser_100m_202206.jpg
+│   │   ├── darmstadt_glasfaser_100m_202212.jpg
+│   │   ├── darmstadt_glasfaser_100m_202306.jpg
+│   │   └── darmstadt_glasfaser_100m_202312.jpg
+│   ├── hamburg_animation
+│   │   ├── hamburg_glasfaser_100m_201812.jpg
+│   │   ├── hamburg_glasfaser_100m_201907.jpg
+│   │   ├── hamburg_glasfaser_100m_201912.jpg
+│   │   ├── hamburg_glasfaser_100m_202007.jpg
+│   │   ├── hamburg_glasfaser_100m_202012.jpg
+│   │   ├── hamburg_glasfaser_100m_202107.jpg
+│   │   ├── hamburg_glasfaser_100m_202206.jpg
+│   │   ├── hamburg_glasfaser_100m_202212.jpg
+│   │   ├── hamburg_glasfaser_100m_202306.jpg
+│   │   ├── hamburg_glasfaser_100m_202312.jpg
+│   │   ├── hamburg_glasfaser_201812.jpg
+│   │   ├── hamburg_glasfaser_201907.jpg
+│   │   ├── hamburg_glasfaser_201912.jpg
+│   │   ├── hamburg_glasfaser_202007.jpg
+│   │   ├── hamburg_glasfaser_202012.jpg
+│   │   ├── hamburg_glasfaser_202107.jpg
+│   │   ├── hamburg_glasfaser_202206.jpg
+│   │   ├── hamburg_glasfaser_202212.jpg
+│   │   ├── hamburg_glasfaser_202306.jpg
+│   │   └── hamburg_glasfaser_202312.jpg
+│   ├── plot_de_glasfaser_100m.pdf
+│   └── plot_de_glasfaser_1km.pdf
+├── README.md
+├── auswertung.qmd
+├── cleaning.qmd
+├── exploration.qmd
+├── get_coords.cpp
+└── scraping.qmd
+
+26 directories, 86 files
+.
+├── Daten
+│   ├── Berlin_Glasfaser
+│   │   ├── Berlin_Bezirke_Versorgungsdaten_Stand_022024.xlsx
+│   │   ├── Berlin_Bezirke_Versorgungsdaten_Stand_042023.xlsx
+│   │   ├── Berlin_LOR_Versorgungsdaten_Stand_022024.xlsx
+│   │   ├── Berlin_LOR_Versorgungsdaten_Stand_042023.xlsx
+│   │   ├── Berlin_Ortsteile_Versorgungsdaten_Stand_022024.xlsx
+│   │   ├── Berlin_Ortsteile_Versorgungsdaten_Stand_042023.xlsx
+│   │   ├── links.txt
+│   │   └── lor_shp_2021
+│   ├── Breitbandatlas
+│   │   ├── Raster_100m
+│   │   ├── Raster_1km
+│   │   ├── Raster_1km_long
+│   │   ├── Rohdaten
+│   │   ├── bba_01_2024.xlsx
+│   │   ├── bba_06_2022.xlsx
+│   │   ├── bba_06_2023.xlsx
+│   │   ├── bba_12_2022.xlsx
+│   │   └── links.txt
+│   ├── LAEA_Grid
+│   │   ├── DE_Grid_ETRS89-LAEA_1km.gpkg
+│   │   ├── geogitter.pdf
+│   │   └── links.txt
+│   └── Zensus
+│       ├── Alter_in_10er-Jahresgruppen
+│       ├── Durchschnittliche_Haushaltsgroesse_in_Gitterzellen
+│       ├── Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen
+│       ├── Durchschnittsalter_in_Gitterzellen
+│       ├── Eigentuemerquote_in_Gitterzellen
+│       ├── Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen
+│       ├── Gesamt
+│       ├── Leerstandsquote_in_Gitterzellen
+│       ├── Zensus2022_Bevoelkerungszahl
+│       ├── Zensus2022_Durchschn_Nettokaltmiete
+│       └── links.txt
+├── Literatur
+│   └── 220822_Project_Broadband_and_Real_Estate_Draft_compressed.pdf
+├── Masterthesis.Rproj
+├── Organisatorisches
+│   ├── Entwurf Aufgabenstellung Geis_jsch.docx
+│   ├── Entwurf Aufgabenstellung.docx
+│   ├── Formular_WI-WINF_Anmeldung_Masterthesis_Leitfaden_FB01_2023.pdf
+│   ├── Formular_WI-WINF_Anmeldung_Masterthesis_Leitfaden_FB01_2023_signed.pdf
+│   └── Formular_WI-WINF_Anmeldung_Masterthesis_ausgefüllt.pdf
+├── Output
+│   ├── berlin_animation
+│   │   ├── berlin_glasfaser_100m_201812.jpg
+│   │   ├── berlin_glasfaser_100m_201907.jpg
+│   │   ├── berlin_glasfaser_100m_201912.jpg
+│   │   ├── berlin_glasfaser_100m_202007.jpg
+│   │   ├── berlin_glasfaser_100m_202012.jpg
+│   │   ├── berlin_glasfaser_100m_202107.jpg
+│   │   ├── berlin_glasfaser_100m_202206.jpg
+│   │   ├── berlin_glasfaser_100m_202212.jpg
+│   │   ├── berlin_glasfaser_100m_202306.jpg
+│   │   ├── berlin_glasfaser_100m_202312.jpg
+│   │   ├── berlin_glasfaser_1km_201812.jpg
+│   │   ├── berlin_glasfaser_1km_201907.jpg
+│   │   ├── berlin_glasfaser_1km_201912.jpg
+│   │   ├── berlin_glasfaser_1km_202007.jpg
+│   │   ├── berlin_glasfaser_1km_202012.jpg
+│   │   ├── berlin_glasfaser_1km_202107.jpg
+│   │   ├── berlin_glasfaser_1km_202206.jpg
+│   │   ├── berlin_glasfaser_1km_202212.jpg
+│   │   ├── berlin_glasfaser_1km_202306.jpg
+│   │   ├── berlin_glasfaser_1km_202312.jpg
+│   │   ├── berlin_glasfaser_201812.jpg
+│   │   ├── berlin_glasfaser_201907.jpg
+│   │   ├── berlin_glasfaser_201912.jpg
+│   │   ├── berlin_glasfaser_202007.jpg
+│   │   ├── berlin_glasfaser_202012.jpg
+│   │   ├── berlin_glasfaser_202107.jpg
+│   │   ├── berlin_glasfaser_202206.jpg
+│   │   ├── berlin_glasfaser_202212.jpg
+│   │   ├── berlin_glasfaser_202306.jpg
+│   │   └── berlin_glasfaser_202312.jpg
+│   ├── darmstadt_animation
+│   │   ├── darmstadt_glasfaser_100m_201812.jpg
+│   │   ├── darmstadt_glasfaser_100m_201907.jpg
+│   │   ├── darmstadt_glasfaser_100m_201912.jpg
+│   │   ├── darmstadt_glasfaser_100m_202007.jpg
+│   │   ├── darmstadt_glasfaser_100m_202012.jpg
+│   │   ├── darmstadt_glasfaser_100m_202107.jpg
+│   │   ├── darmstadt_glasfaser_100m_202206.jpg
+│   │   ├── darmstadt_glasfaser_100m_202212.jpg
+│   │   ├── darmstadt_glasfaser_100m_202306.jpg
+│   │   └── darmstadt_glasfaser_100m_202312.jpg
+│   ├── hamburg_animation
+│   │   ├── hamburg_glasfaser_100m_201812.jpg
+│   │   ├── hamburg_glasfaser_100m_201907.jpg
+│   │   ├── hamburg_glasfaser_100m_201912.jpg
+│   │   ├── hamburg_glasfaser_100m_202007.jpg
+│   │   ├── hamburg_glasfaser_100m_202012.jpg
+│   │   ├── hamburg_glasfaser_100m_202107.jpg
+│   │   ├── hamburg_glasfaser_100m_202206.jpg
+│   │   ├── hamburg_glasfaser_100m_202212.jpg
+│   │   ├── hamburg_glasfaser_100m_202306.jpg
+│   │   ├── hamburg_glasfaser_100m_202312.jpg
+│   │   ├── hamburg_glasfaser_201812.jpg
+│   │   ├── hamburg_glasfaser_201907.jpg
+│   │   ├── hamburg_glasfaser_201912.jpg
+│   │   ├── hamburg_glasfaser_202007.jpg
+│   │   ├── hamburg_glasfaser_202012.jpg
+│   │   ├── hamburg_glasfaser_202107.jpg
+│   │   ├── hamburg_glasfaser_202206.jpg
+│   │   ├── hamburg_glasfaser_202212.jpg
+│   │   ├── hamburg_glasfaser_202306.jpg
+│   │   └── hamburg_glasfaser_202312.jpg
+│   ├── plot_de_glasfaser_100m.pdf
+│   └── plot_de_glasfaser_1km.pdf
+├── README.md
+├── auswertung.qmd
+├── cleaning.qmd
+├── exploration.qmd
+├── get_coords.cpp
+└── scraping.qmd
+
+27 directories, 91 files
