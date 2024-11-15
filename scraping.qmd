@@ -162,6 +162,8 @@ Ich benutze einen Foor-Loop, weil der Datensatz zu groß ist um komplett in RAM 
 
 Für Zeitpunkte ab 2022 runde ich den Mittelpunkt jeder Zelle auf die nächste 50, um so die Zellen am 100m LAEA Grid auszurichten. Vor 2022 sind die Zellen jedoch 250m groß. Hier suche ich um den Mittelpunkt der Zelle mit einem "Radius" von 125m nach Koordinaten die auf 50 Enden. Diese teile ich dann den ursprünglichen Koordinaten zu. Dadurch wird jede 250m Zelle auf im Mittel $(250m/100m)^2 = 6,25$ 100m Zellen aufgeteilt. Ich sage "im Mittel", da die genaue Anzahl schwankt. Für die Implementierung verwende ich `Rcpp`.
 
+Durch die Aufteilung von 250m auf 100m entstehen viele Zellen, die es in den 100m Daten nicht gibt. Beispielsweise in einem kleinen Dorf, bei dem alle Häuser in einer 100m sowie auch der 250m Zelle liegen. Dort würden dann ca. 6 Zellen statt einer entstehen. Aus diesem Grund führe ich einen Inner-Join mit den 202312 Daten durch. Dadurch lösche ich alle überflüssigen Zellen, die durch die Aufteilung entstehen.
+
 ```{r}
 dataset_old <- list.files(path = "./Daten/Breitbandatlas/Rohdaten", 
                            pattern = "raster_chunk_.*\\.parquet", 
@@ -178,8 +180,8 @@ for(d in unname(dates[1:4])) {
            y_mp_raw = y_mp) %>%
     mutate(x_mp = floor(x_mp_raw / 100) * 100 + 50,
            y_mp = floor(y_mp_raw / 100) * 100 + 50) %>%
+    select(date, x_mp, y_mp, starts_with("down")) %>%
     distinct() %>%
-    select(date, x_mp, y_mp, everything()) %>%
     group_by(date) %>%
     write_dataset("./Daten/Breitbandatlas/Raster_100m")
     
@@ -188,6 +190,11 @@ for(d in unname(dates[1:4])) {
 
 # Jahre mit 250m Raster, das aufgeteilt werden muss
 sourceCpp("get_coords.cpp")
+
+data_202312 <- open_dataset("./Daten/Breitbandatlas/Raster_100m/") %>%
+  filter(date == 202312) %>%
+  select(x_mp, y_mp) %>%
+  collect()
 
 for(d in unname(dates[-(1:4)])) {
   print(d)
@@ -203,7 +210,10 @@ for(d in unname(dates[-(1:4)])) {
   
   data %>%
     left_join(new_coords_100m, by = join_by(x_mp_raw, y_mp_raw)) %>%
-    select(date, x_mp, y_mp, everything()) %>%
+    select(date, x_mp, y_mp, starts_with("down")) %>%
+    distinct() %>%
+    inner_join(data_202312, by = join_by(x_mp, y_mp)) %>%
+    distinct() %>%
     group_by(date) %>%
     write_dataset("./Daten/Breitbandatlas/Raster_100m")
   

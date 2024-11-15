@@ -350,6 +350,7 @@ breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
 
 breitband_100m_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  filter(date == 202312) %>%
   filter(x_mp %>% between(4531081, 4576579),
          y_mp %>% between(3254012, 3290626)) %>%
   collect() %>%
@@ -361,6 +362,7 @@ breitband_100m_arrow %>%
 
 breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  filter(date == 202312) %>%
   filter(x_mp %>% between(4531081, 4576579),
          y_mp %>% between(3254012, 3290626)) %>%
   collect() %>%
