@@ -24,16 +24,23 @@ library(leaflet)
 ```{r}
 deutschland <- giscoR::gisco_get_countries(epsg = "3035", country = "DE", resolution = "10")
 bundesländer <- giscoR::gisco_get_nuts(epsg = "3035", country = "DE", nuts_level = 1, resolution = "10")
-gemeinden <- giscoR::gisco_get_communes(epsg = "3035", country = "DE")
+
+if(!"gemeinden.gpkg" %in% list.files("./Daten/Geodaten/")) {
+  giscoR::gisco_get_communes(epsg = "3035", country = "DE") %>%
+    select(-FID) %>%
+    st_write("./Daten/Geodaten/gemeinden.gpkg")
+}
+
+gemeinden <- st_read("./Daten/Geodaten/gemeinden.gpkg", quiet = TRUE)
 
 # z.B. Hamburg hat zwei Exklaven die ich hier entferne
 get_stadt <- function(stadt) {
   gemeinden %>% 
     filter(COMM_NAME == stadt) %>%
-    st_cast("POLYGON") %>%
+    st_cast("POLYGON", warn = FALSE) %>%
     mutate(area = st_area(.)) %>%
     slice_max(area, n = 1) %>%
-    st_cast("MULTIPOLYGON")
+    st_cast("MULTIPOLYGON", warn = FALSE)
 }
 
 darmstadt <- get_stadt("Darmstadt")
@@ -169,7 +176,7 @@ ggsave("./Output/plot_de_glasfaser_1km.pdf", plot = p, width = 10, height = 20)
 
 Vergleich über Jahre. Hier habe ich festgestellt, dass bis einschließlich 07.2021 ein 250m Raster verwendet wird.
 ```{r}
-stadt <- "Darmstadt"
+stadt <- "Hamburg"
 
 breitband_dates <- get_breitband_stadt(stadt, size = "100m", variables = down_fn_hh_ftthb_1000) %>%
   distinct(date) %>%
@@ -184,16 +191,54 @@ for(d in breitband_dates) {
     add_laea_grid(size = 100) %>%
     ggplot()+
     geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
-    geom_sf(data = get_stadt(stadt), fill = NA, color = "black", linewidth = .5)+
-    #geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5)+
-    #geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2)+
-    scale_fill_viridis_c(limits = c(0, 100))+
+    geom_sf(data = get_stadt(stadt), fill = NA, color = "grey30", linewidth = .5)+
+    # geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .8)+
+    # geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .5)+
+    scale_fill_viridis_c(option = "magma", limits = c(0, 100))+
+    labs(title = ym(d))+
     theme_void()+
-    theme(legend.position = "none")
+    theme(legend.position = "none",
+          plot.title = element_text(hjust = 0.5, color = "grey90"),
+          plot.title.position = "plot",
+          plot.background = element_rect(fill = "grey10"))
   
   ggsave(str_glue("./Output/{str_to_lower(stadt)}_animation/{str_to_lower(stadt)}_glasfaser_100m_{d}.jpg"), plot = p, width = 5, height = 5, create.dir = TRUE)
 }
 ```
+
+Jeztzt ganz Deutschland über die Jahre
+```{r}
+breitband_dates <- breitband_1km_arrow %>%
+  distinct(date) %>%
+  arrange(date) %>%
+  collect() %>%
+  pull()
+
+for(d in breitband_dates) {
+  print(d)
+  
+  p <- breitband_1km_arrow %>%
+    filter(date == d) %>%
+    select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+    collect() %>%
+    add_laea_grid(size = 1000) %>%
+    ggplot()+
+    geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
+    geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .8)+
+    geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .5)+
+    scale_fill_viridis_c(option = "magma", limits = c(0, 100))+
+    labs(title = ym(d))+
+    theme_void()+
+    theme(legend.position = "none",
+          plot.title = element_text(hjust = 0.5, color = "grey90"),
+          plot.title.position = "plot",
+          plot.background = element_rect(fill = "grey10"))
+  
+  ggsave(str_glue("./Output/deutschland_animation/deutschland_glasfaser_1km_{d}.jpg"), 
+         plot = p, width = 5, height = 7, create.dir = TRUE)
+}
+```
+
 
 # Karte mit Leaflet
 
@@ -246,7 +291,6 @@ breitband_1km_arrow %>%
   ggplot(aes(x = down_fn_hh_ftthb_1000))+
   geom_histogram(bins = 50)
 ```
-
 
 # Regression
 
@@ -340,5 +384,32 @@ test_got_fiber %>%
   ggplot(aes(x = durchschn_miete_qm, y = has_fiber))+
   geom_point(size = 1, alpha = .01)+
   scale_x_log10()
+```
+
+## DiD
+
+```{r}
+data_rent <- read_csv("./Daten/data_rent.csv")
+
+data_rent_summarized <- data_rent %>%
+  group_by(r1_id, jahr) %>%
+  summarise(mietekalt = mean(mietekalt),
+            mietekalt_m2 = mean(mietekalt_m2),
+            .groups = "drop") %>%
+  mutate(x_mp = as.numeric(str_sub(r1_id, 1, 4))*1000 + 500,
+         y_mp = as.numeric(str_sub(r1_id, 6, 9))*1000 + 500,
+         .before = 1)
+
+data_rent_summarized
+get_breitband_stadt("Berlin", size = "1km", variables = down_fn_hh_ftthb_1000) %>%
+  filter(date %% 100 == 12) %>%
+  mutate(jahr = floor(date/100)) %>%
+  left_join(data_rent_summarized, by = join_by(x_mp, y_mp, jahr)) %>%
+  drop_na() %>%
+  mutate(has_fiber = if_else(down_fn_hh_ftthb_1000 > 50, TRUE, FALSE)) %>%
+  select(jahr, r1_id, has_fiber, mietekalt) %>%
+  arrange(r1_id, jahr) %>%
+  group_by(r1_id) %>%
+  mutate(got_fiber = if_else(has_fiber - lag(has_fiber) == 1, TRUE, FALSE))
 ```
 
