@@ -310,7 +310,7 @@ for(d in arrow_dates) {
       left_join(zensus_haushalte_100m, by = join_by(x_mp, y_mp)) %>%
       mutate(x_mp_1km = floor(x_mp/1000)*1000 + 500,
              y_mp_1km = floor(y_mp/1000)*1000 + 500) %>%
-      drop_na(anzahl_haushalte, !!sym(v)) %>%
+      drop_na(anzahl_haushalte) %>%
       group_by(date, x_mp_1km, y_mp_1km) %>%
       summarise(!!v := weighted.mean(!!sym(v), anzahl_haushalte), .groups = "drop") %>%
       rename(x_mp = x_mp_1km, y_mp = y_mp_1km) %>%
@@ -329,6 +329,12 @@ Und jetzt wieder zusammenfügen im Wide Format.
 ```{r}
 breitband_1km_long_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km_long/")
 
+arrow_names_sorted <- breitband_1km_long_arrow %>%
+  distinct(name) %>%
+  collect() %>%
+  pull(name) %>%
+  gtools::mixedsort()
+
 for(d in arrow_dates) {
   print(d)
 
@@ -336,7 +342,7 @@ for(d in arrow_dates) {
     filter(date == d) %>%
     collect() %>%
     pivot_wider(names_from = name, values_from = value) %>%
-    select(date, x_mp, y_mp, everything()) %>%
+    select(date, x_mp, y_mp, all_of(arrow_names_sorted)) %>%
     group_by(date) %>%
     write_dataset("./Daten/Breitbandatlas/Raster_1km/")
 }

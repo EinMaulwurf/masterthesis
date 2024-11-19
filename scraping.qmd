@@ -170,6 +170,13 @@ dataset_old <- list.files(path = "./Daten/Breitbandatlas/Rohdaten",
                            full.names = TRUE) %>%
     open_dataset()
 
+arrow_colnames_sorted <- dataset_old %>% 
+  slice_sample(n = 1) %>%
+  select(starts_with("down")) %>%
+  collect() %>%
+  colnames() %>%
+  gtools::mixedsort()
+
 # Jahre mit 100m Raster
 for(d in unname(dates[1:4])) {
   print(d)
@@ -180,7 +187,7 @@ for(d in unname(dates[1:4])) {
            y_mp_raw = y_mp) %>%
     mutate(x_mp = floor(x_mp_raw / 100) * 100 + 50,
            y_mp = floor(y_mp_raw / 100) * 100 + 50) %>%
-    select(date, x_mp, y_mp, starts_with("down")) %>%
+    select(date, x_mp, y_mp, all_of(arrow_colnames_sorted)) %>%
     distinct() %>%
     group_by(date) %>%
     write_dataset("./Daten/Breitbandatlas/Raster_100m")
@@ -194,6 +201,7 @@ sourceCpp("get_coords.cpp")
 data_202312 <- open_dataset("./Daten/Breitbandatlas/Raster_100m/") %>%
   filter(date == 202312) %>%
   select(x_mp, y_mp) %>%
+  distinct() %>%
   collect()
 
 for(d in unname(dates[-(1:4)])) {
@@ -210,7 +218,7 @@ for(d in unname(dates[-(1:4)])) {
   
   data %>%
     left_join(new_coords_100m, by = join_by(x_mp_raw, y_mp_raw)) %>%
-    select(date, x_mp, y_mp, starts_with("down")) %>%
+    select(date, x_mp, y_mp, all_of(arrow_colnames_sorted)) %>%
     distinct() %>%
     inner_join(data_202312, by = join_by(x_mp, y_mp)) %>%
     distinct() %>%
@@ -226,9 +234,9 @@ for(d in unname(dates[-(1:4)])) {
 Der Datensatz kann jetzt wie folgt verwendet werden (beachte, dass die `date` Variable jetzt numeric ist):
 
 ```{r}
-final_result <- open_dataset("./Daten/Breitbandatlas/Raster_100m/")
+breitband_100m_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_100m/")
 
-final_result %>%
+breitband_100m_arrow %>%
   group_by(date) %>%
   summarise(down_fn_hh_ftthb_1000 = sum(down_fn_hh_ftthb_1000, na.rm = TRUE)) %>%
   collect() %>%
@@ -236,7 +244,7 @@ final_result %>%
   ggplot(aes(x = date, y = down_fn_hh_ftthb_1000))+
   geom_line()
 
-final_result %>%
+breitband_100m_arrow %>%
   group_by(date) %>%
   count() %>%
   arrange(date) %>%
