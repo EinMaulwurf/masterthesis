@@ -11,6 +11,7 @@ format: html
 
 library(tidyverse)
 library(arrow)
+library(duckdb)
 library(sf)
 ```
 
@@ -379,3 +380,28 @@ breitband_1km_arrow %>%
   scale_fill_viridis_c()
 ```
 
+# Neue Variable: Maximale Geschwindigkeit
+
+Ich extrahiere für jede Zelle und Jahr die maximal verfügbare Internetgeschwindigkeit. Dabei unterscheide ich nach Glasfaser (`_fiber`), nicht-Glasfaser (`_no_fiber`) und dem Maximum aus beidem (`_all`).
+
+```{r}
+breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
+
+breitband_1km_arrow %>%
+  select(date, x_mp, y_mp, contains("ftt"), contains("hfc"), contains("sonst")) %>%
+  collect() %>%
+  pivot_longer(cols = starts_with("down"), names_to = "speed_name", values_to = "anteil") %>%
+  filter(anteil > 50) %>%
+  mutate(type = case_when(
+    speed_name %>% str_detect("(hfc|sonst)") ~ "no_fiber",
+    speed_name %>% str_detect("ftt") ~ "fiber",
+    TRUE ~ NA
+    )) %>%
+  drop_na(type) %>%
+  mutate(speed = speed_name %>% str_extract("\\d+$") %>% as.numeric()) %>%
+  group_by(date, x_mp, y_mp, type) %>%
+  summarise(max_speed = max(speed), .groups = "drop") %>%
+  pivot_wider(names_from = type, values_from = max_speed, names_prefix = "max_speed_") %>%
+  mutate(max_speed_all = pmax(max_speed_fiber, max_speed_no_fiber, na.rm = TRUE)) %>%
+  write_parquet("./Daten/Breitbandatlas/Raster_1km_max_speed.parquet")
+```
