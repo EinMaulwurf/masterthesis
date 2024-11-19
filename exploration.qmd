@@ -83,6 +83,11 @@ get_breitband_stadt <- function(stadt_name, size = "100m", variables = everythin
 breitband_glasfaser_berlin <- get_breitband_stadt("Berlin", size = "100m", variables = down_fn_hh_ftthb_1000)
 ```
 
+```{r}
+# Laden der Max-Speed Variablen
+breitband_1km_max_speed <- read_parquet("./Daten/Breitbandatlas/Raster_1km_max_speed.parquet")
+```
+
 ## Zensusdaten
 
 ```{r}
@@ -239,6 +244,39 @@ for(d in breitband_dates) {
 }
 ```
 
+Jetzt Karte mit maximal verfügbarer Geschwindigkeit
+```{r}
+breitband_dates <- breitband_1km_arrow %>%
+  distinct(date) %>%
+  arrange(date) %>%
+  collect() %>%
+  pull()
+
+for(d in breitband_dates) {
+  print(d)
+  
+  p <- breitband_1km_max_speed %>%
+    filter(date == d) %>%
+    add_laea_grid(size = 1000) %>%
+    ggplot()+
+    geom_sf(aes(fill = max_speed_all), color = NA)+
+    geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .8)+
+    geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .5)+
+    scale_fill_viridis_c(option = "magma", limits = c(16, 1000), trans = "log", breaks = c(16, 30, 50, 100, 200, 400, 1000))+
+    labs(title = ym(d),
+         fill = element_blank())+
+    theme_void()+
+    theme(legend.position = "top",
+          legend.key.width = unit(1, "cm"),
+          legend.text = element_text(color = "grey70"),
+          plot.title = element_text(hjust = 0.5, color = "grey90"),
+          plot.title.position = "plot",
+          plot.background = element_rect(fill = "grey10"))
+  
+  ggsave(str_glue("./Output/deutschland_max_speed_animation/deutschland_max_speed_1km_{d}.jpg"), 
+         plot = p, width = 5, height = 7, create.dir = TRUE)
+}
+```
 
 # Karte mit Leaflet
 
