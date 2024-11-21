@@ -388,13 +388,13 @@ Ich extrahiere für jede Zelle und Jahr die maximal verfügbare Internetgeschwin
 breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
 
 breitband_1km_arrow %>%
-  select(date, x_mp, y_mp, contains("ftt"), contains("hfc"), contains("sonst")) %>%
+  select(date, x_mp, y_mp, contains("ftthb"), contains("hfc"), contains("fttc") ,contains("sonst")) %>%
   collect() %>%
   pivot_longer(cols = starts_with("down"), names_to = "speed_name", values_to = "anteil") %>%
   filter(anteil > 50) %>%
   mutate(type = case_when(
-    speed_name %>% str_detect("(hfc|sonst)") ~ "no_fiber",
-    speed_name %>% str_detect("ftt") ~ "fiber",
+    speed_name %>% str_detect("(hfc|fttc|sonst)") ~ "no_fiber",
+    speed_name %>% str_detect("ftthb") ~ "fiber",
     TRUE ~ NA
     )) %>%
   drop_na(type) %>%
