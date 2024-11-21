@@ -405,3 +405,26 @@ breitband_1km_arrow %>%
   mutate(max_speed_all = pmax(max_speed_fiber, max_speed_no_fiber, na.rm = TRUE)) %>%
   write_parquet("./Daten/Breitbandatlas/Raster_1km_max_speed.parquet")
 ```
+
+# Neuer Datensatz: Gitterzellen, bei denen Glasfaser verschwindet
+
+In manchen Gitterzellen verschwindet plötzlich das Glasfaser. Dabei handelt es sich wahrscheinlich um Meldefehler, entweder beim (nicht erfolgten) Ausbau, oder das "Verschwinden" ist nicht korrekt. Ich erstelle einen neuen Dataframe mit den Koordinaten dieser Zellen. Diese können dann später mit `anti_join()` einfach entfernt werden.
+
+```{r}
+breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
+
+groups_errors <- breitband_1km_arrow %>%
+  select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  filter(!is.na(down_fn_hh_ftthb_1000)) %>%
+  to_duckdb() %>%
+  arrange(x_mp, y_mp, date) %>%
+  mutate(has_fiber = if_else(down_fn_hh_ftthb_1000 > 50, 1, 0)) %>%
+  group_by(x_mp, y_mp) %>%
+  mutate(got_fiber = has_fiber - lag(has_fiber, n = 1)) %>%
+  ungroup() %>%
+  filter(got_fiber == -1) %>%
+  distinct(x_mp, y_mp) %>%
+  to_arrow() %>%
+  #collect() %>%
+  write_parquet("./Daten/Breitbandatlas/Raster_1km_problems.parquet")
+```
