@@ -308,12 +308,12 @@ breitband_1km_arrow %>%
   #mutate(down_fn_hh_ftthb_1000 = round(down_fn_hh_ftthb_1000, 2)) %>%
   group_by(date) %>%
   summarise(n = n(),
-            share_0 = mean(down_fn_hh_ftthb_1000 == 0),
-            share_100 = mean(down_fn_hh_ftthb_1000 == 100),
-            mean = mean(down_fn_hh_ftthb_1000),
-            pct_25 = quantile(down_fn_hh_ftthb_1000, 0.25),
-            pct_50 = quantile(down_fn_hh_ftthb_1000, 0.50),
-            pct_75 = quantile(down_fn_hh_ftthb_1000, 0.75))
+            share_0 = mean(down_fn_hh_ftthb_1000 == 0, na.rm = TRUE),
+            share_100 = mean(down_fn_hh_ftthb_1000 == 100, na.rm = TRUE),
+            mean = mean(down_fn_hh_ftthb_1000, na.rm = TRUE),
+            pct_25 = quantile(down_fn_hh_ftthb_1000, 0.25, na.rm = TRUE),
+            pct_50 = quantile(down_fn_hh_ftthb_1000, 0.50, na.rm = TRUE),
+            pct_75 = quantile(down_fn_hh_ftthb_1000, 0.75, na.rm = TRUE))
 ```
 
 ```{r}
@@ -325,6 +325,8 @@ breitband_1km_arrow %>%
 
 breitband_1km_arrow %>%
   select(date, down_fn_hh_ftthb_1000) %>%
+  filter(date == 202312) %>%
+  filter(!is.na(down_fn_hh_ftthb_1000)) %>%
   collect() %>%
   ggplot(aes(x = down_fn_hh_ftthb_1000))+
   geom_histogram(bins = 50)
@@ -450,4 +452,3 @@ get_breitband_stadt("Berlin", size = "1km", variables = down_fn_hh_ftthb_1000) %
   group_by(r1_id) %>%
   mutate(got_fiber = if_else(has_fiber - lag(has_fiber) == 1, TRUE, FALSE))
 ```
-
