@@ -86,6 +86,9 @@ breitband_glasfaser_berlin <- get_breitband_stadt("Berlin", size = "100m", varia
 ```{r}
 # Laden der Max-Speed Variablen
 breitband_1km_max_speed <- read_parquet("./Daten/Breitbandatlas/Raster_1km_max_speed.parquet")
+
+# Laden des fehlerhaften Koordinaten
+breitband_1km_problems <- read_parquet("./Daten/Breitbandatlas/Raster_1km_problems.parquet")
 ```
 
 ## Zensusdaten
@@ -278,6 +281,51 @@ for(d in breitband_dates) {
 }
 ```
 
+Anteil Haushalte mit FTTBH Anschluss
+```{r}
+zensus_haushalte_1km <- zensus_arrow %>%
+  filter(typ == "1km") %>%
+  mutate(anzahl_haushalte = insgesamt_bevoelkerung / durchschn_hh_groesse) %>%
+  select(x_mp, y_mp, anzahl_haushalte) %>%
+  filter(!is.na(anzahl_haushalte)) %>%
+  collect()
+
+breitband_1km_arrow %>%
+  select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  collect() %>%
+  left_join(zensus_haushalte_1km, by = join_by(x_mp, y_mp)) %>%
+  mutate(has_fiber = if_else(down_fn_hh_ftthb_1000 > 50, 1, 0)) %>%
+  group_by(date) %>%
+  summarise(haushalte_fiber = sum((down_fn_hh_ftthb_1000/100) * anzahl_haushalte, na.rm = TRUE)) %>%
+  #summarise(haushalte_fiber = sum(has_fiber * anzahl_haushalte, na.rm = TRUE)) %>%
+  ggplot(aes(x = ym(date), y = haushalte_fiber))+
+  geom_line()+
+  geom_point()+
+  scale_x_date()+
+  scale_y_continuous(labels = scales::label_number())
+
+# Nochmal mit 100m Raster
+zensus_haushalte_100m <- zensus_arrow %>%
+  filter(typ == "100m") %>%
+  mutate(anzahl_haushalte = insgesamt_bevoelkerung / durchschn_hh_groesse) %>%
+  select(x_mp, y_mp, anzahl_haushalte) %>%
+  filter(!is.na(anzahl_haushalte)) %>%
+  collect()
+
+breitband_100m_arrow %>%
+  select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  collect() %>%
+  left_join(zensus_haushalte_100m, by = join_by(x_mp, y_mp)) %>%
+  mutate(has_fiber = if_else(down_fn_hh_ftthb_1000 > 50, 1, 0)) %>%
+  group_by(date) %>%
+  summarise(haushalte_fiber = sum(has_fiber * anzahl_haushalte, na.rm = TRUE)) %>%
+  ggplot(aes(x = ym(date), y = haushalte_fiber))+
+  geom_line()+
+  geom_point()+
+  scale_x_date()+
+  scale_y_continuous(labels = scales::label_number())
+```
+
 # Karte mit Leaflet
 
 ```{r}
@@ -296,7 +344,6 @@ data_leaflet %>%
   addTiles() %>%
   addPolygons(stroke = FALSE, fillOpacity = .5, color = ~ pal(down_fn_hh_ftthb_1000))
 ```
-
 
 # Summary Statistics
 
