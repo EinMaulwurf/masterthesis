@@ -3,6 +3,7 @@
 #Daten/*
 #Output/*
 Organisatorisches/*
+*_test.*
 
 # History files
 .Rhistory
