@@ -313,7 +313,8 @@ for(d in arrow_dates) {
              y_mp_1km = floor(y_mp/1000)*1000 + 500) %>%
       drop_na(anzahl_haushalte) %>%
       group_by(date, x_mp_1km, y_mp_1km) %>%
-      summarise(!!v := weighted.mean(!!sym(v), anzahl_haushalte), .groups = "drop") %>%
+      summarise(!!v := weighted.mean(!!sym(v), anzahl_haushalte, na.rm = TRUE),
+                .groups = "drop") %>%
       rename(x_mp = x_mp_1km, y_mp = y_mp_1km) %>%
       pivot_longer(cols = all_of(v)) %>%
       mutate(value = round(value, 2)) %>%
