@@ -366,7 +366,11 @@ breitband_100m_arrow %>%
   st_buffer(dist = 50, endCapStyle = "SQUARE") %>%
   ggplot()+
   geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
-  scale_fill_viridis_c()
+  scale_fill_viridis_c()+
+  theme_void()+
+  theme(legend.position = "none")
+
+ggsave("./Output/plots/plot_berlin_100m.pdf", width = 3, height = 2.5)
 
 breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
@@ -378,7 +382,11 @@ breitband_1km_arrow %>%
   st_buffer(dist = 500, endCapStyle = "SQUARE") %>%
   ggplot()+
   geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
-  scale_fill_viridis_c()
+  scale_fill_viridis_c()+
+  theme_void()+
+  theme(legend.position = "none")
+
+ggsave("./Output/plots/plot_berlin_1km.pdf", width = 3, height = 2.5)
 ```
 
 # Neue Variable: Maximale Geschwindigkeit
