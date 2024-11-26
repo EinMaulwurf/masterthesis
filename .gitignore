@@ -4,6 +4,7 @@
 #Output/*
 Organisatorisches/*
 *_test.*
+rosm.cache/
 
 # History files
 .Rhistory
