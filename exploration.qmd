@@ -197,7 +197,7 @@ p <- breitband_1km_arrow %>%
   theme_void()+
   theme(legend.position = "none")
 
-ggsave("./Output/plot_de_glasfaser_1km.pdf", plot = p, width = 10, height = 20)
+ggsave("./Output/plot_de_glasfaser_1km.pdf", plot = p, width = 5, height = 7)
 ```
 
 Vergleich über Jahre. Hier habe ich festgestellt, dass bis einschließlich 07.2021 ein 250m Raster verwendet wird.
@@ -308,14 +308,15 @@ zensus_haushalte_1km <- zensus_arrow %>%
   filter(!is.na(anzahl_haushalte)) %>%
   collect()
 
-breitband_1km_arrow %>%
+breitband_1km_haushalte_aggregiert <- breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
   collect() %>%
   left_join(zensus_haushalte_1km, by = join_by(x_mp, y_mp)) %>%
   mutate(has_fiber = if_else(down_fn_hh_ftthb_1000 > 50, 1, 0)) %>%
   group_by(date) %>%
-  summarise(haushalte_fiber = sum((down_fn_hh_ftthb_1000/100) * anzahl_haushalte, na.rm = TRUE)) %>%
-  #summarise(haushalte_fiber = sum(has_fiber * anzahl_haushalte, na.rm = TRUE)) %>%
+  summarise(haushalte_fiber = sum(has_fiber * anzahl_haushalte, na.rm = TRUE))
+
+breitband_1km_haushalte_aggregiert %>%
   ggplot(aes(x = ym(date), y = haushalte_fiber))+
   geom_line()+
   geom_point()+
@@ -330,19 +331,78 @@ zensus_haushalte_100m <- zensus_arrow %>%
   filter(!is.na(anzahl_haushalte)) %>%
   collect()
 
-breitband_100m_arrow %>%
+breitband_100m_haushalte_aggregiert <- breitband_100m_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
   collect() %>%
   left_join(zensus_haushalte_100m, by = join_by(x_mp, y_mp)) %>%
   mutate(has_fiber = if_else(down_fn_hh_ftthb_1000 > 50, 1, 0)) %>%
   group_by(date) %>%
-  summarise(haushalte_fiber = sum(has_fiber * anzahl_haushalte, na.rm = TRUE)) %>%
+  summarise(haushalte_fiber = sum(has_fiber * anzahl_haushalte, na.rm = TRUE))
+
+breitband_100m_haushalte_aggregiert %>%
   ggplot(aes(x = ym(date), y = haushalte_fiber))+
   geom_line()+
   geom_point()+
   scale_x_date()+
   scale_y_continuous(labels = scales::label_number())
+
+# Gesamt
+rbind(
+  breitband_100m_haushalte_aggregiert %>% mutate(size = "100m"),
+  breitband_1km_haushalte_aggregiert %>% mutate(size = "1km")
+) %>%
+  mutate(Stichtag = ceiling_date(ym(date), unit = "month") - days(1)) %>%
+  ggplot(aes(x = Stichtag, y = haushalte_fiber, color = size))+
+  geom_line()+
+  geom_point()+
+  scale_y_continuous(labels = scales::label_number(scale = 1/1e6))+
+  scale_x_date(breaks = "1 year")
 ```
+
+Zellen mit fehlendem Wert zu Anzahl Haushalte aus Zensus
+```{r}
+stadt_beispiel_1_bbox <- get_stadt("Runkel") %>% st_bbox()
+stadt_beispiel_2_bbox <- get_stadt("Darmstadt") %>% st_bbox()
+
+zensus_arrow %>%
+  filter(typ == "100m") %>%
+  filter(x_mp %>% between(stadt_beispiel_1_bbox["xmin"], stadt_beispiel_1_bbox["xmax"]),
+         y_mp %>% between(stadt_beispiel_1_bbox["ymin"], stadt_beispiel_1_bbox["ymax"])) %>%
+  select(x_mp, y_mp, insgesamt_bevoelkerung, durchschn_hh_groesse) %>%
+  mutate(anzahl_haushalte = insgesamt_bevoelkerung / durchschn_hh_groesse) %>%
+  collect() %>%
+  mutate(zensus_na = is.na(durchschn_hh_groesse)) %>%
+  add_laea_grid() %>%
+  ggplot()+
+  ggspatial::annotation_map_tile(zoomin = 0, type = "osm")+
+  geom_sf(aes(fill = zensus_na, alpha = zensus_na), color = NA)+
+  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple"))+
+  scale_alpha_manual(values = c(0.8, 1))+
+  theme_void()+
+  theme(legend.position = "none")
+
+ggsave("./Output/plots/karten/plot_runkel_zensus_missing.pdf", width = 3, height = 3)
+
+zensus_arrow %>%
+  filter(typ == "100m") %>%
+  filter(x_mp %>% between(stadt_beispiel_2_bbox["xmin"], stadt_beispiel_2_bbox["xmax"]),
+         y_mp %>% between(stadt_beispiel_2_bbox["ymin"], stadt_beispiel_2_bbox["ymax"])) %>%
+  select(x_mp, y_mp, insgesamt_bevoelkerung, durchschn_hh_groesse) %>%
+  mutate(anzahl_haushalte = insgesamt_bevoelkerung / durchschn_hh_groesse) %>%
+  collect() %>%
+  mutate(zensus_na = is.na(durchschn_hh_groesse)) %>%
+  add_laea_grid() %>%
+  ggplot()+
+  ggspatial::annotation_map_tile(zoomin = 0, type = "osm")+
+  geom_sf(aes(fill = zensus_na, alpha = zensus_na), color = NA)+
+  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple"))+
+  scale_alpha_manual(values = c(0.8, 1))+
+  theme_void()+
+  theme(legend.position = "none")
+
+ggsave("./Output/plots/karten/plot_darmstadt_zensus_missing.pdf", width = 3, height = 3)
+```
+
 
 # Karte mit Leaflet
 
@@ -365,23 +425,38 @@ data_leaflet %>%
 
 # Summary Statistics
 
-Breitbanddaten
+## Breitbanddaten
 ```{r}
 breitband_1km_arrow %>%
   select(date, down_fn_hh_ftthb_1000) %>%
+  mutate(down_fn_hh_ftthb_1000 = round(down_fn_hh_ftthb_1000)) %>%
   collect() %>%
-  #mutate(down_fn_hh_ftthb_1000 = round(down_fn_hh_ftthb_1000, 2)) %>%
-  group_by(date) %>%
+  group_by(Stichtag = ceiling_date(ym(date), unit = "month") - days(1)) %>%
+  arrange(Stichtag) %>%
   summarise(n = n(),
-            share_0 = mean(down_fn_hh_ftthb_1000 == 0, na.rm = TRUE),
-            share_100 = mean(down_fn_hh_ftthb_1000 == 100, na.rm = TRUE),
-            mean = mean(down_fn_hh_ftthb_1000, na.rm = TRUE),
-            pct_25 = quantile(down_fn_hh_ftthb_1000, 0.25, na.rm = TRUE),
-            pct_50 = quantile(down_fn_hh_ftthb_1000, 0.50, na.rm = TRUE),
-            pct_75 = quantile(down_fn_hh_ftthb_1000, 0.75, na.rm = TRUE))
+            "Anteil 0" = mean(down_fn_hh_ftthb_1000 == 0, na.rm = TRUE)*100,
+            "Anteil 100" = mean(down_fn_hh_ftthb_1000 == 100, na.rm = TRUE)*100,
+            # share_0 = mean(down_fn_hh_ftthb_1000 <= 5, na.rm = TRUE),
+            # share_100 = mean(down_fn_hh_ftthb_1000 >= 95, na.rm = TRUE),
+            "Mittelwert" = mean(down_fn_hh_ftthb_1000, na.rm = TRUE),
+            # pct_25 = quantile(down_fn_hh_ftthb_1000, 0.25, na.rm = TRUE),
+            # pct_50 = quantile(down_fn_hh_ftthb_1000, 0.50, na.rm = TRUE),
+            # pct_75 = quantile(down_fn_hh_ftthb_1000, 0.75, na.rm = TRUE)
+            ) %>%
+  kbl(format = "latex", 
+      digits = 0, 
+      booktabs = TRUE, 
+      position = "h", 
+      linesep = "", 
+      format.args	= list(big.mark = " ")) %>% 
+  cat()
 ```
 
+Verteilung FTTHB 1km
 ```{r}
+#| fig-width: 5
+#| fig-height: 3
+
 breitband_1km_arrow %>%
   select(date, down_fn_hh_ftthb_1000) %>%
   collect() %>%
@@ -390,11 +465,19 @@ breitband_1km_arrow %>%
 
 breitband_1km_arrow %>%
   select(date, down_fn_hh_ftthb_1000) %>%
-  filter(date == 202312) %>%
+  filter(date == 202312 | date == 201812) %>%
   filter(!is.na(down_fn_hh_ftthb_1000)) %>%
   collect() %>%
+  mutate(Stichtag = ceiling_date(ym(date), unit = "month") - days(1)) %>%
   ggplot(aes(x = down_fn_hh_ftthb_1000))+
-  geom_histogram(bins = 50)
+  geom_histogram(bins = 20)+
+  facet_wrap(~Stichtag)+
+  scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
+  theme_bw()+
+  labs(x = "Anteil Glasfaseranschluss (1000 Mbit/s FTTHB) je Rasterzelle (%)",
+       y = "Anzahl Rasterzellen (1000)")
+
+ggsave("./Output/plots/plot_verteilung_glasfaser_2018_2023.pdf", width = 5, height = 3)
 ```
 
 Summary Statistics für alle Variablen
