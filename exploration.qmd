@@ -15,6 +15,24 @@ library(sf)
 library(arrow)
 library(duckdb)
 library(leaflet)
+library(modelsummary)
+library(kableExtra)
+```
+
+Options for KableExtra (exporting Latex Tables)
+```{r}
+options(modelsummary_factory_latex = 'kableExtra')
+options(modelsummary_format_numeric_latex = "plain")
+options(modelsummary_factory_default = "latex")
+#options("modelsummary_factory_default" = "latex")
+```
+
+Export all packages with citations
+```{r}
+repmis::LoadandCite(
+  bibtex = TRUE,
+  file = "r-references.bib"
+)
 ```
 
 # Loading Data
