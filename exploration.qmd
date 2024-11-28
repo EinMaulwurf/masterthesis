@@ -396,3 +396,66 @@ breitband_1km_arrow %>%
   ggplot(aes(x = down_fn_hh_ftthb_1000))+
   geom_histogram(bins = 50)
 ```
+
+Summary Statistics für alle Variablen
+```{r}
+breitband_1km_arrow_summarised <- breitband_1km_arrow %>%
+  group_by(date) %>%
+  collect() %>%
+  summarise(
+    across(
+      starts_with("down"),
+      list(
+        n = ~ sum(!is.na(.x)),
+        anteil_0 = ~ mean(round(.x) == 0, na.rm = TRUE) * 100,
+        anteil_100 = ~ mean(round(.x) == 100, na.rm = TRUE) * 100,
+        mittelwert = ~ mean(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}|{.fn}"
+    )
+  )
+
+breitband_1km_arrow_summarised %>%
+  pivot_longer(cols = -date) %>%
+  mutate(value = replace_na(value, NA)) %>%
+  separate_wider_delim(cols = name, delim = "|", names = c("variable", "statistik")) %>%
+  pivot_wider(names_from = statistik, values_from = value) %>%
+  mutate(Stichtag = ceiling_date(ym(date), unit = "month") - days(1)) %>%
+  select(Stichtag, "Variable" = variable, n, "Anteil 0" = anteil_0, "Anteil 100" = anteil_100, "Mittelwert" = mittelwert) %>%
+  kbl(format = "latex", 
+      digits = 0, 
+      booktabs = TRUE, 
+      position = "h", 
+      linesep = c("", "", "", "", "", "", "", " "), 
+      format.args	= list(big.mark = " "),
+      longtable = TRUE) %>% 
+  cat()
+
+options(knitr.kable.NA = '-')
+
+breitband_1km_arrow_summarised %>%
+  pivot_longer(cols = -date) %>%
+  mutate(value = replace_na(value, NA)) %>%
+  separate_wider_delim(cols = name, delim = "|", names = c("variable", "statistik")) %>%
+  filter(statistik == "mittelwert") %>%
+  mutate(value = if_else(statistik == "n", value/1000, value)) %>%
+  mutate(variable = str_remove(variable, "down_fn_hh_")) %>%
+  separate_wider_delim(cols = variable, delim = "_", names = c("variable", "geschwindigkeit")) %>%
+  pivot_wider(names_from = c(geschwindigkeit, statistik), values_from = value) %>%
+  # mutate(Stichtag = date %>% as.character(),
+  #        Stichtag = paste0(str_sub(Stichtag, 1, 4), "-", str_sub(Stichtag, 5, 6)),
+  #        .before = 1, .keep = "unused") %>%
+  mutate(variable = str_to_upper(variable)) %>%
+  mutate(Stichtag = ceiling_date(ym(date), unit = "month") - days(1),
+         .before = 1, .keep = "unused") %>%
+  kbl(format = "latex", 
+      digits = 0, 
+      booktabs = TRUE, 
+      position = "h", 
+      linesep = c("", "", "", "", "", "", "\\addlinespace"), 
+      format.args	= list(big.mark = " "),
+      longtable = TRUE,
+      na = '-') %>% 
+  cat()
+```
+
