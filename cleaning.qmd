@@ -422,7 +422,7 @@ In manchen Gitterzellen verschwindet plötzlich das Glasfaser. Dabei handelt es 
 ```{r}
 breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
 
-groups_errors <- breitband_1km_arrow %>%
+breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
   filter(!is.na(down_fn_hh_ftthb_1000)) %>%
   to_duckdb() %>%
@@ -434,6 +434,6 @@ groups_errors <- breitband_1km_arrow %>%
   filter(got_fiber == -1) %>%
   distinct(x_mp, y_mp) %>%
   to_arrow() %>%
-  #collect() %>%
+  collect() %>%
   write_parquet("./Daten/Breitbandatlas/Raster_1km_problems.parquet")
 ```
