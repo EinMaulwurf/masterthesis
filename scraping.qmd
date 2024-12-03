@@ -62,6 +62,7 @@ base_req <- request("https://buergerplattform-prod2.production.netzda-mig.org") 
   )
 
 dates <- c(
+  "011" = "202406",
   "010" = "202312",
   "009" = "202306",
   "008" = "202212",
