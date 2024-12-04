@@ -437,3 +437,26 @@ breitband_1km_arrow %>%
   collect() %>%
   write_parquet("./Daten/Breitbandatlas/Raster_1km_problems.parquet")
 ```
+
+# Neuer Datensatz: Zeitpunkt, bei dem erstmals Glasfaser vorhanden ist
+
+```{r}
+breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
+
+breitband_1km_arrow %>%
+  select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  filter(!is.na(down_fn_hh_ftthb_1000)) %>%
+  arrange(x_mp, y_mp, date) %>%
+  mutate(has_fiber = if_else(down_fn_hh_ftthb_1000 > 50, 1, 0)) %>%
+  collect() %>%
+  group_by(x_mp, y_mp) %>%
+  mutate(got_fiber = has_fiber - lag(has_fiber)) %>%
+  ungroup() %>%
+  filter(got_fiber == 1) %>%
+  select(x_mp, y_mp, got_fiber_date = date) %>%
+  group_by(x_mp, y_mp) %>%
+  slice_min(order_by = got_fiber_date) %>%
+  ungroup() %>%
+  write_parquet("./Daten/Breitbandatlas/Raster_1km_got_fiber_date.parquet")
+```
+
