@@ -1,0 +1,263 @@
+---
+title: "Immo Daten aufbereiten"
+format: html
+---
+
+# Setup
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(vroom)
+library(arrow)
+```
+
+# Import
+Ich habe zuerst die verschiedenen .csv Dateien in eine Datei zusammengefasst:
+
+```{bash}
+#| eval: false
+
+# Header von erster Datei in neue Datei `combined` schreiben
+head -n 1 WMSUF1.csv > combined
+for f in *.csv; do tail -n +2 "$f" >> combined; done
+# Eventuell ist folgende Methode schneller:
+# awk 'FNR>1' *.csv >> combined.csv
+# Getestet habe ich es nicht.
+```
+
+## Kauf
+
+```{r}
+columns_readr_schema_kauf <- cols(
+  obid = col_character(),
+  gkz = col_character(),
+  plz = col_character(),
+  kaufpreis = col_double(),
+  baujahr = col_integer(),
+  wohnflaeche = col_double(),
+  zimmeranzahl = col_double(),
+  ajahr = col_integer(),
+  amonat = col_integer(),
+  jahr = col_integer(),
+  emonat = col_integer(),
+  r1_id = col_character()
+)
+
+read_csv("./Daten/Immo/Rohdaten/Kauf/combined",
+  col_types = columns_readr_schema_miete, 
+  col_select = c(obid, gkz, plz, kaufpreis, baujahr, wohnflaeche, zimmeranzahl, ajahr, amonat, jahr, emonat, r1_id)) %>%
+  group_by(ajahr, amonat) %>%
+  write_dataset("./Daten/Immo/Kauf")
+```
+
+```{r}
+kauf_arrow <- open_dataset("./Daten/Immo/Kauf")
+
+kauf_arrow %>%
+  count(ajahr) %>%
+  arrange(ajahr) %>%
+  collect()
+
+kauf_arrow %>%
+  slice_sample(n = 100) %>%
+  collect()
+```
+
+## Miete
+
+```{r}
+columns_readr_schema_miete <- cols(
+  obid = col_character(),
+  gkz = col_character(),
+  plz = col_character(),
+  mietekalt = col_double(),
+  baujahr = col_integer(),
+  wohnflaeche = col_double(),
+  zimmeranzahl = col_double(),
+  ajahr = col_integer(),
+  amonat = col_integer(),
+  jahr = col_integer(),
+  emonat = col_integer(),
+  r1_id = col_character()
+)
+
+read_csv("./Daten/Immo/Rohdaten/Miete/combined",
+  col_types = columns_readr_schema_miete, 
+  col_select = c(obid, gkz, plz, mietekalt, baujahr, wohnflaeche, zimmeranzahl, ajahr, amonat, jahr, emonat, r1_id)) %>%
+  group_by(ajahr, amonat) %>%
+  write_dataset("./Daten/Immo/Miete")
+```
+
+```{r}
+miete_arrow <- open_dataset("./Daten/Immo/Miete")
+
+miete_arrow %>%
+  count(ajahr) %>%
+  arrange(ajahr) %>%
+  collect()
+
+miete_arrow %>%
+  slice_sample(n = 100) %>%
+  collect()
+```
+
+# Cleaning
+
+```{r}
+kauf_arrow <- open_dataset("./Daten/Immo/Kauf")
+miete_arrow <- open_dataset("./Daten/Immo/Miete")
+```
+
+```{r}
+d <- miete_arrow %>%
+  filter(ajahr > 2018) %>%
+  collect()
+
+d %>%
+  #filter(jahr != ajahr) %>%
+  select(mietekalt, wohnflaeche, zimmeranzahl, r1_id, ajahr, amonat, ejahr = jahr, emonat) %>%
+  mutate(r1_id = na_if(r1_id, c("-11")),
+         r1_id = na_if(r1_id, c("-9"))) %>%
+  drop_na() %>%
+  filter(mietekalt %>% between(quantile(mietekalt, 0.01), quantile(mietekalt, 0.99)),
+         wohnflaeche %>% between(quantile(wohnflaeche, 0.01), quantile(wohnflaeche, 0.99))) %>%
+  mutate(mietekalt_m2 = mietekalt / wohnflaeche) %>%
+  ggplot(aes(x = ajahr, y = mietekalt_m2, group = ajahr))+
+  geom_boxplot()
+```
+
+```{r}
+kauf_arrow %>%
+  filter(!r1_id %in% c("-11", "-9")) %>%
+  filter(kaufpreis %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
+  collect()
+```
+
+```{r}
+test <- vroom("./Daten/Immo/Rohdaten/Kauf/combined", col_types = cols_only(baujahr = col_integer()))
+
+dupIDs <- c("ID occurs once only, or first occurence of ID", "Large differences in important features", "Like (4) but time gape >6 months", "Like (1) but time gap >6 months")
+
+test %>%
+  filter(dupID_gen %in% dupIDs)
+
+test %>%
+  filter(baujahr != -1) %>%
+  arrange(baujahr)
+  #filter(baujahr < 50) %>%
+  ggplot(aes(x = baujahr))+
+  geom_density()
+```
+
+# NEU
+
+## Kauf
+
+```{r}
+vroom_col_kauf <- cols_only(
+  obid = col_character(),
+  gkz = col_character(),
+  plz = col_character(),
+  kaufpreis = col_double(),
+  baujahr = col_integer(),
+  wohnflaeche = col_double(),
+  zimmeranzahl = col_double(),
+  ajahr = col_integer(),
+  amonat = col_integer(),
+  jahr = col_integer(),
+  emonat = col_integer(),
+  r1_id = col_character(),
+  dupID_gen = col_character()
+)
+
+good_dupIDs <- c("ID occurs once only, or first occurence of ID", "Large differences in important features", "Like (4) but time gape >6 months", "Like (1) but time gap >6 months")
+
+import_vroom_kauf <- vroom("./Daten/Immo/Rohdaten/Kauf/combined", col_types = vroom_col_kauf)
+
+import_vroom_kauf_clean <- import_vroom_kauf %>%
+  filter(!r1_id %in% c("-11", "-9")) %>%
+  filter(dupID_gen %in% good_dupIDs) %>%
+  select(-dupID_gen) %>%
+  drop_na(kaufpreis) %>%
+  filter(kaufpreis %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
+  mutate(baujahr = na_if(baujahr, -1)) %>%
+  rename(ejahr = jahr) %>%
+  mutate(x_mp = r1_id %>% str_extract("^\\d{4}") %>% as.numeric(),
+         y_mp = r1_id %>% str_extract("\\d{4}$") %>% as.numeric(),
+         x_mp = x_mp * 1000 + 500,
+         y_mp = y_mp * 1000 + 500)
+
+import_vroom_kauf_clean %>%
+  group_by(ejahr) %>%
+  write_dataset("./Daten/Immo/Kauf_NEU/")
+```
+
+## Miete
+
+```{r}
+vroom_col_miete <- cols_only(
+  obid = col_character(),
+  gkz = col_character(),
+  plz = col_character(),
+  mietekalt = col_double(),
+  baujahr = col_integer(),
+  wohnflaeche = col_double(),
+  zimmeranzahl = col_double(),
+  ajahr = col_integer(),
+  amonat = col_integer(),
+  jahr = col_integer(),
+  emonat = col_integer(),
+  r1_id = col_character(),
+  dupID_gen = col_character()
+)
+
+good_dupIDs <- c("ID occurs once only, or first occurence of ID", "Large differences in important features", "Like (4) but time gape >6 months", "Like (1) but time gap >6 months")
+
+import_vroom_miete <- vroom("./Daten/Immo/Rohdaten/Miete/combined", col_types = vroom_col_miete)
+
+import_vroom_miete_clean <- import_vroom_miete %>%
+  filter(!r1_id %in% c("-11", "-9")) %>%
+  #filter(dupID_gen %in% good_dupIDs) %>%
+  #select(-dupID_gen) %>%
+  drop_na(mietekalt) %>%
+  drop_na(wohnflaeche) %>%
+  filter(mietekalt %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
+  filter(wohnflaeche %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
+  mutate(baujahr = na_if(baujahr, -1)) %>%
+  rename(ejahr = jahr) %>%
+  mutate(x_mp = r1_id %>% str_extract("^\\d{4}") %>% as.numeric(),
+         y_mp = r1_id %>% str_extract("\\d{4}$") %>% as.numeric(),
+         x_mp = x_mp * 1000 + 500,
+         y_mp = y_mp * 1000 + 500)
+
+import_vroom_miete_clean %>%
+  group_by(ejahr) %>%
+  write_dataset("./Daten/Immo/Miete_NEU/")
+```
+
+Achtung: bei `import_vroom_miete_clean` sind nur Daten bis 2019. Irgendwie werden also spätere Anzeigen alle rausgefiltert. Möglicherweise wegen der `dupID_gen`.
+
+```{r}
+import_vroom_miete_clean_test <- import_vroom_miete %>%
+  filter(!r1_id %in% c("-11", "-9")) %>%
+  #filter(dupID_gen %in% good_dupIDs) %>%
+  #select(-dupID_gen) %>%
+  drop_na(mietekalt) %>%
+  drop_na(wohnflaeche) %>%
+  filter(mietekalt %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
+  filter(wohnflaeche %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
+  mutate(baujahr = na_if(baujahr, -1)) %>%
+  rename(ejahr = jahr) %>%
+  mutate(x_mp = r1_id %>% str_extract("^\\d{4}") %>% as.numeric(),
+         y_mp = r1_id %>% str_extract("\\d{4}$") %>% as.numeric(),
+         x_mp = x_mp * 1000 + 500,
+         y_mp = y_mp * 1000 + 500)
+
+import_vroom_miete_clean_test %>%
+  filter(ejahr > 2019) %>%
+  count(dupID_gen)
+```
+
