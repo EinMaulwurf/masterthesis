@@ -460,3 +460,81 @@ breitband_1km_arrow %>%
   write_parquet("./Daten/Breitbandatlas/Raster_1km_got_fiber_date.parquet")
 ```
 
+# Neuer Datensatz: BBSR Raumgliederung
+
+[Quelle](https://www.bbsr.bund.de/BBSR/DE/forschung/raumbeobachtung/downloads/download-referenzen.html)
+
+Laden der Daten vom BBSR. Ich verwende nicht alle Variablen, sondern vier, die ich für sinvoll halte:
+- Degree of Urbanisation (`dgurb`) von [Eurostat](https://ec.europa.eu/eurostat/web/degree-of-urbanisation/methodology) mit 3 Leveln.
+- Raumtyp mit Bezug auf die Lage der Gemeinden (`raumtyp_lage`) mit 4 Leveln.
+- Stadt- und Gemeindetyp (`gemeindetyp`) mit 5 Leveln.
+- Stadt- und Gemeindetyp differenziert (`gemeindetyp_differenziert`) mit 7 Leveln.
+
+Außerdem behalte ich den Amtlichen Gemeindeschlüssel sowie den Regionalschlüssel zum Matchen mit anderen Datensätzen. Der Gemeindename (`gem_name`) dient zur Plausibilisierung.
+
+```{r}
+data_bbsr <- readxl::read_xlsx("./Daten/Raumgliederung_BBSR/raumgliederungen-referenzen-2022.xlsx", 
+                               sheet = "Gemeindereferenz (inkl. Kreise)", 
+                               skip = 1,
+                               col_types = "text") %>%
+  janitor::clean_names() %>%
+  select(gem_name = gemeinden_2022_name, 
+         gem_kennziffer = gemeinden_2022_kennziffer, 
+         gem_regionalschlussel = gemeinden_2022_regionalschlussel, 
+         dgurb_kennziffer = degree_of_urbanisation_gemeinden_2022_kennziffer, 
+         dgurb_name = degree_of_urbanisation_gemeinden_2022_name,
+         raumtyp_lage_kennziffer = raumtyp_bezug_lage_gemeinden_2022_kennziffer,
+         raumtyp_lage_name = raumtyp_bezug_lage_gemeinden_2022_name,
+         gemeindetyp_kennziffer = stadt_und_gemeindetyp_2022_kennziffer,
+         gemeindetyp_name = stadt_und_gemeindetyp_2022_name,
+         gemeindetyp_differenziert_kennziffer = stadt_und_gemeindetyp_differenziert_2022_kennziffer,
+         gemeindetyp_differenziert_name = stadt_und_gemeindetyp_differenziert_2022_name) %>%
+  mutate(gem_kennziffer = str_pad(gem_kennziffer, 8, side = "left", pad = "0"),
+         gem_regionalschlussel = str_pad(gem_regionalschlussel, 12, side = "left", pad = "0"))
+
+data_bbsr
+```
+
+Ich lade die Geodaten der Gemeinden. Außerdem lade ich die 1km Grid-Zellen und füge die sf Geometrie hinzu.
+
+```{r}
+gemeinden <- st_read("./Daten/Geodaten/gemeinden.gpkg", quiet = TRUE, as_tibble = TRUE)
+gemeinden
+
+kauf_distinct_cells <- open_dataset("./Daten/Immo/Kauf/") %>%
+  filter(ejahr >= 2018) %>%
+  distinct(x_mp, y_mp) %>%
+  collect()
+
+miete_distinct_cells <- open_dataset("./Daten/Immo/Miete/") %>%
+  filter(ejahr >= 2018) %>%
+  distinct(x_mp, y_mp) %>%
+  collect()
+
+all_distinct_cells <- bind_rows(kauf_distinct_cells, miete_distinct_cells) %>%
+  distinct(x_mp, y_mp) %>%
+  st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
+```
+
+Mit einem Geospatial Join verbinde ich die Grid-Zellen mit der jeweiligen Gemeinde in der sie liegen (ausgehend vom Mittelpunkt der Zelle). Dann joine ich die BBSR Daten.
+
+Manche Zellen liegen in keiner Gemeinde. Nach visueller Inspektion liegen diese Zellen mit ihrem Mittelpunkt nicht in Deutschland. Es handlet sich auch nicht um viele Zellen. Sie werden daher verworfen.
+
+```{r}
+cells_gemeinden_bbsr <- st_join(all_distinct_cells, gemeinden) %>%
+  st_drop_geometry() %>%
+  left_join(data_bbsr, by = join_by(nsi_code == gem_kennziffer)) %>%
+  filter(complete.cases(.)) %>%
+  select(x_mp, y_mp, ags = nsi_code, gem_name, nuts_code, dgurb_kennziffer:last_col())
+
+cells_gemeinden_bbsr %>%
+  count(gem_name) %>%
+  arrange(desc(n))
+
+cells_gemeinden_bbsr %>%
+  filter(is.na(gem_name))
+
+cells_gemeinden_bbsr %>%
+  write_parquet("./Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
+```
+
