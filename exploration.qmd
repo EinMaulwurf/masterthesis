@@ -46,15 +46,16 @@ bundesländer <- giscoR::gisco_get_nuts(epsg = "3035", country = "DE", nuts_leve
 if(!"gemeinden.gpkg" %in% list.files("./Daten/Geodaten/")) {
   giscoR::gisco_get_communes(epsg = "3035", country = "DE") %>%
     select(-FID) %>%
+    janitor::clean_names() %>%
     st_write("./Daten/Geodaten/gemeinden.gpkg")
 }
 
-gemeinden <- st_read("./Daten/Geodaten/gemeinden.gpkg", quiet = TRUE)
+gemeinden <- st_read("./Daten/Geodaten/gemeinden.gpkg", quiet = TRUE, as_tibble = TRUE)
 
 # z.B. Hamburg hat zwei Exklaven die ich hier entferne
 get_stadt <- function(stadt) {
   gemeinden %>% 
-    filter(COMM_NAME == stadt) %>%
+    filter(comm_name == stadt) %>%
     st_cast("POLYGON", warn = FALSE) %>%
     mutate(area = st_area(.)) %>%
     slice_max(area, n = 1) %>%
@@ -76,7 +77,7 @@ breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
 # Funktion um automatisch Daten einer bestimmen Stadt zu laden
 get_breitband_stadt <- function(stadt_name, size = "100m", variables = everything()) {
   stadt <- gemeinden %>% 
-    filter(COMM_NAME == stadt_name) %>%
+    filter(comm_name == stadt_name) %>%
     st_cast("POLYGON") %>%
     mutate(area = st_area(.)) %>%
     slice_max(area, n = 1) %>%
