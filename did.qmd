@@ -1,0 +1,228 @@
+---
+title: "did"
+format: html
+---
+
+# Setup
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(arrow)
+library(did)
+library(broom)
+library(did2s)
+```
+
+# Import
+
+Pseudo dates. Ich wandle die `yyyymm` Daten in halbjähliche "pseudo" Daten um, beginnend bei 1 für Dezember 2018 und dann +1 für jedes Halbjahr.
+```{r}
+min_date <- 201801
+max_date <- 202406
+
+dates_pseudo_halbjahr <- tibble(date = seq(
+  from = as.Date(paste0(min_date, "01"), format = "%Y%m%d"),
+  to = as.Date(paste0(max_date, "01"), format = "%Y%m%d"),
+  by = "1 month"
+)) %>%
+  mutate(date = as.numeric(format(date, "%Y%m"))) %>%
+  left_join(
+    tibble(date = seq(
+      from = as.Date(paste0(min_date, "01"), format = "%Y%m%d"),
+      to = as.Date(paste0(max_date, "01"), format = "%Y%m%d"),
+      by = "6 months"
+      )) %>%
+      mutate(date = as.numeric(format(date, "%Y%m")), 
+             date_pseudo_halbjahr = seq_along(date))
+    ) %>%
+  fill(date_pseudo_halbjahr, .direction = "down")
+```
+
+Ich lade die `got_fiber_dates` Daten und ändere alle Einträge mit Juli (07) in Juni (06), damit es komplett einheitlich ist. Dann joine ich die `dates_pseudo_halbjahr`.
+Außerdem lade ich die Kauf-Daten und die Daten zur Urbanität der Zellen.
+```{r}
+got_fiber_dates <- read_parquet("./Daten/Breitbandatlas/Raster_1km_got_fiber_date.parquet") %>%
+  mutate(got_fiber_date = if_else(got_fiber_date %% 10 == 7, got_fiber_date - 1, got_fiber_date)) %>%
+  left_join(dates_pseudo_halbjahr, by = join_by(got_fiber_date == date)) %>%
+  rename(got_fiber_date_pseudo_halbjahr = date_pseudo_halbjahr)
+
+cells_gemeinden_bbsr <- read_parquet("./Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
+```
+
+```{r}
+data_kauf <- open_dataset("./Daten/Immo/Kauf/") %>%
+  filter(ejahr >= 2018) %>%
+  mutate(date = ejahr*100 + emonat) %>%
+  select(date, x_mp, y_mp, kaufpreis, baujahr, wohnflaeche, zimmeranzahl) %>%
+  collect() %>%
+  left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
+  select(date_pseudo_halbjahr, x_mp, y_mp, kaufpreis, baujahr, wohnflaeche, zimmeranzahl)
+
+data_miete <- open_dataset("./Daten/Immo/Miete/") %>%
+  filter(ejahr >= 2018) %>%
+  mutate(date = ejahr*100 + emonat) %>%
+  select(date, x_mp, y_mp, mietekalt, baujahr, wohnflaeche, zimmeranzahl) %>%
+  collect() %>%
+  left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
+  select(date_pseudo_halbjahr, x_mp, y_mp, mietekalt, baujahr, wohnflaeche, zimmeranzahl)
+```
+
+# Kauf
+
+Hier aggregiere ich die Daten auf pseudo-date, grid Ebene. Außerdem wird das Panel vervollständigt. Dabei werden fehlende Beobachtungen mit vorherigen aufgefüllt. Gibt es für eine Zelle beispielsweise nur in `date_pseudo_halbjahr` 1 und 3 eine Beobachtung, so wird 2 mit der aus 1 aufgefüllt.
+```{r}
+data_kauf_complete <- data_kauf %>%
+  group_by(date_pseudo_halbjahr, x_mp, y_mp) %>%
+  summarise(mean_kaufpreis = mean(kaufpreis, na.rm = TRUE),
+            n_cell_date = n(),
+            baujahr = median(baujahr, na.rm = TRUE),
+            wohnflaeche = median(wohnflaeche, na.rm = TRUE),
+            zimmeranzahl = median(zimmeranzahl, na.rm = TRUE),
+            .groups = "drop") %>%
+  arrange(x_mp, y_mp, date_pseudo_halbjahr) %>%
+  group_by(x_mp, y_mp) %>%
+  mutate(n_cell = sum(n_cell_date)) %>%
+  ungroup() %>%
+  mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
+  mutate(baujahr = if_else(is.na(baujahr), 
+                           median(baujahr, na.rm = TRUE), 
+                           baujahr)) %>%
+  complete(xy_mp, date_pseudo_halbjahr) %>%
+  group_by(xy_mp) %>%
+  fill(everything(), .direction = "downup") %>%
+  ungroup() %>%
+  left_join(got_fiber_dates %>% select(-got_fiber_date), by = join_by(x_mp, y_mp)) %>%
+  mutate(got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)) %>%
+  left_join(cells_gemeinden_bbsr %>% select(x_mp, y_mp, ends_with("_name")), by = join_by(x_mp, y_mp))
+```
+
+```{r}
+mod_kauf <- att_gt(
+  yname = "mean_kaufpreis",
+  tname = "date_pseudo_halbjahr",
+  idname = "xy_mp",
+  gname = "got_fiber_date_pseudo_halbjahr",
+  xformla = ~ baujahr + wohnflaeche + zimmeranzahl + gemeindetyp_name,
+  weightsname = "n_cell",
+  data = data_kauf_complete,
+  anticipation = 0,
+  alp = 0.05,
+  control_group = "nevertreated",
+  biter = 1000,
+  pl = TRUE,
+  cores = 6,
+  allow_unbalanced_panel = TRUE,
+  faster_mode = FALSE,
+  print_details = TRUE
+)
+tidy(mod_kauf)
+
+mod_kauf_agg_dyn <- did::aggte(mod_kauf, type = "dynamic", min_e = -4, max_e = 6)
+ggdid(mod_kauf_agg_dyn)
+
+mod_kauf_agg_group <- did::aggte(mod_kauf, type = "group", min_e = -4, max_e = 2)
+ggdid(mod_kauf_agg_group)
+
+mod_kauf_agg_calendar <- did::aggte(mod_kauf, type = "calendar", min_e = -4, max_e = 2)
+ggdid(mod_kauf_agg_calendar)
+```
+
+# Miete
+
+```{r}
+data_miete_complete <- data_miete %>%
+  mutate(mietekalt_m2 = mietekalt / wohnflaeche) %>%
+  group_by(date_pseudo_halbjahr, x_mp, y_mp) %>%
+  summarise(mean_mietekalt = mean(mietekalt, na.rm = TRUE),
+            mean_mietekalt_m2 = mean(mietekalt_m2, na.rm = TRUE),
+            n_cell_date = n(),
+            baujahr = median(baujahr, na.rm = TRUE),
+            wohnflaeche = median(wohnflaeche, na.rm = TRUE),
+            zimmeranzahl = median(zimmeranzahl, na.rm = TRUE),
+            .groups = "drop") %>%
+  arrange(x_mp, y_mp, date_pseudo_halbjahr) %>%
+  group_by(x_mp, y_mp) %>%
+  mutate(n_cell = sum(n_cell_date)) %>%
+  ungroup() %>%
+  mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
+  mutate(baujahr = if_else(is.na(baujahr), 
+                           median(baujahr, na.rm = TRUE), 
+                           baujahr)) %>%
+  complete(xy_mp, date_pseudo_halbjahr) %>%
+  group_by(xy_mp) %>%
+  fill(everything(), .direction = "downup") %>%
+  ungroup() %>%
+  left_join(got_fiber_dates %>% select(-got_fiber_date), by = join_by(x_mp, y_mp)) %>%
+  mutate(got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)) %>%
+  left_join(cells_gemeinden_bbsr %>% select(x_mp, y_mp, ends_with("_name")), by = join_by(x_mp, y_mp))
+```
+
+```{r}
+mod_miete <- att_gt(
+  yname = "mean_mietekalt_m2",
+  tname = "date_pseudo_halbjahr",
+  idname = "xy_mp",
+  gname = "got_fiber_date_pseudo_halbjahr",
+  xformla = ~ baujahr + wohnflaeche + zimmeranzahl + gemeindetyp_name,
+  weightsname = "n_cell",
+  data = data_miete_complete,
+  anticipation = 0,
+  alp = 0.05,
+  control_group = "notyettreated",
+  biter = 1000,
+  pl = TRUE,
+  cores = 6,
+  allow_unbalanced_panel = TRUE,
+  faster_mode = FALSE,
+  print_details = TRUE
+)
+tidy(mod_miete)
+
+mod_miete_agg_dyn <- did::aggte(mod_miete, type = "dynamic", min_e = -4, max_e = 6)
+ggdid(mod_miete_agg_dyn)
+
+mod_miete_agg_group <- did::aggte(mod_miete, type = "group", min_e = -4, max_e = 2)
+ggdid(mod_miete_agg_group)
+
+mod_miete_agg_calendar <- did::aggte(mod_miete, type = "calendar", min_e = -4, max_e = 2)
+ggdid(mod_miete_agg_calendar)
+```
+
+
+# Event Study Plot
+
+```{r}
+data_kauf %>%
+  mutate(kaufpreis_log = log(kaufpreis)) %>%
+  left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
+  # Drop Beobachtungen, die nie Fiber bekommen
+  drop_na(got_fiber_date) %>%
+  mutate(date_pseudo_halbjahr_rel = date_pseudo_halbjahr - got_fiber_date_pseudo_halbjahr) %>%
+  # Erlaube nur Beobachtungen, die vor 2022 Fiber bekommen
+  filter(got_fiber_date_pseudo_halbjahr <= 8) %>%
+  group_by(date_pseudo_halbjahr_rel) %>%
+  summarise(kaufpreis_mean = mean(kaufpreis, na.rm = TRUE),
+            kaufpreis_sd = sd(kaufpreis, na.rm = TRUE),
+            kaufpreis_log_mean = mean(kaufpreis_log, na.rm = TRUE),
+            kaufpreis_log_sd = sd(kaufpreis_log, na.rm = TRUE)) %>%
+  ggplot(aes(x = date_pseudo_halbjahr_rel, y = kaufpreis_mean))+
+  geom_line()+
+  geom_vline(xintercept = 0, linetype = "dashed")+
+  theme_bw()+
+  labs(x = "Monat rel. zu Glasfaseranschluss")
+```
+
+Unterschied zwischen eventually-treated und never-treated
+```{r}
+data_kauf %>%
+  left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
+  mutate(got_fiber = if_else(!is.na(got_fiber_date), TRUE, FALSE)) %>%
+  group_by(date_pseudo_halbjahr, got_fiber) %>%
+  summarise(kaufpreis = mean(kaufpreis, na.rm = TRUE)) %>%
+  ggplot(aes(x = date_pseudo_halbjahr, y = kaufpreis, color = got_fiber))+
+  geom_line()+
+  theme_bw()
+```
