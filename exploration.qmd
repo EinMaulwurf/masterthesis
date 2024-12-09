@@ -197,7 +197,7 @@ p <- breitband_1km_arrow %>%
   theme_void()+
   theme(legend.position = "none")
 
-ggsave("./Output/plot_de_glasfaser_1km.pdf", plot = p, width = 5, height = 7)
+ggsave("./Output/plot_de_glasfaser_202406_1km.pdf", plot = p, width = 5, height = 7)
 ```
 
 Vergleich über Jahre. Hier habe ich festgestellt, dass bis einschließlich 07.2021 ein 250m Raster verwendet wird.
@@ -403,6 +403,17 @@ zensus_arrow %>%
 ggsave("./Output/plots/karten/plot_darmstadt_zensus_missing.pdf", width = 3, height = 3)
 ```
 
+Zuwächse an FTTHB über die Zeit
+```{r}
+read_parquet("./Daten/Breitbandatlas/Raster_1km_got_fiber_date.parquet") %>%
+  count(got_fiber_date) %>%
+  mutate(got_fiber_date = ym(got_fiber_date)) %>%
+  ggplot(aes(x = got_fiber_date, y = n))+
+  geom_point()+
+  geom_line(aes(y = cumsum(n)))+
+  theme_bw()
+```
+
 
 # Karte mit Leaflet
 
@@ -427,6 +438,32 @@ data_leaflet %>%
 
 ## Breitbanddaten
 ```{r}
+# 100m
+breitband_100m_arrow %>%
+  select(date, down_fn_hh_ftthb_1000) %>%
+  mutate(down_fn_hh_ftthb_1000 = round(down_fn_hh_ftthb_1000)) %>%
+  collect() %>%
+  group_by(Stichtag = ceiling_date(ym(date), unit = "month") - days(1)) %>%
+  arrange(Stichtag) %>%
+  summarise(n = n(),
+            "Anteil 0" = mean(down_fn_hh_ftthb_1000 == 0, na.rm = TRUE)*100,
+            "Anteil 100" = mean(down_fn_hh_ftthb_1000 == 100, na.rm = TRUE)*100,
+            # share_0 = mean(down_fn_hh_ftthb_1000 <= 5, na.rm = TRUE),
+            # share_100 = mean(down_fn_hh_ftthb_1000 >= 95, na.rm = TRUE),
+            "Mittelwert" = mean(down_fn_hh_ftthb_1000, na.rm = TRUE),
+            # pct_25 = quantile(down_fn_hh_ftthb_1000, 0.25, na.rm = TRUE),
+            # pct_50 = quantile(down_fn_hh_ftthb_1000, 0.50, na.rm = TRUE),
+            # pct_75 = quantile(down_fn_hh_ftthb_1000, 0.75, na.rm = TRUE)
+            ) %>%
+  kbl(format = "latex", 
+      digits = 0, 
+      booktabs = TRUE, 
+      position = "h", 
+      linesep = "", 
+      format.args	= list(big.mark = " ")) %>% 
+  cat()
+
+# 1km
 breitband_1km_arrow %>%
   select(date, down_fn_hh_ftthb_1000) %>%
   mutate(down_fn_hh_ftthb_1000 = round(down_fn_hh_ftthb_1000)) %>%
@@ -459,13 +496,7 @@ Verteilung FTTHB 1km
 
 breitband_1km_arrow %>%
   select(date, down_fn_hh_ftthb_1000) %>%
-  collect() %>%
-  ggplot(aes(x = as.factor(date), y = down_fn_hh_ftthb_1000, group = as.factor(date)))+
-  geom_violin()
-
-breitband_1km_arrow %>%
-  select(date, down_fn_hh_ftthb_1000) %>%
-  filter(date == 202312 | date == 201812) %>%
+  filter(date == 202406 | date == 201812) %>%
   filter(!is.na(down_fn_hh_ftthb_1000)) %>%
   collect() %>%
   mutate(Stichtag = ceiling_date(ym(date), unit = "month") - days(1)) %>%
@@ -477,7 +508,7 @@ breitband_1km_arrow %>%
   labs(x = "Anteil Glasfaseranschluss (1000 Mbit/s FTTHB) je Rasterzelle (%)",
        y = "Anzahl Rasterzellen (1000)")
 
-ggsave("./Output/plots/plot_verteilung_glasfaser_2018_2023.pdf", width = 5, height = 3)
+ggsave("./Output/plots/plot_verteilung_glasfaser_2018_2024.pdf", width = 5, height = 3)
 ```
 
 Summary Statistics für alle Variablen
@@ -540,5 +571,12 @@ breitband_1km_arrow_summarised %>%
       longtable = TRUE,
       na = '-') %>% 
   cat()
+```
+
+```{r}
+breitband_1km_arrow %>%
+  distinct(x_mp, y_mp, date) %>%
+  count(date) %>%
+  collect()
 ```
 
