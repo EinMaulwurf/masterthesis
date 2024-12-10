@@ -156,3 +156,38 @@ open_dataset("./Daten/Immo/Miete/") %>%
   collect()
 ```
 
+# RWI GEO REDX PUF
+
+HK = House sales, WK = Apartment sales, WM = Apartment rents, CI = Combined Index
+
+```{r}
+rwi_geo_redx_puf <- readxl::read_xlsx("./Daten/RWI_GEO_REDX_PUF/RWIGEOREDX_GRIDS_v13_PUF.xlsx",
+                          sheet = "Grids_RegionEff_yearly") %>%
+  pivot_longer(
+    cols = starts_with(c("pindex", "NOBS")),
+    names_to = c(".value", "year"),
+    names_pattern = "(pindex|NOBS)(\\d{4})"
+  ) %>%
+  rename(nobs = NOBS) %>%
+  mutate(x_mp = grid %>% str_extract("^\\d{4}") %>% as.numeric(),
+         y_mp = grid %>% str_extract("\\d{4}$") %>% as.numeric(),
+         x_mp = x_mp * 1000 + 500,
+         y_mp = y_mp * 1000 + 500,
+         .keep = "unused",
+         .before = 1) %>%
+  pivot_wider(names_from = housing_type, values_from = c(pindex, nobs)) %>%
+  mutate(year = as.numeric(year))
+
+rwi_geo_redx_puf %>%
+  write_parquet("./Daten/RWI_GEO_REDX_PUF/rwi_geo_redx_puf.parquet")
+```
+
+```{r}
+rwi_geo_redx_puf %>%
+  inner_join(
+    cells_gemeinden_bbsr %>%
+      filter(gemeindetyp_differenziert_name == "Größere Großstadt")
+  ) %>%
+  filter(year >= 2018)
+```
+
