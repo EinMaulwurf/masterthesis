@@ -14,6 +14,7 @@ library(arrow)
 library(did)
 library(broom)
 library(did2s)
+library(HonestDiD)
 ```
 
 # Import
@@ -71,6 +72,8 @@ data_miete <- open_dataset("./Daten/Immo/Miete/") %>%
 ```
 
 # Kauf
+
+> Idee: mit `panel = FALSE` und ohne Aggregation
 
 Hier aggregiere ich die Daten auf pseudo-date, grid Ebene. Außerdem wird das Panel vervollständigt. Dabei werden fehlende Beobachtungen mit vorherigen aufgefüllt. Gibt es für eine Zelle beispielsweise nur in `date_pseudo_halbjahr` 1 und 3 eine Beobachtung, so wird 2 mit der aus 1 aufgefüllt.
 ```{r}
@@ -191,6 +194,74 @@ mod_miete_agg_calendar <- did::aggte(mod_miete, type = "calendar", min_e = -4, m
 ggdid(mod_miete_agg_calendar)
 ```
 
+# NEU: RWI GEO REDX
+
+```{r}
+zensus_haushalte_1km <- open_dataset("./Daten/Zensus/Gesamt/") %>%
+  filter(typ == "1km") %>%
+  mutate(anzahl_haushalte = insgesamt_bevoelkerung / durchschn_hh_groesse) %>%
+  select(x_mp, y_mp, anzahl_haushalte) %>%
+  collect()
+
+set.seed(1)
+breitband_1km_max_speed <- read_parquet("./Daten/Breitbandatlas/Raster_1km_max_speed.parquet") %>%
+  mutate(year = floor(date/100)) %>%
+  group_by(year, x_mp, y_mp) %>%
+  slice_sample(n = 1) %>%
+  ungroup() %>%
+  select(year, x_mp, y_mp, max_speed_no_fiber)
+
+rwi_geo_redx_puf <- read_parquet("./Daten/RWI_GEO_REDX_PUF/rwi_geo_redx_puf.parquet")
+
+rwi_geo_redx_puf_complete <- rwi_geo_redx_puf %>%
+  select(x_mp, y_mp, year, starts_with("pindex")) %>%
+  mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000, .before = 1) %>%
+  left_join(got_fiber_dates %>% 
+              mutate(got_fiber_date_year = floor(got_fiber_date/100)) %>% 
+              select(x_mp, y_mp, got_fiber_date_year), 
+            by = join_by(x_mp, y_mp)) %>%
+  mutate(got_fiber_date_year = replace_na(got_fiber_date_year, 0)) %>%
+  left_join(cells_gemeinden_bbsr %>% select(x_mp, y_mp, ends_with("_name")), by = join_by(x_mp, y_mp)) %>%
+  left_join(zensus_haushalte_1km, by = join_by(x_mp, y_mp)) %>%
+  left_join(breitband_1km_max_speed, by = join_by(year, x_mp, y_mp))
+```
+
+```{r}
+mod_redx <- att_gt(
+  yname = "pindex_CI",
+  tname = "year",
+  idname = "xy_mp",
+  gname = "got_fiber_date_year",
+  xformla = ~ gemeindetyp_name + max_speed_no_fiber,
+  weightsname = "anzahl_haushalte",
+  data = rwi_geo_redx_puf_complete %>% 
+    drop_na(pindex_CI, got_fiber_date_year, anzahl_haushalte, max_speed_no_fiber) %>% 
+    filter(year >= 2017),
+  anticipation = 0,
+  alp = 0.05,
+  control_group = "nevertreated",
+  biter = 5000,
+  pl = TRUE,
+  cores = 6,
+  allow_unbalanced_panel = TRUE,
+  faster_mode = FALSE,
+  print_details = FALSE,
+  est_method = "ipw",
+  base_period="universal"
+)
+tidy(mod_redx)
+
+ggdid(mod_redx)
+
+mod_redx_agg_dyn <- did::aggte(mod_redx, type = "dynamic", min_e = -4, max_e = 6)
+ggdid(mod_redx_agg_dyn)
+
+mod_redx_agg_group <- did::aggte(mod_redx, type = "group", min_e = -4, max_e = 3)
+ggdid(mod_redx_agg_group)
+
+mod_redx_agg_calendar <- did::aggte(mod_redx, type = "calendar", min_e = -4, max_e = 3)
+ggdid(mod_redx_agg_calendar)
+```
 
 # Event Study Plot
 
@@ -226,3 +297,71 @@ data_kauf %>%
   geom_line()+
   theme_bw()
 ```
+
+# Testing Pretrends
+
+`summary()` zeigt bereits ein p-value der Wald-Statistic zu den Pretrends. Wenn der Wert größer ist als 0.05, dann liegt keine Verletzung der Prallel-Trends Assumption vor.
+
+```{r}
+summary(mod_redx)
+```
+
+Es gibt auch eine spezielle Funktion zum Testen von Pretrends: `did::conditional_did_pretest()`. Nur ist diese sehr (sehr) rechenaufwändig.
+
+```{r}
+#| eval: false
+
+test <- conditional_did_pretest(
+  yname = "pindex_CI",
+  tname = "year",
+  idname = "xy_mp",
+  gname = "got_fiber_date_year",
+  xformla = ~ gemeindetyp_name + max_speed_no_fiber,
+  weightsname = "anzahl_haushalte",
+  data = rwi_geo_redx_puf_complete %>% 
+    drop_na(pindex_CI, got_fiber_date_year, anzahl_haushalte, max_speed_no_fiber) %>% 
+    filter(year >= 2017),
+  alp = 0.05,
+  control_group = "notyettreated",
+  biter = 5000,
+  pl = TRUE,
+  cores = 6,
+  #allow_unbalanced_panel = TRUE,
+  print_details = FALSE,
+  est_method = "reg"
+)
+```
+
+`HosestDiD` von [Rambach & Roth 2023](https://academic.oup.com/restud/article-abstract/90/5/2555/7039335). Das Helper-Skript ist von [hier](https://github.com/pedrohcgs/CS_RR).
+
+```{r}
+source("honest_did_helper.R")
+# ----
+mod_redx_agg_dyn_honest_did_smooth <- honest_did(
+  es = mod_redx_agg_dyn,
+  e = 0,
+  type = "smoothness",
+  Mvec = seq(from = 0, to = 1, length.out = 5)
+  )
+mod_redx_agg_dyn_honest_did_smooth
+
+
+mod_redx_agg_dyn_honest_did_rel <- honest_did(
+  es = mod_redx_agg_dyn,
+  e = 0,
+  type = "relative_magnitude",
+  Mbarvec = seq(from = 0, to = 1, length.out = 5)
+)
+mod_redx_agg_dyn_honest_did_rel
+# Drop 0 as that is not really allowed.
+mod_redx_agg_dyn_honest_did_rel$robust_ci <- mod_redx_agg_dyn_honest_did_rel$robust_ci[-1,]
+
+## -----------------------------------------------------------------------------
+# make sensitivity analysis plots
+createSensitivityPlot(mod_redx_agg_dyn_honest_did_smooth$robust_ci,
+                      mod_redx_agg_dyn_honest_did_smooth$orig_ci)
+
+createSensitivityPlot_relativeMagnitudes(mod_redx_agg_dyn_honest_did_rel$robust_ci,
+                                         mod_redx_agg_dyn_honest_did_rel$orig_ci)
+```
+
