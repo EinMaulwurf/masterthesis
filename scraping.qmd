@@ -27,14 +27,16 @@ curl 'https://buergerplattform-prod2.production.netzda-mig.org/server/rest/servi
 
 Um Daten für verschiedene Jahre zu erhalten, kann der `festnetz_XXX` Teil angepasst werden:
 - `festnetz_001` für 12.2018
-- `festnetz_002` für 07.2019
+- `festnetz_002` für 06.2019
 - `festnetz_003` für 12.2019
 - ...
 - `festnetz_010` für 12.2023
 
-Im folgenden wird eine Funktion für die API abfrage definiert. Input ist eine Gitterzelle, bzw. die Koordinaten der Eckpunkt (xmin, xmax, ymin, ymax) als Liste. Die Funktion gibt dann ein Dataframe mit den Daten für diese Zelle für alle Jahre zurück. Alle Koordinaten sind im EPSG:3035 System.
+Im folgenden wird eine Funktion für die API abfrage definiert. Input ist eine Gitterzelle, bzw. die Koordinaten der Eckpunkt (`xmin`, `xmax`, `ymin`, `ymax`) als Liste. Die Funktion gibt dann ein Dataframe mit den Daten für diese Zelle für alle Jahre zurück. Alle Koordinaten sind im EPSG:3035 System.
 
-**Achtung:** Bis einschließlich 07.2021 sind die Daten auf einem 250m Raster!
+Es könnte auch `outFields=*` angepasst werden, z.B. mit `outFields=down_fn_hh_ftthb_400, down_fn_hh_ftthb_1000` um nur diese beiden Variablen zu erhalten. Das könnte die Abfrage etwas beschleunigen. Insbesondere die geschäftlichen Anschlüsse (`down_fn_gew_`, `down_fn_gwg_`) interessieren mich nicht.
+
+**Achtung:** Bis einschließlich 06.2021 sind die Daten auf einem 250m Raster! Das wird unten bereinigt.
 
 ```{r}
 # Base request template
@@ -67,11 +69,11 @@ dates <- c(
   "009" = "202306",
   "008" = "202212",
   "007" = "202206",
-  "006" = "202107",
+  "006" = "202106",
   "005" = "202012",
-  "004" = "202007",
+  "004" = "202006",
   "003" = "201912",
-  "002" = "201907",
+  "002" = "201906",
   "001" = "201812"
 )
 
@@ -179,7 +181,7 @@ arrow_colnames_sorted <- dataset_old %>%
   gtools::mixedsort()
 
 # Jahre mit 100m Raster
-for(d in unname(dates[1:4])) {
+for(d in dates %>% head(-6) %>% unname()) {
   print(d)
   
   dataset_old %>%
@@ -196,7 +198,7 @@ for(d in unname(dates[1:4])) {
     gc()
 }
 
-# Jahre mit 250m Raster, das aufgeteilt werden muss
+# Jahre vor 2022 mit 250m Raster, das aufgeteilt werden muss
 sourceCpp("get_coords.cpp")
 
 data_202312 <- open_dataset("./Daten/Breitbandatlas/Raster_100m/") %>%
@@ -205,7 +207,7 @@ data_202312 <- open_dataset("./Daten/Breitbandatlas/Raster_100m/") %>%
   distinct() %>%
   collect()
 
-for(d in unname(dates[-(1:4)])) {
+for(d in dates %>% tail(6) %>% unname()) {
   print(d)
   
   data <- dataset_old %>%
