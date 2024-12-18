@@ -191,3 +191,167 @@ rwi_geo_redx_puf %>%
   filter(year >= 2018)
 ```
 
+# RWI GEO RED aggregieren
+
+Definieren von Pseudo-Daten (halbjährlich). Von der `did` Funktion werden Zeitpunkte benötigt. Jahre wäre zu grob, Monate wahrscheinlich zu fein. Ein guter Kompromiss sind daher halbjahre. Diese stimmen dann auch mit den Breitband Meldungen überein.
+
+Ich fange bei 2017 an, dann gibt es einen gewissen Zeitraum, um Pretrends zu testen.
+
+```{r}
+min_date <- 201601
+max_date <- 202406
+
+dates_pseudo_halbjahr <- tibble(date = seq(
+  from = ym(min_date),
+  to = ym(max_date),
+  by = "1 month"
+)) %>%
+  mutate(date = as.numeric(format(date, "%Y%m"))) %>%
+  left_join(
+    tibble(date = seq(
+      from = ym(min_date),
+      to = ym(max_date),
+      by = "6 months"
+      )) %>%
+      mutate(date = as.numeric(format(date, "%Y%m")), 
+             date_pseudo_halbjahr = seq_along(date)),
+    by = join_by(date)
+    ) %>%
+  fill(date_pseudo_halbjahr, .direction = "down")
+```
+
+```{r}
+got_fiber_dates <- read_parquet("./Daten/Breitbandatlas//Raster_1km_got_fiber_date.parquet") %>%
+  left_join(dates_pseudo_halbjahr, by = join_by(got_fiber_date == date)) %>%
+  rename(got_fiber_date_pseudo_halbjahr = date_pseudo_halbjahr)
+
+cells_gemeinden_bbsr <- read_parquet("./Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
+
+breitband_problems <- read_parquet("./Daten/Breitbandatlas/Raster_1km_problems.parquet")
+```
+
+## Kauf
+
+Hier werden die Kauf-Daten zu einem Index auf Rasterebene aggregiert. Im Idealfall gibt es pro Zelle für jede Zeitperiode (halbes Jahr) genügend Beobachtungen, aus denen dann der Mittelwert bestimmt wird. Dies ist jedoch für viele Zellen (in ländlicheren Gegenden) nicht der Fall. Daher erstelle ich mit `tidyr::complete()` zuerst alle Kombinationen aus den Zeitperioden und Zellen. Anschließend werden die fehlenden Daten mit `tidyr::fill()` aufgefüllt.
+
+Code unten sollte noch angepasst werden, ist aktuell nur rüberkopiert aus dem `did.qmd` file.
+Insbesondere an dem `fill()` sollte man nochmal arbeiten. Hier wird aktuell eher zu viel/großzügig ausgefüllt. Vielleicht könnte man auch noch eine neue Spalte pro Zelle machen, die anzeigt wie viele Halbjahre es mit Beobachtungen gibt.
+
+Der `anti_join(breitband_problems, by = join_by(x_mp, y_mp))` Teil ist dafür da, um problematische Zellen rauszuwerfen. Das sind solche Zellen, in denen der Glasfaserausbau in mindestens einer Periode sinkt. Blöd ist aber, dass es über 12000 Zellen von etwa 45000 Zellen insgesamt ist. Das ist ein sehr großer Anteil an nicht mehr verwendbaren Daten.
+
+```{r}
+data_kauf <- open_dataset("./Daten/Immo/Kauf/") %>%
+  filter(ejahr >= 2016) %>%
+  mutate(date = ejahr*100 + emonat) %>%
+  select(date, x_mp, y_mp, kaufpreis, baujahr, wohnflaeche, zimmeranzahl) %>%
+  collect() %>%
+  left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
+  select(date_pseudo_halbjahr, x_mp, y_mp, kaufpreis, baujahr, wohnflaeche, zimmeranzahl)
+
+data_kauf_complete <- data_kauf %>%
+  group_by(date_pseudo_halbjahr, x_mp, y_mp) %>%
+  summarise(mean_kaufpreis = mean(kaufpreis, na.rm = TRUE),
+            n_cell_date = n(),
+            median_baujahr = median(baujahr, na.rm = TRUE),
+            median_wohnflaeche = median(wohnflaeche, na.rm = TRUE),
+            median_zimmeranzahl = median(zimmeranzahl, na.rm = TRUE),
+            .groups = "drop") %>%
+  arrange(x_mp, y_mp, date_pseudo_halbjahr) %>%
+  group_by(x_mp, y_mp) %>%
+  mutate(n_cell = sum(n_cell_date)) %>%
+  ungroup() %>%
+  mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
+  mutate(median_baujahr = if_else(is.na(median_baujahr), 
+                           median(median_baujahr, na.rm = TRUE), 
+                           median_baujahr)) %>%
+  complete(xy_mp, date_pseudo_halbjahr) %>%
+  group_by(xy_mp) %>%
+  fill(everything(), -n_cell_date, .direction = "downup") %>%
+  ungroup() %>%
+  mutate(n_cell_date = replace_na(n_cell_date, 0)) %>%
+  left_join(cells_gemeinden_bbsr %>% select(x_mp, y_mp, ends_with("_name")), by = join_by(x_mp, y_mp)) %>%
+  left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
+  mutate(got_fiber_date = replace_na(got_fiber_date, 0))# %>%
+  #anti_join(breitband_problems, by = join_by(x_mp, y_mp))
+
+write_parquet(data_kauf_complete, "./Daten/data_kauf_complete.parquet")
+```
+
+```{r}
+data_kauf_missing <- data_kauf_complete %>%
+  select(x_mp, y_mp, n_cell_date) %>%
+  group_by(x_mp, y_mp) %>%
+  summarise(
+    has_missing = any(n_cell_date == 0),
+    missing_count = sum(n_cell_date == 0),
+    .groups = "drop"
+  ) %>%
+  filter(has_missing) %>%
+  select(x_mp, y_mp, missing_count)
+
+data_kauf_missing %>% pull(missing_count) %>% quantile()
+```
+
+```{r}
+top_cells <- data_kauf_complete %>%
+  arrange(desc(n_cell)) %>%
+  distinct(xy_mp, n_cell) %>%
+  head(1000) %>%
+  pull(xy_mp)
+
+data_kauf_complete %>%
+  #filter(xy_mp == "45543277") %>%
+  filter(xy_mp %in% top_cells) %>%
+  ggplot(aes(x = date_pseudo_halbjahr, y = mean_kaufpreis, group = as.factor(xy_mp)))+
+  geom_line(alpha = .1)+
+  scale_y_log10()+
+  scale_x_continuous(breaks = 0:16)
+
+data_kauf_complete %>%
+  arrange(desc(n_cell)) %>%
+  distinct(xy_mp, n_cell) %>%
+  head(10) %>%
+  pull(xy_mp)
+```
+
+## Miete
+
+```{r}
+data_miete <- open_dataset("./Daten/Immo/Miete/") %>%
+  filter(ejahr >= 2016) %>%
+  mutate(date = ejahr*100 + emonat) %>%
+  mutate(mietekalt_m2 = mietekalt / wohnflaeche) %>%
+  select(date, x_mp, y_mp, mietekalt_m2, baujahr, wohnflaeche, zimmeranzahl) %>%
+  collect() %>%
+  left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
+  select(date_pseudo_halbjahr, x_mp, y_mp, mietekalt_m2, baujahr, wohnflaeche, zimmeranzahl)
+
+data_miete_complete <- data_miete %>%
+  group_by(date_pseudo_halbjahr, x_mp, y_mp) %>%
+  summarise(mean_mietekalt_m2 = mean(mietekalt_m2, na.rm = TRUE),
+            n_cell_date = n(),
+            median_baujahr = median(baujahr, na.rm = TRUE),
+            median_wohnflaeche = median(wohnflaeche, na.rm = TRUE),
+            median_zimmeranzahl = median(zimmeranzahl, na.rm = TRUE),
+            .groups = "drop") %>%
+  arrange(x_mp, y_mp, date_pseudo_halbjahr) %>%
+  group_by(x_mp, y_mp) %>%
+  mutate(n_cell = sum(n_cell_date)) %>%
+  ungroup() %>%
+  mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
+  mutate(median_baujahr = if_else(is.na(median_baujahr), 
+                           median(median_baujahr, na.rm = TRUE), 
+                           median_baujahr)) %>%
+  complete(xy_mp, date_pseudo_halbjahr) %>%
+  group_by(xy_mp) %>%
+  fill(everything(), -n_cell_date, .direction = "downup") %>%
+  ungroup() %>%
+  mutate(n_cell_date = replace_na(n_cell_date, 0)) %>%
+  left_join(cells_gemeinden_bbsr %>% select(x_mp, y_mp, ends_with("_name")), by = join_by(x_mp, y_mp)) %>%
+  left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
+  mutate(got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))# %>%
+  #anti_join(breitband_problems, by = join_by(x_mp, y_mp))
+
+write_parquet(data_miete_complete, "./Daten/data_miete_complete.parquet")
+```
+
