@@ -428,7 +428,7 @@ read_parquet("./Daten/data_miete_complete.parquet") %>%
          y_mp %>% between(stadt_beispiel_1_bbox["ymin"], stadt_beispiel_1_bbox["ymax"])) %>%
   add_laea_grid(size = 1000) %>%
   ggplot()+
-  ggspatial::annotation_map_tile(zoomin = 0, type = "osm", cachedir = "./ggspatial_cache")+
+  ggspatial::annotation_map_tile(zoomin = 0, type = "osm", cachedir = "./.cache")+
   geom_sf(aes(fill = is_complete), color = NA, alpha = .5)+
   scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple"))+
   scale_alpha_manual(values = c(0.8, 1))+
@@ -443,7 +443,7 @@ read_parquet("./Daten/data_miete_complete.parquet") %>%
          y_mp %>% between(stadt_beispiel_2_bbox["ymin"], stadt_beispiel_2_bbox["ymax"])) %>%
   add_laea_grid(size = 1000) %>%
   ggplot()+
-  ggspatial::annotation_map_tile(zoomin = 0, type = "osm", cachedir = "./ggspatial_cache")+
+  ggspatial::annotation_map_tile(zoomin = 0, type = "osm", cachedir = "./.cache")+
   geom_sf(aes(fill = is_complete), color = NA, alpha = .5)+
   scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple"))+
   scale_alpha_manual(values = c(0.8, 1))+
