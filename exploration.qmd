@@ -415,6 +415,41 @@ read_parquet("./Daten/Breitbandatlas/Raster_1km_got_fiber_date.parquet") %>%
   theme_bw()
 ```
 
+Zellen mit vollständigem Panel bei den Kauf/Miet Daten
+```{r}
+stadt_beispiel_1_bbox <- get_stadt("Runkel") %>% st_bbox()
+stadt_beispiel_2_bbox <- get_stadt("Darmstadt") %>% st_bbox()
+
+read_parquet("./Daten/data_miete_complete.parquet") %>%
+  group_by(x_mp, y_mp) %>%
+  summarise(is_complete = sum(n_cell_date == 0) <= 0,
+            .groups = "drop") %>%
+  filter(x_mp %>% between(stadt_beispiel_1_bbox["xmin"], stadt_beispiel_1_bbox["xmax"]),
+         y_mp %>% between(stadt_beispiel_1_bbox["ymin"], stadt_beispiel_1_bbox["ymax"])) %>%
+  add_laea_grid(size = 1000) %>%
+  ggplot()+
+  ggspatial::annotation_map_tile(zoomin = 0, type = "osm", cachedir = "./ggspatial_cache")+
+  geom_sf(aes(fill = is_complete), color = NA, alpha = .5)+
+  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple"))+
+  scale_alpha_manual(values = c(0.8, 1))+
+  theme_void()+
+  theme(legend.position = "right")
+
+read_parquet("./Daten/data_miete_complete.parquet") %>%
+  group_by(x_mp, y_mp) %>%
+  summarise(is_complete = sum(n_cell_date == 0) <= 0,
+            .groups = "drop") %>%
+  filter(x_mp %>% between(stadt_beispiel_2_bbox["xmin"], stadt_beispiel_2_bbox["xmax"]),
+         y_mp %>% between(stadt_beispiel_2_bbox["ymin"], stadt_beispiel_2_bbox["ymax"])) %>%
+  add_laea_grid(size = 1000) %>%
+  ggplot()+
+  ggspatial::annotation_map_tile(zoomin = 0, type = "osm", cachedir = "./ggspatial_cache")+
+  geom_sf(aes(fill = is_complete), color = NA, alpha = .5)+
+  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple"))+
+  scale_alpha_manual(values = c(0.8, 1))+
+  theme_void()+
+  theme(legend.position = "right")
+```
 
 # Karte mit Leaflet
 
