@@ -73,8 +73,6 @@ data_miete <- open_dataset("./Daten/Immo/Miete/") %>%
 
 # Kauf
 
-> Idee: mit `panel = FALSE` und ohne Aggregation
-
 Hier aggregiere ich die Daten auf pseudo-date, grid Ebene. Außerdem wird das Panel vervollständigt. Dabei werden fehlende Beobachtungen mit vorherigen aufgefüllt. Gibt es für eine Zelle beispielsweise nur in `date_pseudo_halbjahr` 1 und 3 eine Beobachtung, so wird 2 mit der aus 1 aufgefüllt.
 ```{r}
 data_kauf_complete <- data_kauf %>%
@@ -113,7 +111,7 @@ mod_kauf <- att_gt(
   data = data_kauf_complete,
   anticipation = 0,
   alp = 0.05,
-  control_group = "nevertreated",
+  control_group = "notyettreated",
   biter = 1000,
   pl = TRUE,
   cores = 6,
@@ -121,7 +119,7 @@ mod_kauf <- att_gt(
   faster_mode = FALSE,
   print_details = TRUE
 )
-tidy(mod_kauf)
+mod_kauf
 
 mod_kauf_agg_dyn <- did::aggte(mod_kauf, type = "dynamic", min_e = -4, max_e = 6)
 ggdid(mod_kauf_agg_dyn)
@@ -239,7 +237,7 @@ mod_redx <- att_gt(
     filter(year >= 2017),
   anticipation = 0,
   alp = 0.05,
-  control_group = "nevertreated",
+  control_group = "notyettreated",
   biter = 5000,
   pl = TRUE,
   cores = 6,
@@ -247,7 +245,8 @@ mod_redx <- att_gt(
   faster_mode = FALSE,
   print_details = FALSE,
   est_method = "ipw",
-  base_period="universal"
+  base_period= "universal",
+  #clustervars = c("xy_mp", "gem_name")
 )
 tidy(mod_redx)
 
@@ -261,6 +260,59 @@ ggdid(mod_redx_agg_group)
 
 mod_redx_agg_calendar <- did::aggte(mod_redx, type = "calendar", min_e = -4, max_e = 3)
 ggdid(mod_redx_agg_calendar)
+```
+
+# Kauf ohne Aggregieren
+
+mit `panel = FALSE` in `att_gt()`
+
+```{r}
+breitband_1km_max_speed_halbjahr <- read_parquet("./Daten/Breitbandatlas/Raster_1km_max_speed.parquet") %>%
+  left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
+  select(date, date_pseudo_halbjahr, x_mp, y_mp, max_speed_no_fiber)
+```
+
+
+```{r}
+test <- data_miete %>%
+  left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
+  mutate(got_fiber_date = replace_na(got_fiber_date, 0),
+         got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)) %>%
+  mutate(baujahr = if_else(is.na(baujahr), median(baujahr, na.rm = TRUE), baujahr)) %>%
+  left_join(cells_gemeinden_bbsr %>% select(x_mp, y_mp, ends_with("_name")), by = join_by(x_mp, y_mp)) %>%
+  left_join(zensus_haushalte_1km, by = join_by(x_mp, y_mp)) %>%
+  #left_join(breitband_1km_max_speed_halbjahr, by = join_by(date_pseudo_halbjahr, x_mp, y_mp)) %>%
+  mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
+  mutate(mietekalt_m2 = mietekalt / wohnflaeche) %>%
+  filter(!complete.cases(.)) %>%
+  att_gt(
+    data = .,
+    yname = "mietekalt_m2",
+    tname = "date_pseudo_halbjahr",
+    idname = "xy_mp",
+    gname = "got_fiber_date_pseudo_halbjahr",
+    #xformla = ~ gemeindetyp_name + max_speed_no_fiber,
+    weightsname = "anzahl_haushalte",
+    anticipation = 0,
+    alp = 0.05,
+    control_group = "notyettreated",
+    biter = 500,
+    pl = FALSE,
+    cores = 6,
+    allow_unbalanced_panel = FALSE,
+    faster_mode = FALSE,
+    print_details = TRUE,
+    est_method = "ipw",
+    #base_period= "universal",
+    #clustervars = c("xy_mp", "gem_name"),
+    panel = FALSE
+  )
+
+ggdid(test)
+
+aggte(test, type = "dynamic", na.rm = TRUE) %>% ggdid()
+aggte(test, type = "group", na.rm = TRUE) %>% ggdid()
+aggte(test, type = "calendar", na.rm = TRUE) %>% ggdid()
 ```
 
 # Event Study Plot
@@ -365,3 +417,125 @@ createSensitivityPlot_relativeMagnitudes(mod_redx_agg_dyn_honest_did_rel$robust_
                                          mod_redx_agg_dyn_honest_did_rel$orig_ci)
 ```
 
+```{r}
+set.seed(123456L)
+
+# 60 time periods, 30 individuals, and 5 waves of treatment
+tmax = 60; imax = 30; nlvls = 5
+
+dat = 
+  expand.grid(time = 1:tmax, id = 1:imax) |>
+  within({
+    
+    cohort      = NA
+    effect      = NA
+    first_treat = NA
+    
+    for (chrt in 1:imax) {
+      cohort = ifelse(id==chrt, sample.int(nlvls, 1), cohort)
+    }
+    
+    for (lvls in 1:nlvls) {
+      effect      = ifelse(cohort==lvls, sample(2:10, 1), effect)
+      first_treat = ifelse(cohort==lvls, sample(1:(tmax+20), 1), first_treat)
+    }
+    
+    first_treat = ifelse(first_treat>tmax, Inf, first_treat)
+    treat       = time>=first_treat
+    rel_time    = time - first_treat
+    y           = id + time + ifelse(treat, effect*rel_time, 0) + rnorm(imax*tmax)
+    
+    rm(chrt, lvls, cohort, effect)
+  })
+
+dat
+```
+
+```{r}
+cs21 = att_gt(
+    yname         = "y",
+    tname         = "time",
+    idname        = "id",
+    gname         = "first_treat",
+  # xformla       = NULL,            # No additional controls in this dataset 
+    control_group = "notyettreated", # Too few groups for "nevertreated" default
+    clustervars   = "id",
+  base_period="universal",
+    data          = dat
+    )
+
+cs21_agg_dyn <- aggte(cs21, type = "dynamic", min_e = -10, max_e = 10)
+
+#ggdid(cs21_agg_dyn)
+# ----------
+
+cs21_agg_dyn_honest_did_smooth <- honest_did_new(
+  es = cs21_agg_dyn,
+  e = 0,
+  type = "smoothness",
+  Mvec = seq(from = 0, to = 1, length.out = 5),
+  parallel = TRUE
+  )
+mod_redx_agg_dyn_honest_did_smooth
+
+
+cs21_agg_dyn_honest_did_rel <- honest_did_new(
+  es = cs21_agg_dyn,
+  e = 0,
+  type = "relative_magnitude",
+  #Mbarvec = seq(from = 0, to = 1, length.out = 5)
+)
+cs21_agg_dyn_honest_did_rel
+# Drop 0 as that is not really allowed.
+cs21_agg_dyn_honest_did_rel$robust_ci <- cs21_agg_dyn_honest_did_rel$robust_ci[-1,]
+
+## -----------------------------------------------------------------------------
+# make sensitivity analysis plots
+createSensitivityPlot(cs21_agg_dyn_honest_did_smooth$robust_ci,
+                      cs21_agg_dyn_honest_did_smooth$orig_ci)
+
+createSensitivityPlot_relativeMagnitudes(cs21_agg_dyn_honest_did_rel$robust_ci,
+                                         cs21_agg_dyn_honest_did_rel$orig_ci)
+```
+
+# NEU
+
+```{r}
+data_miete_complete <- read_parquet("./Daten/data_miete_complete.parquet")
+
+did::att_gt()
+```
+
+```{r}
+mod_miete <- att_gt(
+  yname = "mean_mietekalt_m2",
+  tname = "date_pseudo_halbjahr",
+  idname = "xy_mp",
+  gname = "got_fiber_date_pseudo_halbjahr",
+  xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name,
+  #weightsname = "n_cell",
+  data = data_miete_complete %>% filter(n_cell > 10) %>% filter(!gemeindetyp_name %in% c("Großstadt")),
+  anticipation = 0,
+  alp = 0.05,
+  control_group = "nevertreated",
+  est_method = "dr",
+  biter = 1000,
+  pl = FALSE,
+  cores = 6,
+  allow_unbalanced_panel = FALSE,
+  faster_mode = FALSE,
+  print_details = FALSE
+)
+mod_miete
+
+ggdid(mod_miete)
+
+mod_miete_agg_dyn <- did::aggte(mod_miete, type = "dynamic", min_e = -4, max_e = 6)
+ggdid(mod_miete_agg_dyn)
+
+mod_miete_agg_group <- did::aggte(mod_miete, type = "group", min_e = -4, max_e = 6)
+ggdid(mod_miete_agg_group)
+
+mod_miete_agg_calendar <- did::aggte(mod_miete, type = "calendar", min_e = -4, max_e = 6)
+ggdid(mod_miete_agg_calendar)
+```
