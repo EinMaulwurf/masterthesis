@@ -417,24 +417,38 @@ breitband_1km_arrow %>%
 
 # Neuer Datensatz: Gitterzellen, bei denen Glasfaser verschwindet
 
-In manchen Gitterzellen verschwindet plötzlich das Glasfaser. Dabei handelt es sich wahrscheinlich um Meldefehler, entweder beim (nicht erfolgten) Ausbau, oder das "Verschwinden" ist nicht korrekt. Ich erstelle einen neuen Dataframe mit den Koordinaten dieser Zellen. Diese können dann später mit `anti_join()` einfach entfernt werden.
+In manchen Gitterzellen verschwindet plötzlich das Glasfaser. Dabei handelt es sich wahrscheinlich um Meldefehler, entweder beim (nicht erfolgten) Ausbau, oder das "Verschwinden" ist nicht korrekt. Ich erstelle einen neuen Dataframe mit den Koordinaten und Datum dieser Zellen (`x_mp`, `y_mp`, `date`). Diese können dann später mit `anti_join()` einfach entfernt werden.
+
+Konkret werden zuerst alle verschiedenen Zeitpunkte in einem Dataframe `distinct_dates` gesammelt. Danach wird `disappeared_fiber` erstellt, ein Dataframe, das die Koordinaten sowie den Zeitpunkt enthält, an dem Glasfaser "verschwindet". Durch einen `left_join()` der `distinct_dates` auf diesen wird das kartesische Produkt aus dem Zeitpunkt des Verschwindens und aller möglichen Zeitpunkte erstellt. Anschließend werden je Zelle nur die Zeitpunkte behalten, die kleiner sind als der Zeitpunkt des Verschwindens.
 
 ```{r}
 breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
 
-breitband_1km_arrow %>%
+distinct_dates <- breitband_1km_arrow %>%
+  distinct(date) %>%
+  arrange(date) %>%
+  collect()
+
+disappeared_fiber <- breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
   filter(!is.na(down_fn_hh_ftthb_1000)) %>%
   to_duckdb() %>%
   arrange(x_mp, y_mp, date) %>%
   mutate(has_fiber = if_else(down_fn_hh_ftthb_1000 > 50, 1, 0)) %>%
   group_by(x_mp, y_mp) %>%
-  mutate(got_fiber = has_fiber - lag(has_fiber, n = 1)) %>%
+  mutate(got_fiber = has_fiber - lag(has_fiber)) %>%
   ungroup() %>%
   filter(got_fiber == -1) %>%
-  distinct(x_mp, y_mp) %>%
-  to_arrow() %>%
-  collect() %>%
+  distinct(date, x_mp, y_mp) %>%
+  collect()
+
+expanded_disappeared_fiber <- disappeared_fiber %>%
+  left_join(distinct_dates, by = character(), relationship = "many-to-many") %>%
+  filter(date.y < date.x) %>%
+  select(date = date.y, x_mp, y_mp) %>%
+  arrange(x_mp, y_mp, date)
+
+expanded_disappeared_fiber %>%
   write_parquet("./Daten/Breitbandatlas/Raster_1km_problems.parquet")
 ```
 
@@ -495,30 +509,18 @@ data_bbsr <- readxl::read_xlsx("./Daten/Raumgliederung_BBSR/raumgliederungen-ref
 data_bbsr
 ```
 
-Ich lade die Geodaten der Gemeinden. Außerdem lade ich die 1km Grid-Zellen und füge die sf Geometrie hinzu.
-
 ```{r}
-gemeinden <- st_read("./Daten/Geodaten/gemeinden.gpkg", quiet = TRUE, as_tibble = TRUE)
-gemeinden
-
-kauf_distinct_cells <- open_dataset("./Daten/Immo/Kauf/") %>%
-  filter(ejahr >= 2018) %>%
-  distinct(x_mp, y_mp) %>%
-  collect()
-
-miete_distinct_cells <- open_dataset("./Daten/Immo/Miete/") %>%
-  filter(ejahr >= 2018) %>%
-  distinct(x_mp, y_mp) %>%
-  collect()
-
-all_distinct_cells <- bind_rows(kauf_distinct_cells, miete_distinct_cells) %>%
-  distinct(x_mp, y_mp) %>%
+all_distinct_cells <- st_read("./Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg", 
+                              query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
+                              as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
+
+gemeinden <- st_read("./Daten/Geodaten/gemeinden.gpkg", quiet = TRUE, as_tibble = TRUE)
 ```
 
 Mit einem Geospatial Join verbinde ich die Grid-Zellen mit der jeweiligen Gemeinde in der sie liegen (ausgehend vom Mittelpunkt der Zelle). Dann joine ich die BBSR Daten.
 
-Manche Zellen liegen in keiner Gemeinde. Nach visueller Inspektion liegen diese Zellen mit ihrem Mittelpunkt nicht in Deutschland. Es handlet sich auch nicht um viele Zellen. Sie werden daher verworfen.
+Manche Zellen liegen in keiner Gemeinde. Nach visueller Inspektion liegen vielen diese Zellen mit ihrem Mittelpunkt nicht in Deutschland oder es handelt sich um gemeindefreie Gebiete. Da auch die Anzahl gering ist, wird dies als hinnehmbare Ungenauigkeit angesehen.
 
 ```{r}
 cells_gemeinden_bbsr <- st_join(all_distinct_cells, gemeinden) %>%
@@ -537,4 +539,3 @@ cells_gemeinden_bbsr %>%
 cells_gemeinden_bbsr %>%
   write_parquet("./Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
 ```
-
