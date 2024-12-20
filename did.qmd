@@ -15,6 +15,7 @@ library(did)
 library(broom)
 library(did2s)
 library(HonestDiD)
+source("honest_did_helper.R")
 ```
 
 # Import
@@ -501,41 +502,81 @@ createSensitivityPlot_relativeMagnitudes(cs21_agg_dyn_honest_did_rel$robust_ci,
 # NEU
 
 ```{r}
+dates_pseudo_halbjahr <- read_parquet("./Daten/dates_pseudo_halbjahr.parquet")
+
+raster_alter_haushalte <- open_dataset("./Daten/Zensus/Gesamt/") %>%
+  filter(typ == "1km") %>%
+  mutate(anzahl_haushalte = einwohner / durchschn_hh_groesse) %>%
+  select(x_mp, y_mp, durchschnittsalter, anzahl_haushalte) %>%
+  collect()
+```
+
+
+```{r}
 data_miete_complete <- read_parquet("./Daten/data_miete_complete.parquet")
 
 did::att_gt()
 ```
 
 ```{r}
-mod_miete <- att_gt(
-  yname = "mean_mietekalt_m2",
-  tname = "date_pseudo_halbjahr",
-  idname = "xy_mp",
-  gname = "got_fiber_date_pseudo_halbjahr",
-  xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name,
-  #weightsname = "n_cell",
-  data = data_miete_complete %>% filter(n_cell > 10) %>% filter(!gemeindetyp_name %in% c("Großstadt")),
-  anticipation = 0,
-  alp = 0.05,
-  control_group = "nevertreated",
-  est_method = "dr",
-  biter = 1000,
-  pl = FALSE,
-  cores = 6,
-  allow_unbalanced_panel = FALSE,
-  faster_mode = FALSE,
-  print_details = FALSE
-)
+mod_miete <- data_miete_complete %>%
+  left_join(raster_alter_haushalte, by = join_by(x_mp, y_mp)) %>%
+  mutate(anzahl_haushalte = replace_na(anzahl_haushalte, median(anzahl_haushalte, na.rm = TRUE))) %>%
+  filter(n_cell_date > 0) %>%
+  #filter(n_cell > 10) %>%
+  #filter(!gemeindetyp_name %in% c("Großstadt")) %>%
+  att_gt(
+    data = .,
+    yname = "mean_mietekalt_m2",
+    tname = "date_pseudo_halbjahr",
+    idname = "xy_mp",
+    gname = "got_fiber_date_pseudo_halbjahr",
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte,
+    weightsname = "anzahl_haushalte",
+    anticipation = 0,
+    alp = 0.05,
+    control_group = "notyettreated",
+    est_method = "dr",
+    base_period = "varying",
+    clustervars = c("xy_mp"),
+    biter = 1000,
+    pl = TRUE,
+    cores = 6,
+    allow_unbalanced_panel = TRUE,
+    faster_mode = FALSE,
+    print_details = FALSE
+  )
 mod_miete
 
-ggdid(mod_miete)
+#ggdid(mod_miete)
 
-mod_miete_agg_dyn <- did::aggte(mod_miete, type = "dynamic", min_e = -4, max_e = 6)
+tidy(mod_miete) %>%
+  left_join(dates_pseudo_halbjahr %>% filter(date %% 100 %in% c(6, 12)), 
+            by = join_by(group == date_pseudo_halbjahr)) %>%
+  mutate(is_treated = time >= group) %>%
+  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
+  geom_linerange()+
+  geom_point()+
+  geom_hline(aes(yintercept = 0), linetype = "dashed")+
+  facet_wrap(~date)+
+  scale_x_continuous(breaks = 1:20)+
+  theme_bw()+
+  theme(legend.position = "none")
+
+mod_miete_agg_dyn <- did::aggte(mod_miete, type = "dynamic")
 ggdid(mod_miete_agg_dyn)
 
-mod_miete_agg_group <- did::aggte(mod_miete, type = "group", min_e = -4, max_e = 6)
+mod_miete_agg_group <- did::aggte(mod_miete, type = "group")
 ggdid(mod_miete_agg_group)
 
-mod_miete_agg_calendar <- did::aggte(mod_miete, type = "calendar", min_e = -4, max_e = 6)
+mod_miete_agg_calendar <- did::aggte(mod_miete, type = "calendar")
 ggdid(mod_miete_agg_calendar)
 ```
+
+```{r}
+data_miete_complete %>%
+  count(got_fiber_date_pseudo_halbjahr) %>%
+  ggplot(aes(x = got_fiber_date_pseudo_halbjahr, y = n))+
+  geom_col()
+```
+
