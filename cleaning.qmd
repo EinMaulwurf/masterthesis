@@ -533,8 +533,8 @@ Manche Zellen liegen in keiner Gemeinde. Nach visueller Inspektion liegen vielen
 ```{r}
 cells_gemeinden_bbsr <- st_join(all_distinct_cells, gemeinden) %>%
   st_drop_geometry() %>%
-  left_join(data_bbsr, by = join_by(ags == gem_kennziffer)) %>%
-  filter(complete.cases(.)) %>%
+  left_join(gemeinden_bbsr, by = join_by(ags == gem_kennziffer)) %>%
+  drop_na() %>%
   select(x_mp, y_mp, ags, gem_name, dgurb_kennziffer:last_col())
 
 cells_gemeinden_bbsr %>%
@@ -547,3 +547,61 @@ cells_gemeinden_bbsr %>%
 cells_gemeinden_bbsr %>%
   write_parquet("./Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
 ```
+
+# Neuer Datensatz: Einkommen
+
+Ich verwende Zahlen zum verfügbaren Einkommen auf Kreisebene. Stärker disaggregierte Zahlen konnte ich nicht finden.
+
+```{r}
+all_distinct_cells <- st_read("./Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
+                              query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
+                              as_tibble = TRUE, quiet = TRUE) %>%
+  st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
+
+kreise <- st_read("./Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_krs", as_tibble = TRUE) %>%
+  st_transform(3035) %>%
+  janitor::clean_names() %>%
+  filter(geofaktor_gf == "mit Struktur Land") %>%
+  select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
+
+kreise_einkommen <- readxl::read_xlsx("./Daten/Sonstige/vgrdl_r2b3_bs2023.xlsx", sheet = "2.4", skip = 4) %>%
+  janitor::clean_names() %>%
+  drop_na(lfd_nr) %>%
+  filter(nuts_3 == 3) %>%
+  mutate(name = str_extract(gebietseinheit, "^[^,\\n]+"), .before = 1) %>%
+  mutate(regional_schlussel = str_pad(regional_schlussel, width = 5, side = "right", pad = "0")) %>%
+  select(ars = regional_schlussel, einkommen = x2022) %>%
+  left_join(kreise, by = "ars") %>%
+  st_as_sf()
+
+cells_kreise_einkommen <- st_join(all_distinct_cells, kreise_einkommen) %>%
+  st_drop_geometry() %>%
+  drop_na() %>%
+  select(x_mp, y_mp, ars, name, einkommen)
+
+cells_kreise_einkommen %>%
+  write_parquet("./Daten/Sonstige/Raster_1km_kreise_einkommen.parquet")
+```
+
+# Neuer Datensatz: PLZ Gebiete
+
+```{r}
+all_distinct_cells <- st_read("./Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
+                              query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
+                              as_tibble = TRUE, quiet = TRUE) %>%
+  st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
+
+plz <- st_read("./Daten/Geodaten/PLZ_Gebiete_9143106783908117499.gpkg",
+                    as_tibble = TRUE, quiet = TRUE) %>%
+  st_transform(3035) %>%
+  janitor::clean_names() %>%
+  select(plz)
+
+cells_plz <- st_join(all_distinct_cells, plz) %>%
+  st_drop_geometry() %>%
+  drop_na()
+
+cells_plz %>%
+  write_parquet("./Daten/Geodaten/Raster_1km_plz.parquet")
+```
+
