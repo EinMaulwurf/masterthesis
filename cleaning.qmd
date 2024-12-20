@@ -564,7 +564,7 @@ kreise <- st_read("./Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_krs", as_ti
   filter(geofaktor_gf == "mit Struktur Land") %>%
   select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
 
-kreise_einkommen <- readxl::read_xlsx("./Daten/Sonstige/vgrdl_r2b3_bs2023.xlsx", sheet = "2.4", skip = 4) %>%
+kreise_einkommen <- readxl::read_xlsx("./Daten/Geodaten//vgrdl_r2b3_bs2023.xlsx", sheet = "2.4", skip = 4) %>%
   janitor::clean_names() %>%
   drop_na(lfd_nr) %>%
   filter(nuts_3 == 3) %>%
@@ -580,7 +580,7 @@ cells_kreise_einkommen <- st_join(all_distinct_cells, kreise_einkommen) %>%
   select(x_mp, y_mp, ars, name, einkommen)
 
 cells_kreise_einkommen %>%
-  write_parquet("./Daten/Sonstige/Raster_1km_kreise_einkommen.parquet")
+  write_parquet("./Daten/Geodaten/Raster_1km_kreise_einkommen.parquet")
 ```
 
 # Neuer Datensatz: PLZ Gebiete
