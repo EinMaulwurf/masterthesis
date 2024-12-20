@@ -429,7 +429,7 @@ distinct_dates <- breitband_1km_arrow %>%
   arrange(date) %>%
   collect()
 
-disappeared_fiber <- breitband_1km_arrow %>%
+breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
   filter(!is.na(down_fn_hh_ftthb_1000)) %>%
   to_duckdb() %>%
@@ -440,19 +440,17 @@ disappeared_fiber <- breitband_1km_arrow %>%
   ungroup() %>%
   filter(got_fiber == -1) %>%
   distinct(date, x_mp, y_mp) %>%
-  collect()
-
-expanded_disappeared_fiber <- disappeared_fiber %>%
+  collect() %>%
   left_join(distinct_dates, by = character(), relationship = "many-to-many") %>%
   filter(date.y < date.x) %>%
   select(date = date.y, x_mp, y_mp) %>%
-  arrange(x_mp, y_mp, date)
-
-expanded_disappeared_fiber %>%
+  arrange(x_mp, y_mp, date) %>%
   write_parquet("./Daten/Breitbandatlas/Raster_1km_problems.parquet")
 ```
 
 # Neuer Datensatz: Zeitpunkt, bei dem erstmals Glasfaser vorhanden ist
+
+Hier verwende ich jetzt auch den `breitband_problems` Datensatz
 
 ```{r}
 breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
@@ -463,6 +461,7 @@ breitband_1km_arrow %>%
   arrange(x_mp, y_mp, date) %>%
   mutate(has_fiber = if_else(down_fn_hh_ftthb_1000 > 50, 1, 0)) %>%
   collect() %>%
+  anti_join(breitband_problems, by = join_by(date, x_mp, y_mp)) %>%
   group_by(x_mp, y_mp) %>%
   mutate(got_fiber = has_fiber - lag(has_fiber)) %>%
   ungroup() %>%
@@ -487,7 +486,7 @@ Laden der Daten vom BBSR. Ich verwende nicht alle Variablen, sondern vier, die i
 Außerdem behalte ich den Amtlichen Gemeindeschlüssel sowie den Regionalschlüssel zum Matchen mit anderen Datensätzen. Der Gemeindename (`gem_name`) dient zur Plausibilisierung.
 
 ```{r}
-data_bbsr <- readxl::read_xlsx("./Daten/Raumgliederung_BBSR/raumgliederungen-referenzen-2022.xlsx", 
+gemeinden_bbsr <- readxl::read_xlsx("./Daten/Raumgliederung_BBSR/raumgliederungen-referenzen-2022.xlsx", 
                                sheet = "Gemeindereferenz (inkl. Kreise)", 
                                skip = 1,
                                col_types = "text") %>%
@@ -504,9 +503,14 @@ data_bbsr <- readxl::read_xlsx("./Daten/Raumgliederung_BBSR/raumgliederungen-ref
          gemeindetyp_differenziert_kennziffer = stadt_und_gemeindetyp_differenziert_2022_kennziffer,
          gemeindetyp_differenziert_name = stadt_und_gemeindetyp_differenziert_2022_name) %>%
   mutate(gem_kennziffer = str_pad(gem_kennziffer, 8, side = "left", pad = "0"),
-         gem_regionalschlussel = str_pad(gem_regionalschlussel, 12, side = "left", pad = "0"))
+         gem_regionalschlussel = str_pad(gem_regionalschlussel, 12, side = "left", pad = "0")) %>%
+  mutate(dgurb_name = fct_reorder(dgurb_name, as.numeric(dgurb_kennziffer)),
+         raumtyp_lage_name = fct_reorder(raumtyp_lage_name, as.numeric(raumtyp_lage_kennziffer)),
+         gemeindetyp_name = fct_reorder(gemeindetyp_name, as.numeric(gemeindetyp_kennziffer)),
+         gemeindetyp_differenziert_name = fct_reorder(gemeindetyp_differenziert_name, as.numeric(gemeindetyp_differenziert_kennziffer)))
 
-data_bbsr
+gemeinden_bbsr %>%
+  write_parquet("./Daten/Raumgliederung_BBSR/gemeinden_bbsr.parquet")
 ```
 
 ```{r}
@@ -515,7 +519,11 @@ all_distinct_cells <- st_read("./Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
 
-gemeinden <- st_read("./Daten/Geodaten/gemeinden.gpkg", quiet = TRUE, as_tibble = TRUE)
+gemeinden <- st_read("./Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
+  st_transform(3035) %>%
+  janitor::clean_names() %>%
+  filter(geofaktor_gf == "mit Struktur Land") %>%
+  select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
 ```
 
 Mit einem Geospatial Join verbinde ich die Grid-Zellen mit der jeweiligen Gemeinde in der sie liegen (ausgehend vom Mittelpunkt der Zelle). Dann joine ich die BBSR Daten.
@@ -525,9 +533,9 @@ Manche Zellen liegen in keiner Gemeinde. Nach visueller Inspektion liegen vielen
 ```{r}
 cells_gemeinden_bbsr <- st_join(all_distinct_cells, gemeinden) %>%
   st_drop_geometry() %>%
-  left_join(data_bbsr, by = join_by(nsi_code == gem_kennziffer)) %>%
+  left_join(data_bbsr, by = join_by(ags == gem_kennziffer)) %>%
   filter(complete.cases(.)) %>%
-  select(x_mp, y_mp, ags = nsi_code, gem_name, nuts_code, dgurb_kennziffer:last_col())
+  select(x_mp, y_mp, ags, gem_name, dgurb_kennziffer:last_col())
 
 cells_gemeinden_bbsr %>%
   count(gem_name) %>%
