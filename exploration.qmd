@@ -37,25 +37,41 @@ repmis::LoadandCite(
 
 # Loading Data
 
-## Geodaten von Gisco
+## Geodaten
+
+Ich verwende nicht die Geodaten von GISCO, da diese aus dem Jahr 2016 sind und es seit dem wohl einige Änderungen bei Gemeinden, insbesondere in Thüringen gegeben hat. Das gab Probleme mit den Daten zur Raumgliederung vom BBSR. Daher lade ich hier die [Daten](https://gdz.bkg.bund.de/index.php/default/digitale-geodaten/verwaltungsgebiete/verwaltungsgebiete-1-250-000-mit-einwohnerzahlen-stand-31-12-vg250-ew-31-12.html) vom Bundesamt für Kartographie und Geodäsie mit Stand 31.12.2023
 
 ```{r}
-deutschland <- giscoR::gisco_get_countries(epsg = "3035", country = "DE", resolution = "10")
-bundesländer <- giscoR::gisco_get_nuts(epsg = "3035", country = "DE", nuts_level = 1, resolution = "10")
+st_layers("./Daten/Geodaten/DE_VG250.gpkg")
 
-if(!"gemeinden.gpkg" %in% list.files("./Daten/Geodaten/")) {
-  giscoR::gisco_get_communes(epsg = "3035", country = "DE") %>%
-    select(-FID) %>%
-    janitor::clean_names() %>%
-    st_write("./Daten/Geodaten/gemeinden.gpkg")
-}
+deutschland <- st_read("./Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_sta", as_tibble = TRUE) %>%
+  st_transform(3035) %>%
+  janitor::clean_names() %>%
+  filter(id == 1) %>%
+  select(name = geografischer_name_gen, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
 
-gemeinden <- st_read("./Daten/Geodaten/gemeinden.gpkg", quiet = TRUE, as_tibble = TRUE)
+bundesländer <- st_read("./Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_lan", as_tibble = TRUE) %>%
+  st_transform(3035) %>%
+  janitor::clean_names() %>%
+  filter(geofaktor_gf == "mit Struktur Land") %>%
+  select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
+
+kreise <- st_read("./Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_krs", as_tibble = TRUE) %>%
+  st_transform(3035) %>%
+  janitor::clean_names() %>%
+  filter(geofaktor_gf == "mit Struktur Land") %>%
+  select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
+
+gemeinden <- st_read("./Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
+  st_transform(3035) %>%
+  janitor::clean_names() %>%
+  filter(geofaktor_gf == "mit Struktur Land") %>%
+  select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
 
 # z.B. Hamburg hat zwei Exklaven die ich hier entferne
 get_stadt <- function(stadt) {
   gemeinden %>% 
-    filter(comm_name == stadt) %>%
+    filter(name == stadt) %>%
     st_cast("POLYGON", warn = FALSE) %>%
     mutate(area = st_area(.)) %>%
     slice_max(area, n = 1) %>%
@@ -76,12 +92,7 @@ breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
 
 # Funktion um automatisch Daten einer bestimmen Stadt zu laden
 get_breitband_stadt <- function(stadt_name, size = "100m", variables = everything()) {
-  stadt <- gemeinden %>% 
-    filter(comm_name == stadt_name) %>%
-    st_cast("POLYGON") %>%
-    mutate(area = st_area(.)) %>%
-    slice_max(area, n = 1) %>%
-    st_cast("MULTIPOLYGON")
+  stadt <- get_stadt(stadt_name)
   
   if(size == "100m") {
     breitband_100m_arrow %>%
@@ -185,6 +196,9 @@ get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000) %>%
 
 Ganz Deutschland mit 1km Quadraten
 ```{r}
+#| fig-width: 5
+#| fig-height: 7
+
 p <- breitband_1km_arrow %>%
   filter(date == 202312) %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
@@ -196,7 +210,18 @@ p <- breitband_1km_arrow %>%
   geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2)+
   scale_fill_viridis_c()+
   theme_void()+
-  theme(legend.position = "none")
+  theme(legend.position = "top",
+        legend.margin = margin(0,0,-20,0),
+        legend.title = element_blank())+
+  guides(fill = guide_colorbar(
+    #title = "Anteil Haushalte mit FTTB/H",  # Add a title
+    #title.position = "top",        # Put the title on top
+    #title.hjust = 0.5,             # Center the title
+    barwidth = unit(15, "lines"),  # Adjust bar width
+    barheight = unit(0.5, "lines"), # Adjust bar height
+    frame.colour = "black",        # Add a black frame around the legend
+    ticks.colour = "black"         # Make tick marks black
+  ))
 
 ggsave("./Output/plot_de_glasfaser_202406_1km.pdf", plot = p, width = 5, height = 7)
 ```
@@ -509,9 +534,10 @@ breitband_1km_arrow %>%
   summarise(n = n(),
             "Anteil 0" = mean(down_fn_hh_ftthb_1000 == 0, na.rm = TRUE)*100,
             "Anteil 100" = mean(down_fn_hh_ftthb_1000 == 100, na.rm = TRUE)*100,
+            "Anteil >50" = mean(down_fn_hh_ftthb_1000 > 50, na.rm = TRUE)*100,
             # share_0 = mean(down_fn_hh_ftthb_1000 <= 5, na.rm = TRUE),
             # share_100 = mean(down_fn_hh_ftthb_1000 >= 95, na.rm = TRUE),
-            "Mittelwert" = mean(down_fn_hh_ftthb_1000, na.rm = TRUE),
+            #"Mittelwert" = mean(down_fn_hh_ftthb_1000, na.rm = TRUE),
             # pct_25 = quantile(down_fn_hh_ftthb_1000, 0.25, na.rm = TRUE),
             # pct_50 = quantile(down_fn_hh_ftthb_1000, 0.50, na.rm = TRUE),
             # pct_75 = quantile(down_fn_hh_ftthb_1000, 0.75, na.rm = TRUE)
@@ -614,5 +640,54 @@ breitband_1km_arrow %>%
   distinct(x_mp, y_mp, date) %>%
   count(date) %>%
   collect()
+```
+
+Aufteilung Glasfaseranschlüsse nach den BBSR Gemeindetypen
+```{r}
+#| fig-width: 5
+#| fig-height: 4
+
+gemeinden_bbsr <- read_parquet("./Daten/Raumgliederung_BBSR/gemeinden_bbsr.parquet")
+cells_gemeinden_bbsr <- read_parquet("./Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
+
+zensus_haushalte_1km <- zensus_arrow %>%
+  filter(typ == "1km") %>%
+  mutate(anzahl_haushalte = insgesamt_bevoelkerung / durchschn_hh_groesse) %>%
+  select(x_mp, y_mp, anzahl_haushalte) %>%
+  filter(!is.na(anzahl_haushalte)) %>%
+  collect()
+
+breitband_1km_arrow %>%
+  select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  filter(date == 202406) %>%
+  collect() %>%
+  left_join(cells_gemeinden_bbsr, by = join_by(x_mp, y_mp)) %>%
+  left_join(zensus_haushalte_1km, by = join_by(x_mp, y_mp)) %>%
+  drop_na(anzahl_haushalte) %>%
+  group_by("BBSR Gemeindetyp" = gemeindetyp_name) %>%
+  summarise(n = n(),
+            "Anteil %" = weighted.mean(down_fn_hh_ftthb_1000, anzahl_haushalte, na.rm = TRUE)) %>%
+  kbl(format = "latex", 
+      digits = 0, 
+      booktabs = TRUE, 
+      position = "h", 
+      linesep = c("", "", "", "", "", "", "\\addlinespace"), 
+      format.args	= list(big.mark = " "),
+      longtable = FALSE,
+      na = '-') %>% 
+  cat()
+
+gemeinden %>%
+  left_join(gemeinden_bbsr, by = join_by(ags == gem_kennziffer)) %>%
+  ggplot()+
+  geom_sf(aes(fill = gemeindetyp_name), color = NA)+
+  geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5)+
+  geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2)+
+  scale_fill_viridis_d()+
+  theme_void()+
+  theme(legend.position = "right")+
+  labs(fill = element_blank())
+
+ggsave("./Output/plots/karten/plot_bbsr_gemeindetypen.pdf", width = 5, height = 4)
 ```
 
