@@ -218,6 +218,9 @@ dates_pseudo_halbjahr <- tibble(date = seq(
     by = join_by(date)
     ) %>%
   fill(date_pseudo_halbjahr, .direction = "down")
+
+dates_pseudo_halbjahr %>%
+  write_parquet("./Daten/dates_pseudo_halbjahr.parquet")
 ```
 
 ```{r}
@@ -349,8 +352,7 @@ data_miete_complete <- data_miete %>%
   mutate(n_cell_date = replace_na(n_cell_date, 0)) %>%
   left_join(cells_gemeinden_bbsr %>% select(x_mp, y_mp, ends_with("_name")), by = join_by(x_mp, y_mp)) %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
-  mutate(got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))# %>%
-  #anti_join(breitband_problems, by = join_by(x_mp, y_mp))
+  mutate(got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))
 
 write_parquet(data_miete_complete, "./Daten/data_miete_complete.parquet")
 ```
