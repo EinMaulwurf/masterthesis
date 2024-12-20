@@ -230,6 +230,10 @@ got_fiber_dates <- read_parquet("./Daten/Breitbandatlas//Raster_1km_got_fiber_da
 
 cells_gemeinden_bbsr <- read_parquet("./Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
 
+cells_kreise_einkommen <- read_parquet("./Daten/Sonstige/Raster_1km_kreise_einkommen.parquet")
+
+cells_plz <- read_parquet("./Daten/Geodaten/Raster_1km_plz.parquet")
+
 breitband_problems <- read_parquet("./Daten/Breitbandatlas/Raster_1km_problems.parquet")
 ```
 
@@ -273,9 +277,10 @@ data_kauf_complete <- data_kauf %>%
   ungroup() %>%
   mutate(n_cell_date = replace_na(n_cell_date, 0)) %>%
   left_join(cells_gemeinden_bbsr %>% select(x_mp, y_mp, ends_with("_name")), by = join_by(x_mp, y_mp)) %>%
+  left_join(cells_kreise_einkommen, by = join_by(x_mp, y_mp)) %>%
+  left_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
-  mutate(got_fiber_date = replace_na(got_fiber_date, 0))# %>%
-  #anti_join(breitband_problems, by = join_by(x_mp, y_mp))
+  mutate(got_fiber_date = replace_na(got_fiber_date, 0))
 
 write_parquet(data_kauf_complete, "./Daten/data_kauf_complete.parquet")
 ```
@@ -351,6 +356,8 @@ data_miete_complete <- data_miete %>%
   ungroup() %>%
   mutate(n_cell_date = replace_na(n_cell_date, 0)) %>%
   left_join(cells_gemeinden_bbsr %>% select(x_mp, y_mp, ends_with("_name")), by = join_by(x_mp, y_mp)) %>%
+  left_join(cells_kreise_einkommen, by = join_by(x_mp, y_mp)) %>%
+  left_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
   mutate(got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))
 
