@@ -86,15 +86,15 @@ fetch_api <- function(geometry) {
         req_url_path_append("FeatureServer/0/query") %>%
         req_url_query(geometry = toJSON(geometry, auto_unbox = TRUE))
     })
-  
+
   # Perform requests in parallel
   responses <- req_perform_parallel(requests)
-  
+
   # Process responses
   map2_dfr(responses, dates, \(resp, date) {
     content <- resp %>%
       resp_body_json(simplifyVector = TRUE)
-    
+
     if (content$properties$exceededTransferLimit) {
       print("Transfer Limit Exceeded at\n")
       print(geometry)
@@ -102,19 +102,19 @@ fetch_api <- function(geometry) {
     }
     if (length(content$features) == 0)
       return(NULL)
-    
+
     data_geom <- content %>%
       pluck("features") %>%
       pluck("centroid") %>%
       unnest_wider(coordinates, names_sep = "_") %>%
       select(x_mp = coordinates_1, y_mp = coordinates_2)
-    
+
     data_content <- content %>%
       pluck("features") %>%
       pluck("properties") %>%
       select(starts_with("down") & contains("_hh_")) %>%
       mutate(across(everything(), as.numeric))
-    
+
     cbind(data_geom, data_content) %>%
       mutate(date = date, .before = 1) %>%
       as_tibble() %>%
@@ -148,9 +148,9 @@ grid_chunks <- split(deutschland_grid_cells, ceiling(seq_along(deutschland_grid_
 plan(multisession, workers = 4)
 for(i in seq_along(grid_chunks)) {
   str_glue("{i} von {length(grid_chunks)}") %>% print()
-  
+
   chunk_result <- future_map(grid_chunks[[i]], fetch_api, .progress = TRUE) %>% list_rbind()
-  
+
   write_parquet(chunk_result, str_glue("./Daten/Breitbandatlas/Rohdaten/raster_chunk_{i}.parquet"))
   rm(chunk_result)
   gc()
@@ -161,19 +161,19 @@ plan(sequential)
 # Bereinigen
 
 Nun werden die Daten noch von Duplikaten bereinigt und als gruppierten Arrow-Dataset abgespeichert.
-Ich benutze einen Foor-Loop, weil der Datensatz zu groß ist um komplett in RAM zu passen. Daher suche ich in jedem Jahr einzeln nach Duplikaten. 
+Ich benutze einen Foor-Loop, weil der Datensatz zu groß ist um komplett in RAM zu passen. Daher suche ich in jedem Jahr einzeln nach Duplikaten.
 
 Für Zeitpunkte ab 2022 runde ich den Mittelpunkt jeder Zelle auf die nächste 50, um so die Zellen am 100m LAEA Grid auszurichten. Vor 2022 sind die Zellen jedoch 250m groß. Hier suche ich um den Mittelpunkt der Zelle mit einem "Radius" von 125m nach Koordinaten die auf 50 Enden. Diese teile ich dann den ursprünglichen Koordinaten zu. Dadurch wird jede 250m Zelle auf im Mittel $(250m/100m)^2 = 6,25$ 100m Zellen aufgeteilt. Ich sage "im Mittel", da die genaue Anzahl schwankt. Für die Implementierung verwende ich `Rcpp`.
 
 Durch die Aufteilung von 250m auf 100m entstehen viele Zellen, die es in den 100m Daten nicht gibt. Beispielsweise in einem kleinen Dorf, bei dem alle Häuser in einer 100m sowie auch der 250m Zelle liegen. Dort würden dann ca. 6 Zellen statt einer entstehen. Aus diesem Grund führe ich einen Inner-Join mit den 202312 Daten durch. Dadurch lösche ich alle überflüssigen Zellen, die durch die Aufteilung entstehen.
 
 ```{r}
-dataset_old <- list.files(path = "./Daten/Breitbandatlas/Rohdaten", 
-                           pattern = "raster_chunk_.*\\.parquet", 
+dataset_old <- list.files(path = "./Daten/Breitbandatlas/Rohdaten",
+                           pattern = "raster_chunk_.*\\.parquet",
                            full.names = TRUE) %>%
     open_dataset()
 
-arrow_colnames_sorted <- dataset_old %>% 
+arrow_colnames_sorted <- dataset_old %>%
   slice_sample(n = 1) %>%
   select(starts_with("down")) %>%
   collect() %>%
@@ -183,7 +183,7 @@ arrow_colnames_sorted <- dataset_old %>%
 # Jahre mit 100m Raster
 for(d in dates %>% head(-6) %>% unname()) {
   print(d)
-  
+
   dataset_old %>%
     filter(date == d) %>%
     rename(x_mp_raw = x_mp,
@@ -194,7 +194,7 @@ for(d in dates %>% head(-6) %>% unname()) {
     distinct() %>%
     group_by(date) %>%
     write_dataset("./Daten/Breitbandatlas/Raster_100m")
-    
+
     gc()
 }
 
@@ -209,16 +209,16 @@ data_202312 <- open_dataset("./Daten/Breitbandatlas/Raster_100m/") %>%
 
 for(d in dates %>% tail(6) %>% unname()) {
   print(d)
-  
+
   data <- dataset_old %>%
     filter(date == d) %>%
     rename(x_mp_raw = x_mp,
            y_mp_raw = y_mp) %>%
     distinct() %>%
     collect()
-  
+
   new_coords_100m <- get_coords_rcpp(data$x_mp_raw, data$y_mp_raw)
-  
+
   data %>%
     left_join(new_coords_100m, by = join_by(x_mp_raw, y_mp_raw)) %>%
     select(date, x_mp, y_mp, all_of(arrow_colnames_sorted)) %>%
@@ -227,7 +227,7 @@ for(d in dates %>% tail(6) %>% unname()) {
     distinct() %>%
     group_by(date) %>%
     write_dataset("./Daten/Breitbandatlas/Raster_100m")
-  
+
   gc()
 }
 ```

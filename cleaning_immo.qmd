@@ -213,7 +213,7 @@ dates_pseudo_halbjahr <- tibble(date = seq(
       to = ym(max_date),
       by = "6 months"
       )) %>%
-      mutate(date = as.numeric(format(date, "%Y%m")), 
+      mutate(date = as.numeric(format(date, "%Y%m")),
              date_pseudo_halbjahr = seq_along(date)),
     by = join_by(date)
     ) %>%
@@ -264,8 +264,8 @@ data_kauf_complete <- data_kauf %>%
   mutate(n_cell = sum(n_cell_date)) %>%
   ungroup() %>%
   mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
-  mutate(median_baujahr = if_else(is.na(median_baujahr), 
-                           median(median_baujahr, na.rm = TRUE), 
+  mutate(median_baujahr = if_else(is.na(median_baujahr),
+                           median(median_baujahr, na.rm = TRUE),
                            median_baujahr)) %>%
   complete(xy_mp, date_pseudo_halbjahr) %>%
   group_by(xy_mp) %>%
@@ -342,8 +342,8 @@ data_miete_complete <- data_miete %>%
   mutate(n_cell = sum(n_cell_date)) %>%
   ungroup() %>%
   mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
-  mutate(median_baujahr = if_else(is.na(median_baujahr), 
-                           median(median_baujahr, na.rm = TRUE), 
+  mutate(median_baujahr = if_else(is.na(median_baujahr),
+                           median(median_baujahr, na.rm = TRUE),
                            median_baujahr)) %>%
   complete(xy_mp, date_pseudo_halbjahr) %>%
   group_by(xy_mp) %>%

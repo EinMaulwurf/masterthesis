@@ -242,7 +242,7 @@ zensus_final <- zensus_df_list %>%
     x %>%
       map(\(y) {
         y %>%
-          mutate(typ = str_extract(gitter_id, "RES(.+)N", group = 1) %>% 
+          mutate(typ = str_extract(gitter_id, "RES(.+)N", group = 1) %>%
                  case_match("10000m" ~ "10km", "1000m" ~ "1km", "100m" ~ "100m"),
                  .before = 1) %>%
           select(-gitter_id)
@@ -281,7 +281,7 @@ Jetzt loope ich über alle Zeitpunkte und Variablen. Das ist nötig, weil die Op
 ```{r}
 breitband_100m_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_100m/")
 
-arrow_dates <- breitband_100m_arrow %>% 
+arrow_dates <- breitband_100m_arrow %>%
   distinct(date) %>%
   arrange(date) %>%
   collect() %>%
@@ -486,15 +486,15 @@ Laden der Daten vom BBSR. Ich verwende nicht alle Variablen, sondern vier, die i
 Außerdem behalte ich den Amtlichen Gemeindeschlüssel sowie den Regionalschlüssel zum Matchen mit anderen Datensätzen. Der Gemeindename (`gem_name`) dient zur Plausibilisierung.
 
 ```{r}
-gemeinden_bbsr <- readxl::read_xlsx("./Daten/Raumgliederung_BBSR/raumgliederungen-referenzen-2022.xlsx", 
-                               sheet = "Gemeindereferenz (inkl. Kreise)", 
+gemeinden_bbsr <- readxl::read_xlsx("./Daten/Raumgliederung_BBSR/raumgliederungen-referenzen-2022.xlsx",
+                               sheet = "Gemeindereferenz (inkl. Kreise)",
                                skip = 1,
                                col_types = "text") %>%
   janitor::clean_names() %>%
-  select(gem_name = gemeinden_2022_name, 
-         gem_kennziffer = gemeinden_2022_kennziffer, 
-         gem_regionalschlussel = gemeinden_2022_regionalschlussel, 
-         dgurb_kennziffer = degree_of_urbanisation_gemeinden_2022_kennziffer, 
+  select(gem_name = gemeinden_2022_name,
+         gem_kennziffer = gemeinden_2022_kennziffer,
+         gem_regionalschlussel = gemeinden_2022_regionalschlussel,
+         dgurb_kennziffer = degree_of_urbanisation_gemeinden_2022_kennziffer,
          dgurb_name = degree_of_urbanisation_gemeinden_2022_name,
          raumtyp_lage_kennziffer = raumtyp_bezug_lage_gemeinden_2022_kennziffer,
          raumtyp_lage_name = raumtyp_bezug_lage_gemeinden_2022_name,
@@ -514,7 +514,7 @@ gemeinden_bbsr %>%
 ```
 
 ```{r}
-all_distinct_cells <- st_read("./Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg", 
+all_distinct_cells <- st_read("./Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)

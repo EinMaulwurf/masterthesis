@@ -70,7 +70,7 @@ gemeinden <- st_read("./Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as
 
 # z.B. Hamburg hat zwei Exklaven die ich hier entferne
 get_stadt <- function(stadt) {
-  gemeinden %>% 
+  gemeinden %>%
     filter(name == stadt) %>%
     st_cast("POLYGON", warn = FALSE) %>%
     mutate(area = st_area(.)) %>%
@@ -93,7 +93,7 @@ breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
 # Funktion um automatisch Daten einer bestimmen Stadt zu laden
 get_breitband_stadt <- function(stadt_name, size = "100m", variables = everything()) {
   stadt <- get_stadt(stadt_name)
-  
+
   if(size == "100m") {
     breitband_100m_arrow %>%
       select(date, x_mp, y_mp, {{variables}}) %>%
@@ -141,7 +141,7 @@ make_laea_grid <- function(obj, size = 100) {
   obj_bbox <- st_bbox(obj)
   obj_offset_x <- floor(obj_bbox["xmin"]/size)*size - (size/2)
   obj_offset_y <- floor(obj_bbox["ymin"]/size)*size - (size/2)
-  
+
   st_make_grid(obj, cellsize = size, offset = c(obj_offset_x, obj_offset_y))
 }
 
@@ -237,7 +237,7 @@ breitband_dates <- get_breitband_stadt(stadt, size = "100m", variables = down_fn
 
 for(d in breitband_dates) {
   print(d)
-  
+
   p <- get_breitband_stadt(stadt, size = "100m", variables = down_fn_hh_ftthb_1000) %>%
     filter(date == d) %>%
     add_laea_grid(size = 100) %>%
@@ -253,7 +253,7 @@ for(d in breitband_dates) {
           plot.title = element_text(hjust = 0.5, color = "grey90"),
           plot.title.position = "plot",
           plot.background = element_rect(fill = "grey10"))
-  
+
   ggsave(str_glue("./Output/{str_to_lower(stadt)}_animation/{str_to_lower(stadt)}_glasfaser_100m_{d}.jpg"), plot = p, width = 5, height = 5, create.dir = TRUE)
 }
 ```
@@ -268,7 +268,7 @@ breitband_dates <- breitband_1km_arrow %>%
 
 for(d in breitband_dates) {
   print(d)
-  
+
   p <- breitband_1km_arrow %>%
     filter(date == d) %>%
     select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
@@ -285,8 +285,8 @@ for(d in breitband_dates) {
           plot.title = element_text(hjust = 0.5, color = "grey90"),
           plot.title.position = "plot",
           plot.background = element_rect(fill = "grey10"))
-  
-  ggsave(str_glue("./Output/deutschland_animation/deutschland_glasfaser_1km_{d}.jpg"), 
+
+  ggsave(str_glue("./Output/deutschland_animation/deutschland_glasfaser_1km_{d}.jpg"),
          plot = p, width = 5, height = 7, create.dir = TRUE)
 }
 ```
@@ -301,7 +301,7 @@ breitband_dates <- breitband_1km_arrow %>%
 
 for(d in breitband_dates) {
   print(d)
-  
+
   p <- breitband_1km_max_speed %>%
     filter(date == d) %>%
     add_laea_grid(size = 1000) %>%
@@ -319,8 +319,8 @@ for(d in breitband_dates) {
           plot.title = element_text(hjust = 0.5, color = "grey90"),
           plot.title.position = "plot",
           plot.background = element_rect(fill = "grey10"))
-  
-  ggsave(str_glue("./Output/deutschland_max_speed_animation/deutschland_max_speed_1km_{d}.jpg"), 
+
+  ggsave(str_glue("./Output/deutschland_max_speed_animation/deutschland_max_speed_1km_{d}.jpg"),
          plot = p, width = 5, height = 7, create.dir = TRUE)
 }
 ```
@@ -516,12 +516,12 @@ breitband_100m_arrow %>%
             # pct_50 = quantile(down_fn_hh_ftthb_1000, 0.50, na.rm = TRUE),
             # pct_75 = quantile(down_fn_hh_ftthb_1000, 0.75, na.rm = TRUE)
             ) %>%
-  kbl(format = "latex", 
-      digits = 0, 
-      booktabs = TRUE, 
-      position = "h", 
-      linesep = "", 
-      format.args	= list(big.mark = " ")) %>% 
+  kbl(format = "latex",
+      digits = 0,
+      booktabs = TRUE,
+      position = "h",
+      linesep = "",
+      format.args	= list(big.mark = " ")) %>%
   cat()
 
 # 1km
@@ -542,12 +542,12 @@ breitband_1km_arrow %>%
             # pct_50 = quantile(down_fn_hh_ftthb_1000, 0.50, na.rm = TRUE),
             # pct_75 = quantile(down_fn_hh_ftthb_1000, 0.75, na.rm = TRUE)
             ) %>%
-  kbl(format = "latex", 
-      digits = 0, 
-      booktabs = TRUE, 
-      position = "h", 
-      linesep = "", 
-      format.args	= list(big.mark = " ")) %>% 
+  kbl(format = "latex",
+      digits = 0,
+      booktabs = TRUE,
+      position = "h",
+      linesep = "",
+      format.args	= list(big.mark = " ")) %>%
   cat()
 ```
 
@@ -598,13 +598,13 @@ breitband_1km_arrow_summarised %>%
   pivot_wider(names_from = statistik, values_from = value) %>%
   mutate(Stichtag = ceiling_date(ym(date), unit = "month") - days(1)) %>%
   select(Stichtag, "Variable" = variable, n, "Anteil 0" = anteil_0, "Anteil 100" = anteil_100, "Mittelwert" = mittelwert) %>%
-  kbl(format = "latex", 
-      digits = 0, 
-      booktabs = TRUE, 
-      position = "h", 
-      linesep = c("", "", "", "", "", "", "", " "), 
+  kbl(format = "latex",
+      digits = 0,
+      booktabs = TRUE,
+      position = "h",
+      linesep = c("", "", "", "", "", "", "", " "),
       format.args	= list(big.mark = " "),
-      longtable = TRUE) %>% 
+      longtable = TRUE) %>%
   cat()
 
 options(knitr.kable.NA = '-')
@@ -624,14 +624,14 @@ breitband_1km_arrow_summarised %>%
   mutate(variable = str_to_upper(variable)) %>%
   mutate(Stichtag = ceiling_date(ym(date), unit = "month") - days(1),
          .before = 1, .keep = "unused") %>%
-  kbl(format = "latex", 
-      digits = 0, 
-      booktabs = TRUE, 
-      position = "h", 
-      linesep = c("", "", "", "", "", "", "\\addlinespace"), 
+  kbl(format = "latex",
+      digits = 0,
+      booktabs = TRUE,
+      position = "h",
+      linesep = c("", "", "", "", "", "", "\\addlinespace"),
       format.args	= list(big.mark = " "),
       longtable = TRUE,
-      na = '-') %>% 
+      na = '-') %>%
   cat()
 ```
 
@@ -667,14 +667,14 @@ breitband_1km_arrow %>%
   group_by("BBSR Gemeindetyp" = gemeindetyp_name) %>%
   summarise(n = n(),
             "Anteil %" = weighted.mean(down_fn_hh_ftthb_1000, anzahl_haushalte, na.rm = TRUE)) %>%
-  kbl(format = "latex", 
-      digits = 0, 
-      booktabs = TRUE, 
-      position = "h", 
-      linesep = c("", "", "", "", "", "", "\\addlinespace"), 
+  kbl(format = "latex",
+      digits = 0,
+      booktabs = TRUE,
+      position = "h",
+      linesep = c("", "", "", "", "", "", "\\addlinespace"),
       format.args	= list(big.mark = " "),
       longtable = FALSE,
-      na = '-') %>% 
+      na = '-') %>%
   cat()
 
 gemeinden %>%

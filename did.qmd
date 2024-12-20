@@ -37,7 +37,7 @@ dates_pseudo_halbjahr <- tibble(date = seq(
       to = as.Date(paste0(max_date, "01"), format = "%Y%m%d"),
       by = "6 months"
       )) %>%
-      mutate(date = as.numeric(format(date, "%Y%m")), 
+      mutate(date = as.numeric(format(date, "%Y%m")),
              date_pseudo_halbjahr = seq_along(date))
     ) %>%
   fill(date_pseudo_halbjahr, .direction = "down")
@@ -89,8 +89,8 @@ data_kauf_complete <- data_kauf %>%
   mutate(n_cell = sum(n_cell_date)) %>%
   ungroup() %>%
   mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
-  mutate(baujahr = if_else(is.na(baujahr), 
-                           median(baujahr, na.rm = TRUE), 
+  mutate(baujahr = if_else(is.na(baujahr),
+                           median(baujahr, na.rm = TRUE),
                            baujahr)) %>%
   complete(xy_mp, date_pseudo_halbjahr) %>%
   group_by(xy_mp) %>%
@@ -150,8 +150,8 @@ data_miete_complete <- data_miete %>%
   mutate(n_cell = sum(n_cell_date)) %>%
   ungroup() %>%
   mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
-  mutate(baujahr = if_else(is.na(baujahr), 
-                           median(baujahr, na.rm = TRUE), 
+  mutate(baujahr = if_else(is.na(baujahr),
+                           median(baujahr, na.rm = TRUE),
                            baujahr)) %>%
   complete(xy_mp, date_pseudo_halbjahr) %>%
   group_by(xy_mp) %>%
@@ -215,9 +215,9 @@ rwi_geo_redx_puf <- read_parquet("./Daten/RWI_GEO_REDX_PUF/rwi_geo_redx_puf.parq
 rwi_geo_redx_puf_complete <- rwi_geo_redx_puf %>%
   select(x_mp, y_mp, year, starts_with("pindex")) %>%
   mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000, .before = 1) %>%
-  left_join(got_fiber_dates %>% 
-              mutate(got_fiber_date_year = floor(got_fiber_date/100)) %>% 
-              select(x_mp, y_mp, got_fiber_date_year), 
+  left_join(got_fiber_dates %>%
+              mutate(got_fiber_date_year = floor(got_fiber_date/100)) %>%
+              select(x_mp, y_mp, got_fiber_date_year),
             by = join_by(x_mp, y_mp)) %>%
   mutate(got_fiber_date_year = replace_na(got_fiber_date_year, 0)) %>%
   left_join(cells_gemeinden_bbsr %>% select(x_mp, y_mp, ends_with("_name")), by = join_by(x_mp, y_mp)) %>%
@@ -233,8 +233,8 @@ mod_redx <- att_gt(
   gname = "got_fiber_date_year",
   xformla = ~ gemeindetyp_name + max_speed_no_fiber,
   weightsname = "anzahl_haushalte",
-  data = rwi_geo_redx_puf_complete %>% 
-    drop_na(pindex_CI, got_fiber_date_year, anzahl_haushalte, max_speed_no_fiber) %>% 
+  data = rwi_geo_redx_puf_complete %>%
+    drop_na(pindex_CI, got_fiber_date_year, anzahl_haushalte, max_speed_no_fiber) %>%
     filter(year >= 2017),
   anticipation = 0,
   alp = 0.05,
@@ -371,8 +371,8 @@ test <- conditional_did_pretest(
   gname = "got_fiber_date_year",
   xformla = ~ gemeindetyp_name + max_speed_no_fiber,
   weightsname = "anzahl_haushalte",
-  data = rwi_geo_redx_puf_complete %>% 
-    drop_na(pindex_CI, got_fiber_date_year, anzahl_haushalte, max_speed_no_fiber) %>% 
+  data = rwi_geo_redx_puf_complete %>%
+    drop_na(pindex_CI, got_fiber_date_year, anzahl_haushalte, max_speed_no_fiber) %>%
     filter(year >= 2017),
   alp = 0.05,
   control_group = "notyettreated",
@@ -424,28 +424,28 @@ set.seed(123456L)
 # 60 time periods, 30 individuals, and 5 waves of treatment
 tmax = 60; imax = 30; nlvls = 5
 
-dat = 
+dat =
   expand.grid(time = 1:tmax, id = 1:imax) |>
   within({
-    
+
     cohort      = NA
     effect      = NA
     first_treat = NA
-    
+
     for (chrt in 1:imax) {
       cohort = ifelse(id==chrt, sample.int(nlvls, 1), cohort)
     }
-    
+
     for (lvls in 1:nlvls) {
       effect      = ifelse(cohort==lvls, sample(2:10, 1), effect)
       first_treat = ifelse(cohort==lvls, sample(1:(tmax+20), 1), first_treat)
     }
-    
+
     first_treat = ifelse(first_treat>tmax, Inf, first_treat)
     treat       = time>=first_treat
     rel_time    = time - first_treat
     y           = id + time + ifelse(treat, effect*rel_time, 0) + rnorm(imax*tmax)
-    
+
     rm(chrt, lvls, cohort, effect)
   })
 
@@ -458,7 +458,7 @@ cs21 = att_gt(
     tname         = "time",
     idname        = "id",
     gname         = "first_treat",
-  # xformla       = NULL,            # No additional controls in this dataset 
+  # xformla       = NULL,            # No additional controls in this dataset
     control_group = "notyettreated", # Too few groups for "nevertreated" default
     clustervars   = "id",
   base_period="universal",
@@ -551,7 +551,7 @@ mod_miete
 #ggdid(mod_miete)
 
 tidy(mod_miete) %>%
-  left_join(dates_pseudo_halbjahr %>% filter(date %% 100 %in% c(6, 12)), 
+  left_join(dates_pseudo_halbjahr %>% filter(date %% 100 %in% c(6, 12)),
             by = join_by(group == date_pseudo_halbjahr)) %>%
   mutate(is_treated = time >= group) %>%
   ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
