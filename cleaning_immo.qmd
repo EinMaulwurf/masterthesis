@@ -9,6 +9,7 @@ format: html
 #| message: false
 #| warning: false
 
+library(mice)
 library(tidyverse)
 library(vroom)
 library(arrow)
@@ -230,7 +231,7 @@ got_fiber_dates <- read_parquet("./Daten/Breitbandatlas//Raster_1km_got_fiber_da
 
 cells_gemeinden_bbsr <- read_parquet("./Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
 
-cells_kreise_einkommen <- read_parquet("./Daten/Sonstige/Raster_1km_kreise_einkommen.parquet")
+cells_kreise_einkommen <- read_parquet("./Daten/Geodaten/Raster_1km_kreise_einkommen.parquet")
 
 cells_plz <- read_parquet("./Daten/Geodaten/Raster_1km_plz.parquet")
 
@@ -239,14 +240,10 @@ breitband_problems <- read_parquet("./Daten/Breitbandatlas/Raster_1km_problems.p
 
 ## Kauf
 
-Hier werden die Kauf-Daten zu einem Index auf Rasterebene aggregiert. Im Idealfall gibt es pro Zelle für jede Zeitperiode (halbes Jahr) genügend Beobachtungen, aus denen dann der Mittelwert bestimmt wird. Dies ist jedoch für viele Zellen (in ländlicheren Gegenden) nicht der Fall. Daher erstelle ich mit `tidyr::complete()` zuerst alle Kombinationen aus den Zeitperioden und Zellen. Anschließend werden die fehlenden Daten mit `tidyr::fill()` aufgefüllt.
-
-Code unten sollte noch angepasst werden, ist aktuell nur rüberkopiert aus dem `did.qmd` file.
-Insbesondere an dem `fill()` sollte man nochmal arbeiten. Hier wird aktuell eher zu viel/großzügig ausgefüllt. Vielleicht könnte man auch noch eine neue Spalte pro Zelle machen, die anzeigt wie viele Halbjahre es mit Beobachtungen gibt.
-
-Der `anti_join(breitband_problems, by = join_by(x_mp, y_mp))` Teil ist dafür da, um problematische Zellen rauszuwerfen. Das sind solche Zellen, in denen der Glasfaserausbau in mindestens einer Periode sinkt. Blöd ist aber, dass es über 12000 Zellen von etwa 45000 Zellen insgesamt ist. Das ist ein sehr großer Anteil an nicht mehr verwendbaren Daten.
+Hier werden die Kauf-Daten zu einem Index auf Rasterebene aggregiert. Im Idealfall gibt es pro Zelle für jede Zeitperiode (halbes Jahr) genügend Beobachtungen, aus denen dann der Mittelwert bestimmt wird. Dies ist jedoch für viele Zellen (in ländlicheren Gegenden) nicht der Fall. Daher erstelle ich mit `tidyr::complete()` zuerst alle Kombinationen aus den Zeitperioden und Zellen. Anschließend werden die fehlenden Daten mit `tidyr::fill()` aufgefüllt. Damit es aber später nachvollziehbar bleibt, gibt es die `n_cell` und `n_cell_date` Variablen, die zeigen wieviele Beobachtungen es für die Zelle insgesamt bzw. zu jeden Zeitpunkt gibt.
 
 ```{r}
+# Einlesen
 data_kauf <- open_dataset("./Daten/Immo/Kauf/") %>%
   filter(ejahr >= 2016) %>%
   mutate(date = ejahr*100 + emonat) %>%
@@ -255,35 +252,42 @@ data_kauf <- open_dataset("./Daten/Immo/Kauf/") %>%
   left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
   select(date_pseudo_halbjahr, x_mp, y_mp, kaufpreis, baujahr, wohnflaeche, zimmeranzahl)
 
-data_kauf_complete <- data_kauf %>%
+# Imputieren, insb. das Baujahr
+data_kauf_imp <- data_kauf %>%
+  mice::mice(m = 1, maxit = 1, method = "pmm", pred = quickpred(., exclude = c("x_mp", "y_mp")), seed = 1) %>%
+  mice::complete() %>%
+  as_tibble()
+
+# Aggregieren und vervollständigen
+data_kauf_complete <- data_kauf_imp %>%
   group_by(date_pseudo_halbjahr, x_mp, y_mp) %>%
-  summarise(mean_kaufpreis = mean(kaufpreis, na.rm = TRUE),
+  summarise(mean_kaufpreis = mean(kaufpreis),
             n_cell_date = n(),
-            median_baujahr = median(baujahr, na.rm = TRUE),
-            median_wohnflaeche = median(wohnflaeche, na.rm = TRUE),
-            median_zimmeranzahl = median(zimmeranzahl, na.rm = TRUE),
+            median_baujahr = median(baujahr),
+            median_wohnflaeche = median(wohnflaeche),
+            median_zimmeranzahl = median(zimmeranzahl),
             .groups = "drop") %>%
   arrange(x_mp, y_mp, date_pseudo_halbjahr) %>%
   group_by(x_mp, y_mp) %>%
   mutate(n_cell = sum(n_cell_date)) %>%
   ungroup() %>%
   mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
-  mutate(median_baujahr = if_else(is.na(median_baujahr),
-                           median(median_baujahr, na.rm = TRUE),
-                           median_baujahr)) %>%
   complete(xy_mp, date_pseudo_halbjahr) %>%
   group_by(xy_mp) %>%
   fill(everything(), -n_cell_date, .direction = "downup") %>%
   ungroup() %>%
   mutate(n_cell_date = replace_na(n_cell_date, 0)) %>%
-  left_join(cells_gemeinden_bbsr %>% select(x_mp, y_mp, ends_with("_name")), by = join_by(x_mp, y_mp)) %>%
-  left_join(cells_kreise_einkommen, by = join_by(x_mp, y_mp)) %>%
-  left_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
+  inner_join(cells_gemeinden_bbsr %>% select(x_mp, y_mp, ends_with("_name")), by = join_by(x_mp, y_mp)) %>%
+  inner_join(cells_kreise_einkommen, by = join_by(x_mp, y_mp)) %>%
+  inner_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
-  mutate(got_fiber_date = replace_na(got_fiber_date, 0))
+  mutate(got_fiber_date = replace_na(got_fiber_date, 0),
+         got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))
 
 write_parquet(data_kauf_complete, "./Daten/data_kauf_complete.parquet")
 ```
+
+Wieviele Beobachtungen gibts so?
 
 ```{r}
 data_kauf_missing <- data_kauf_complete %>%
@@ -324,7 +328,10 @@ data_kauf_complete %>%
 
 ## Miete
 
+Analog zu den Kauf-Daten.
+
 ```{r}
+# Einlesen
 data_miete <- open_dataset("./Daten/Immo/Miete/") %>%
   filter(ejahr >= 2016) %>%
   mutate(date = ejahr*100 + emonat) %>%
@@ -334,22 +341,26 @@ data_miete <- open_dataset("./Daten/Immo/Miete/") %>%
   left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
   select(date_pseudo_halbjahr, x_mp, y_mp, mietekalt_m2, baujahr, wohnflaeche, zimmeranzahl)
 
-data_miete_complete <- data_miete %>%
+# Imputieren, insb. das Baujahr
+data_miete_imp <- data_miete %>%
+  mice::mice(m = 1, maxit = 1, method = "pmm", pred = quickpred(., exclude = c("x_mp", "y_mp")), seed = 1) %>%
+  mice::complete() %>%
+  as_tibble()
+
+# Aggregieren und vervollständigen
+data_miete_complete <- data_miete_imp %>%
   group_by(date_pseudo_halbjahr, x_mp, y_mp) %>%
-  summarise(mean_mietekalt_m2 = mean(mietekalt_m2, na.rm = TRUE),
+  summarise(mean_mietekalt_m2 = mean(mietekalt_m2),
             n_cell_date = n(),
-            median_baujahr = median(baujahr, na.rm = TRUE),
-            median_wohnflaeche = median(wohnflaeche, na.rm = TRUE),
-            median_zimmeranzahl = median(zimmeranzahl, na.rm = TRUE),
+            median_baujahr = median(baujahr),
+            median_wohnflaeche = median(wohnflaeche),
+            median_zimmeranzahl = median(zimmeranzahl),
             .groups = "drop") %>%
   arrange(x_mp, y_mp, date_pseudo_halbjahr) %>%
   group_by(x_mp, y_mp) %>%
   mutate(n_cell = sum(n_cell_date)) %>%
   ungroup() %>%
   mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
-  mutate(median_baujahr = if_else(is.na(median_baujahr),
-                           median(median_baujahr, na.rm = TRUE),
-                           median_baujahr)) %>%
   complete(xy_mp, date_pseudo_halbjahr) %>%
   group_by(xy_mp) %>%
   fill(everything(), -n_cell_date, .direction = "downup") %>%
@@ -363,4 +374,3 @@ data_miete_complete <- data_miete %>%
 
 write_parquet(data_miete_complete, "./Daten/data_miete_complete.parquet")
 ```
-
