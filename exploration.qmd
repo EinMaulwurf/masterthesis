@@ -691,3 +691,43 @@ gemeinden %>%
 ggsave("./Output/plots/karten/plot_bbsr_gemeindetypen.pdf", width = 5, height = 4)
 ```
 
+## Immo
+
+Boxplots zu den Variablen im Kauf- und Mietdatensatz.
+
+```{r}
+open_dataset("./Daten/Immo/Kauf/") %>%
+  filter(ejahr >= 2016) %>%
+  mutate(kaufpreis = kaufpreis / 1000) %>%
+  select(ejahr, "Kaufpreis (1000€)" = kaufpreis, "Wohnfläche (m²)" = wohnflaeche, Zimmeranzahl = zimmeranzahl, Baujahr = baujahr) %>%
+  collect() %>%
+  pivot_longer(cols = -ejahr) %>%
+  mutate(name = fct_relevel(name, "Kaufpreis (1000€)", "Wohnfläche (m²)", "Zimmeranzahl", "Baujahr")) %>%
+  ggplot(aes(x = ejahr, y = value, group = ejahr))+
+  geom_boxplot(outliers = FALSE)+
+  facet_wrap(~ name, scales = "free")+
+  scale_x_continuous(breaks = seq(2016, 2024, 1))+
+  labs(y = element_blank(),
+       x = "Jahr")
+
+# `cairo_pdf` wird benötigt, um das € im PDF korrekt darzustellen
+ggsave("./Output/plots/plot_boxplot_variablen_kauf.pdf", width = 5, height = 4, device = cairo_pdf)
+
+open_dataset("./Daten/Immo/Miete/") %>%
+  filter(ejahr >= 2016) %>%
+  mutate(mietekalt_m2 = mietekalt / wohnflaeche) %>%
+  select(ejahr, "Mietekalt (€/m²)" = mietekalt_m2, "Wohnfläche (m²)" = wohnflaeche, Zimmeranzahl = zimmeranzahl, Baujahr = baujahr) %>%
+  collect() %>%
+  pivot_longer(cols = -ejahr) %>%
+  mutate(name = fct_relevel(name, "Mietekalt (€/m²)", "Wohnfläche (m²)", "Zimmeranzahl", "Baujahr")) %>%
+  ggplot(aes(x = ejahr, y = value, group = ejahr))+
+  geom_boxplot(outliers = FALSE)+
+  facet_wrap(~ name, scales = "free")+
+  scale_x_continuous(breaks = seq(2016, 2024, 1))+
+  labs(y = element_blank(),
+       x = "Jahr")
+
+# `cairo_pdf` wird benötigt, um das € im PDF korrekt darzustellen
+ggsave("./Output/plots/plot_boxplot_variablen_miete.pdf", width = 5, height = 4, device = cairo_pdf)
+```
+
