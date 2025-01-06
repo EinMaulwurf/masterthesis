@@ -1,6 +1,6 @@
 ---
 title: "exploration"
-format: html
+format: "html"
 ---
 
 # Setup
@@ -19,7 +19,7 @@ library(modelsummary)
 library(kableExtra)
 ```
 
-Options for KableExtra (exporting Latex Tables)
+Optionen für KableExtra (für's Exportieren von Latex Tabellen)
 ```{r}
 options(modelsummary_factory_latex = 'kableExtra')
 options(modelsummary_format_numeric_latex = "plain")
@@ -27,7 +27,7 @@ options(modelsummary_factory_default = "latex")
 #options("modelsummary_factory_default" = "latex")
 ```
 
-Export all packages with citations
+Alle verwendeten packages mit Zitationen in separate bib-Datei exportieren
 ```{r}
 repmis::LoadandCite(
   bibtex = TRUE,
@@ -35,7 +35,7 @@ repmis::LoadandCite(
 )
 ```
 
-# Loading Data
+# Daten laden
 
 ## Geodaten
 
@@ -83,7 +83,7 @@ berlin <- get_stadt("Berlin")
 hamburg <- get_stadt("Hamburg")
 ```
 
-## Breitbandatlas
+## Breitbanddaten
 
 ```{r}
 # Laden der Arrow Datensätze
@@ -127,12 +127,6 @@ breitband_1km_problems <- read_parquet("../Daten/Breitbandatlas/Raster_1km_probl
 zensus_arrow <- open_dataset("../Daten/Zensus/Gesamt/")
 ```
 
-## LAEA Grid
-
-```{r}
-
-```
-
 # Funktion um Grid zu erstellen
 
 Erstelle Grid zu sf Objekt
@@ -169,7 +163,9 @@ get_breitband_stadt("Darmstadt", size = "1km", variables = down_fn_hh_ftthb_1000
   scale_fill_viridis_c()
 ```
 
-# Plots
+# Visualisierungen
+
+## Breitbanddaten
 
 ```{r}
 get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000) %>%
@@ -195,6 +191,7 @@ get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000) %>%
 ```
 
 Ganz Deutschland mit 1km Quadraten
+
 ```{r}
 #| fig-width: 5
 #| fig-height: 7
@@ -227,6 +224,7 @@ ggsave("../Output/plot_de_glasfaser_202406_1km.pdf", plot = p, width = 5, height
 ```
 
 Vergleich über Jahre. Hier habe ich festgestellt, dass bis einschließlich 07.2021 ein 250m Raster verwendet wird.
+
 ```{r}
 stadt <- "Hamburg"
 
@@ -259,6 +257,7 @@ for(d in breitband_dates) {
 ```
 
 Jeztzt ganz Deutschland über die Jahre
+
 ```{r}
 breitband_dates <- breitband_1km_arrow %>%
   distinct(date) %>%
@@ -292,6 +291,7 @@ for(d in breitband_dates) {
 ```
 
 Jetzt Karte mit maximal verfügbarer Geschwindigkeit
+
 ```{r}
 breitband_dates <- breitband_1km_arrow %>%
   distinct(date) %>%
@@ -326,6 +326,7 @@ for(d in breitband_dates) {
 ```
 
 Anteil Haushalte mit FTTBH Anschluss
+
 ```{r}
 zensus_haushalte_1km <- zensus_arrow %>%
   filter(typ == "1km") %>%
@@ -385,7 +386,22 @@ rbind(
   scale_x_date(breaks = "1 year")
 ```
 
+Zuwächse an FTTHB über die Zeit
+
+```{r}
+read_parquet("../Daten/Breitbandatlas/Raster_1km_got_fiber_date.parquet") %>%
+  count(got_fiber_date) %>%
+  mutate(got_fiber_date = ym(got_fiber_date)) %>%
+  ggplot(aes(x = got_fiber_date, y = n))+
+  geom_point()+
+  geom_line(aes(y = cumsum(n)))+
+  theme_bw()
+```
+
+## Zensus
+
 Zellen mit fehlendem Wert zu Anzahl Haushalte aus Zensus
+
 ```{r}
 stadt_beispiel_1_bbox <- get_stadt("Runkel") %>% st_bbox()
 stadt_beispiel_2_bbox <- get_stadt("Darmstadt") %>% st_bbox()
@@ -429,18 +445,10 @@ zensus_arrow %>%
 ggsave("../Output/plots/karten/plot_darmstadt_zensus_missing.pdf", width = 3, height = 3)
 ```
 
-Zuwächse an FTTHB über die Zeit
-```{r}
-read_parquet("../Daten/Breitbandatlas/Raster_1km_got_fiber_date.parquet") %>%
-  count(got_fiber_date) %>%
-  mutate(got_fiber_date = ym(got_fiber_date)) %>%
-  ggplot(aes(x = got_fiber_date, y = n))+
-  geom_point()+
-  geom_line(aes(y = cumsum(n)))+
-  theme_bw()
-```
+## Immobilienmarktdaten
 
 Zellen mit vollständigem Panel bei den Kauf/Miet Daten
+
 ```{r}
 stadt_beispiel_1_bbox <- get_stadt("Runkel") %>% st_bbox()
 stadt_beispiel_2_bbox <- get_stadt("Darmstadt") %>% st_bbox()
@@ -476,7 +484,7 @@ read_parquet("../Daten/data_miete_complete.parquet") %>%
   theme(legend.position = "right")
 ```
 
-# Karte mit Leaflet
+## Interaktive Karte mit Leaflet
 
 ```{r}
 data_leaflet <- get_breitband_stadt("Darmstadt", variables = down_fn_hh_ftthb_1000) %>%
@@ -498,6 +506,7 @@ data_leaflet %>%
 # Summary Statistics
 
 ## Breitbanddaten
+
 ```{r}
 # 100m
 breitband_100m_arrow %>%
@@ -552,6 +561,7 @@ breitband_1km_arrow %>%
 ```
 
 Verteilung FTTHB 1km
+
 ```{r}
 #| fig-width: 5
 #| fig-height: 3
@@ -574,6 +584,7 @@ ggsave("../Output/plots/plot_verteilung_glasfaser_2018_2024.pdf", width = 5, hei
 ```
 
 Summary Statistics für alle Variablen
+
 ```{r}
 breitband_1km_arrow_summarised <- breitband_1km_arrow %>%
   group_by(date) %>%
@@ -643,6 +654,7 @@ breitband_1km_arrow %>%
 ```
 
 Aufteilung Glasfaseranschlüsse nach den BBSR Gemeindetypen
+
 ```{r}
 #| fig-width: 5
 #| fig-height: 4
@@ -691,7 +703,7 @@ gemeinden %>%
 ggsave("../Output/plots/karten/plot_bbsr_gemeindetypen.pdf", width = 5, height = 4)
 ```
 
-## Immo
+## Immobilienmarktdaten
 
 Boxplots zu den Variablen im Kauf- und Mietdatensatz.
 
@@ -730,4 +742,3 @@ open_dataset("../Daten/Immo/Miete/") %>%
 # `cairo_pdf` wird benötigt, um das € im PDF korrekt darzustellen
 ggsave("../Output/plots/plot_boxplot_variablen_miete.pdf", width = 5, height = 4, device = cairo_pdf)
 ```
-
