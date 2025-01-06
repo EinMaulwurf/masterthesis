@@ -1,5 +1,5 @@
 ---
-title: "Immo Daten aufbereiten"
+title: "Aufbereiten der Immobilienmarktdaten"
 format: html
 ---
 
