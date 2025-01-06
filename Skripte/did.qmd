@@ -46,16 +46,16 @@ dates_pseudo_halbjahr <- tibble(date = seq(
 Ich lade die `got_fiber_dates` Daten und ändere alle Einträge mit Juli (07) in Juni (06), damit es komplett einheitlich ist. Dann joine ich die `dates_pseudo_halbjahr`.
 Außerdem lade ich die Kauf-Daten und die Daten zur Urbanität der Zellen.
 ```{r}
-got_fiber_dates <- read_parquet("./Daten/Breitbandatlas/Raster_1km_got_fiber_date.parquet") %>%
+got_fiber_dates <- read_parquet("../Daten/Breitbandatlas/Raster_1km_got_fiber_date.parquet") %>%
   mutate(got_fiber_date = if_else(got_fiber_date %% 10 == 7, got_fiber_date - 1, got_fiber_date)) %>%
   left_join(dates_pseudo_halbjahr, by = join_by(got_fiber_date == date)) %>%
   rename(got_fiber_date_pseudo_halbjahr = date_pseudo_halbjahr)
 
-cells_gemeinden_bbsr <- read_parquet("./Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
+cells_gemeinden_bbsr <- read_parquet("../Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
 ```
 
 ```{r}
-data_kauf <- open_dataset("./Daten/Immo/Kauf/") %>%
+data_kauf <- open_dataset("../Daten/Immo/Kauf/") %>%
   filter(ejahr >= 2018) %>%
   mutate(date = ejahr*100 + emonat) %>%
   select(date, x_mp, y_mp, kaufpreis, baujahr, wohnflaeche, zimmeranzahl) %>%
@@ -63,7 +63,7 @@ data_kauf <- open_dataset("./Daten/Immo/Kauf/") %>%
   left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
   select(date_pseudo_halbjahr, x_mp, y_mp, kaufpreis, baujahr, wohnflaeche, zimmeranzahl)
 
-data_miete <- open_dataset("./Daten/Immo/Miete/") %>%
+data_miete <- open_dataset("../Daten/Immo/Miete/") %>%
   filter(ejahr >= 2018) %>%
   mutate(date = ejahr*100 + emonat) %>%
   select(date, x_mp, y_mp, mietekalt, baujahr, wohnflaeche, zimmeranzahl) %>%
@@ -196,21 +196,21 @@ ggdid(mod_miete_agg_calendar)
 # NEU: RWI GEO REDX
 
 ```{r}
-zensus_haushalte_1km <- open_dataset("./Daten/Zensus/Gesamt/") %>%
+zensus_haushalte_1km <- open_dataset("../Daten/Zensus/Gesamt/") %>%
   filter(typ == "1km") %>%
   mutate(anzahl_haushalte = insgesamt_bevoelkerung / durchschn_hh_groesse) %>%
   select(x_mp, y_mp, anzahl_haushalte) %>%
   collect()
 
 set.seed(1)
-breitband_1km_max_speed <- read_parquet("./Daten/Breitbandatlas/Raster_1km_max_speed.parquet") %>%
+breitband_1km_max_speed <- read_parquet("../Daten/Breitbandatlas/Raster_1km_max_speed.parquet") %>%
   mutate(year = floor(date/100)) %>%
   group_by(year, x_mp, y_mp) %>%
   slice_sample(n = 1) %>%
   ungroup() %>%
   select(year, x_mp, y_mp, max_speed_no_fiber)
 
-rwi_geo_redx_puf <- read_parquet("./Daten/RWI_GEO_REDX_PUF/rwi_geo_redx_puf.parquet")
+rwi_geo_redx_puf <- read_parquet("../Daten/RWI_GEO_REDX_PUF/rwi_geo_redx_puf.parquet")
 
 rwi_geo_redx_puf_complete <- rwi_geo_redx_puf %>%
   select(x_mp, y_mp, year, starts_with("pindex")) %>%
@@ -268,7 +268,7 @@ ggdid(mod_redx_agg_calendar)
 mit `panel = FALSE` in `att_gt()`
 
 ```{r}
-breitband_1km_max_speed_halbjahr <- read_parquet("./Daten/Breitbandatlas/Raster_1km_max_speed.parquet") %>%
+breitband_1km_max_speed_halbjahr <- read_parquet("../Daten/Breitbandatlas/Raster_1km_max_speed.parquet") %>%
   left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
   select(date, date_pseudo_halbjahr, x_mp, y_mp, max_speed_no_fiber)
 ```
@@ -502,9 +502,9 @@ createSensitivityPlot_relativeMagnitudes(cs21_agg_dyn_honest_did_rel$robust_ci,
 # NEU
 
 ```{r}
-dates_pseudo_halbjahr <- read_parquet("./Daten/dates_pseudo_halbjahr.parquet")
+dates_pseudo_halbjahr <- read_parquet("../Daten/dates_pseudo_halbjahr.parquet")
 
-raster_alter_haushalte <- open_dataset("./Daten/Zensus/Gesamt/") %>%
+raster_alter_haushalte <- open_dataset("../Daten/Zensus/Gesamt/") %>%
   filter(typ == "1km") %>%
   mutate(anzahl_haushalte = einwohner / durchschn_hh_groesse) %>%
   select(x_mp, y_mp, durchschnittsalter, anzahl_haushalte) %>%
@@ -513,7 +513,7 @@ raster_alter_haushalte <- open_dataset("./Daten/Zensus/Gesamt/") %>%
 
 
 ```{r}
-data_miete_complete <- read_parquet("./Daten/data_miete_complete.parquet")
+data_miete_complete <- read_parquet("../Daten/data_miete_complete.parquet")
 
 did::att_gt()
 ```
@@ -580,3 +580,57 @@ data_miete_complete %>%
   geom_col()
 ```
 
+```{r}
+mod_kauf <- data_kauf_complete %>%
+  left_join(raster_alter_haushalte, by = join_by(x_mp, y_mp)) %>%
+  mutate(anzahl_haushalte = replace_na(anzahl_haushalte, median(anzahl_haushalte, na.rm = TRUE))) %>%
+  filter(n_cell_date > 0) %>%
+  #filter(n_cell > 10) %>%
+  #filter(!gemeindetyp_name %in% c("Großstadt")) %>%
+  att_gt(
+    data = .,
+    yname = "mean_kaufpreis",
+    tname = "date_pseudo_halbjahr",
+    idname = "xy_mp",
+    gname = "got_fiber_date_pseudo_halbjahr",
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen,
+    weightsname = "anzahl_haushalte",
+    anticipation = 0,
+    alp = 0.05,
+    control_group = "notyettreated",
+    est_method = "dr",
+    base_period = "varying",
+    clustervars = c("xy_mp", "plz"),
+    biter = 1000,
+    pl = TRUE,
+    cores = 6,
+    allow_unbalanced_panel = TRUE,
+    faster_mode = FALSE,
+    print_details = FALSE
+  )
+mod_kauf
+
+#ggdid(mod_kauf)
+
+tidy(mod_kauf) %>%
+  left_join(dates_pseudo_halbjahr %>% filter(date %% 100 %in% c(6, 12)),
+            by = join_by(group == date_pseudo_halbjahr)) %>%
+  mutate(is_treated = time >= group) %>%
+  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
+  geom_linerange()+
+  geom_point()+
+  geom_hline(aes(yintercept = 0), linetype = "dashed")+
+  facet_wrap(~date)+
+  scale_x_continuous(breaks = 1:20)+
+  theme_bw()+
+  theme(legend.position = "none")
+
+mod_kauf_agg_dyn <- did::aggte(mod_kauf, type = "dynamic")
+ggdid(mod_kauf_agg_dyn)
+
+mod_kauf_agg_group <- did::aggte(mod_kauf, type = "group")
+ggdid(mod_kauf_agg_group)
+
+mod_kauf_agg_calendar <- did::aggte(mod_kauf, type = "calendar")
+ggdid(mod_kauf_agg_calendar)
+```

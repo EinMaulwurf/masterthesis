@@ -54,7 +54,7 @@ vroom_col_kauf <- cols_only(
 
 good_dupIDs <- c("ID occurs once only, or first occurence of ID", "Large differences in important features", "Like (4) but time gape >6 months", "Like (1) but time gap >6 months")
 
-import_vroom_kauf <- vroom("./Daten/Immo/Rohdaten/Kauf/combined", col_types = vroom_col_kauf)
+import_vroom_kauf <- vroom("../Daten/Immo/Rohdaten/Kauf/combined", col_types = vroom_col_kauf)
 
 import_vroom_kauf_clean <- import_vroom_kauf %>%
   filter(!r1_id %in% c("-11", "-9")) %>%
@@ -71,11 +71,11 @@ import_vroom_kauf_clean <- import_vroom_kauf %>%
 
 import_vroom_kauf_clean %>%
   group_by(ejahr) %>%
-  write_dataset("./Daten/Immo/Kauf/")
+  write_dataset("../Daten/Immo/Kauf/")
 ```
 
 ```{r}
-open_dataset("./Daten/Immo/Kauf/") %>%
+open_dataset("../Daten/Immo/Kauf/") %>%
   group_by(ejahr) %>%
   count() %>%
   collect()
@@ -105,7 +105,7 @@ vroom_col_miete <- cols_only(
 
 good_dupIDs <- c("ID occurs once only, or first occurence of ID", "Large differences in important features", "Like (4) but time gape >6 months", "Like (1) but time gap >6 months")
 
-import_vroom_miete <- vroom("./Daten/Immo/Rohdaten/Miete/combined", col_types = vroom_col_miete)
+import_vroom_miete <- vroom("../Daten/Immo/Rohdaten/Miete/combined", col_types = vroom_col_miete)
 
 import_vroom_miete_clean <- import_vroom_miete %>%
   filter(!r1_id %in% c("-11", "-9")) %>%
@@ -124,7 +124,7 @@ import_vroom_miete_clean <- import_vroom_miete %>%
 
 import_vroom_miete_clean %>%
   group_by(ejahr) %>%
-  write_dataset("./Daten/Immo/Miete/")
+  write_dataset("../Daten/Immo/Miete/")
 ```
 
 Achtung: bei `import_vroom_miete_clean` sind nur Daten bis 2019. Irgendwie werden also spätere Anzeigen alle rausgefiltert. Möglicherweise wegen der `dupID_gen`.
@@ -151,7 +151,7 @@ import_vroom_miete_clean_test %>%
 ```
 
 ```{r}
-open_dataset("./Daten/Immo/Miete/") %>%
+open_dataset("../Daten/Immo/Miete/") %>%
   group_by(ejahr) %>%
   count() %>%
   collect()
@@ -162,7 +162,7 @@ open_dataset("./Daten/Immo/Miete/") %>%
 HK = House sales, WK = Apartment sales, WM = Apartment rents, CI = Combined Index
 
 ```{r}
-rwi_geo_redx_puf <- readxl::read_xlsx("./Daten/RWI_GEO_REDX_PUF/RWIGEOREDX_GRIDS_v13_PUF.xlsx",
+rwi_geo_redx_puf <- readxl::read_xlsx("../Daten/RWI_GEO_REDX_PUF/RWIGEOREDX_GRIDS_v13_PUF.xlsx",
                           sheet = "Grids_RegionEff_yearly") %>%
   pivot_longer(
     cols = starts_with(c("pindex", "NOBS")),
@@ -180,7 +180,7 @@ rwi_geo_redx_puf <- readxl::read_xlsx("./Daten/RWI_GEO_REDX_PUF/RWIGEOREDX_GRIDS
   mutate(year = as.numeric(year))
 
 rwi_geo_redx_puf %>%
-  write_parquet("./Daten/RWI_GEO_REDX_PUF/rwi_geo_redx_puf.parquet")
+  write_parquet("../Daten/RWI_GEO_REDX_PUF/rwi_geo_redx_puf.parquet")
 ```
 
 ```{r}
@@ -221,21 +221,21 @@ dates_pseudo_halbjahr <- tibble(date = seq(
   fill(date_pseudo_halbjahr, .direction = "down")
 
 dates_pseudo_halbjahr %>%
-  write_parquet("./Daten/dates_pseudo_halbjahr.parquet")
+  write_parquet("../Daten/dates_pseudo_halbjahr.parquet")
 ```
 
 ```{r}
-got_fiber_dates <- read_parquet("./Daten/Breitbandatlas//Raster_1km_got_fiber_date.parquet") %>%
+got_fiber_dates <- read_parquet("../Daten/Breitbandatlas//Raster_1km_got_fiber_date.parquet") %>%
   left_join(dates_pseudo_halbjahr, by = join_by(got_fiber_date == date)) %>%
   rename(got_fiber_date_pseudo_halbjahr = date_pseudo_halbjahr)
 
-cells_gemeinden_bbsr <- read_parquet("./Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
+cells_gemeinden_bbsr <- read_parquet("../Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
 
-cells_kreise_einkommen <- read_parquet("./Daten/Geodaten/Raster_1km_kreise_einkommen.parquet")
+cells_kreise_einkommen <- read_parquet("../Daten/Geodaten/Raster_1km_kreise_einkommen.parquet")
 
-cells_plz <- read_parquet("./Daten/Geodaten/Raster_1km_plz.parquet")
+cells_plz <- read_parquet("../Daten/Geodaten/Raster_1km_plz.parquet")
 
-breitband_problems <- read_parquet("./Daten/Breitbandatlas/Raster_1km_problems.parquet")
+breitband_problems <- read_parquet("../Daten/Breitbandatlas/Raster_1km_problems.parquet")
 ```
 
 ## Kauf
@@ -244,7 +244,7 @@ Hier werden die Kauf-Daten zu einem Index auf Rasterebene aggregiert. Im Idealfa
 
 ```{r}
 # Einlesen
-data_kauf <- open_dataset("./Daten/Immo/Kauf/") %>%
+data_kauf <- open_dataset("../Daten/Immo/Kauf/") %>%
   filter(ejahr >= 2016) %>%
   mutate(date = ejahr*100 + emonat) %>%
   select(date, x_mp, y_mp, kaufpreis, baujahr, wohnflaeche, zimmeranzahl) %>%
@@ -284,7 +284,7 @@ data_kauf_complete <- data_kauf_imp %>%
   mutate(got_fiber_date = replace_na(got_fiber_date, 0),
          got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))
 
-write_parquet(data_kauf_complete, "./Daten/data_kauf_complete.parquet")
+write_parquet(data_kauf_complete, "../Daten/data_kauf_complete.parquet")
 ```
 
 Wieviele Beobachtungen gibts so?
@@ -332,7 +332,7 @@ Analog zu den Kauf-Daten.
 
 ```{r}
 # Einlesen
-data_miete <- open_dataset("./Daten/Immo/Miete/") %>%
+data_miete <- open_dataset("../Daten/Immo/Miete/") %>%
   filter(ejahr >= 2016) %>%
   mutate(date = ejahr*100 + emonat) %>%
   mutate(mietekalt_m2 = mietekalt / wohnflaeche) %>%
@@ -372,5 +372,5 @@ data_miete_complete <- data_miete_imp %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
   mutate(got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))
 
-write_parquet(data_miete_complete, "./Daten/data_miete_complete.parquet")
+write_parquet(data_miete_complete, "../Daten/data_miete_complete.parquet")
 ```

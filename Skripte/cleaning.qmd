@@ -21,21 +21,21 @@ Ich lese hier die Daten vom Zensus auf allen drei Rasterebenen (10km, 1km, 100m)
 
 ```{r}
 # Altersverteilung -----------------------------
-alter_10km <- read_csv2("./Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_10km-Gitter.csv") %>%
+alter_10km <- read_csv2("../Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_10km,
          x_mp = x_mp_10km,
          y_mp = y_mp_10km) %>%
   mutate(across(unter10:a80undaelter, as.numeric))
 
-alter_1km <- read_csv2("./Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_1km-Gitter.csv") %>%
+alter_1km <- read_csv2("../Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_1km,
          x_mp = x_mp_1km,
          y_mp = y_mp_1km) %>%
   mutate(across(unter10:a80undaelter, as.numeric))
 
-alter_100m <- read_csv2("./Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_100m-Gitter.csv") %>%
+alter_100m <- read_csv2("../Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_100m,
          x_mp = x_mp_100m,
@@ -43,21 +43,21 @@ alter_100m <- read_csv2("./Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_A
   mutate(across(unter10:a80undaelter, as.numeric))
 
 # Durchschnittsalter -----------------------------
-durchschnittsalter_10km <- read_csv2("./Daten/Zensus/Durchschnittsalter_in_Gitterzellen/Zensus2022_Durchschnittsalter_10km-Gitter.csv") %>%
+durchschnittsalter_10km <- read_csv2("../Daten/Zensus/Durchschnittsalter_in_Gitterzellen/Zensus2022_Durchschnittsalter_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_10km,
          x_mp = x_mp_10km,
          y_mp = y_mp_10km)
 
-durchschnittsalter_1km <- read_csv2("./Daten/Zensus/Durchschnittsalter_in_Gitterzellen/Zensus2022_Durchschnittsalter_1km-Gitter.csv") %>%
+durchschnittsalter_1km <- read_csv2("../Daten/Zensus/Durchschnittsalter_in_Gitterzellen/Zensus2022_Durchschnittsalter_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_1km,
          x_mp = x_mp_1km,
          y_mp = y_mp_1km)
 
-durchschnittsalter_100m <- read_csv2("./Daten/Zensus/Durchschnittsalter_in_Gitterzellen/Zensus2022_Durchschnittsalter_100m-Gitter.csv") %>%
+durchschnittsalter_100m <- read_csv2("../Daten/Zensus/Durchschnittsalter_in_Gitterzellen/Zensus2022_Durchschnittsalter_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_100m,
@@ -65,21 +65,21 @@ durchschnittsalter_100m <- read_csv2("./Daten/Zensus/Durchschnittsalter_in_Gitte
          y_mp = y_mp_100m)
 
 # Gebäude Baujahre -----------------------------
-gebäude_10km <- read_csv2("./Daten/Zensus/Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen/Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_10km-Gitter.csv") %>%
+gebäude_10km <- read_csv2("../Daten/Zensus/Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen/Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_10km,
          x_mp = x_mp_10km,
          y_mp = y_mp_10km) %>%
   mutate(across(insgesamt_gebaeude:a2020undspaeter, as.numeric))
 
-gebäude_1km <- read_csv2("./Daten/Zensus/Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen/Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_1km-Gitter.csv") %>%
+gebäude_1km <- read_csv2("../Daten/Zensus/Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen/Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_1km,
          x_mp = x_mp_1km,
          y_mp = y_mp_1km) %>%
   mutate(across(insgesamt_gebaeude:a2020undspaeter, as.numeric))
 
-gebäude_100m <- read_csv2("./Daten/Zensus/Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen/Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_100m-Gitter.csv") %>%
+gebäude_100m <- read_csv2("../Daten/Zensus/Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen/Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_100m,
          x_mp = x_mp_100m,
@@ -87,40 +87,40 @@ gebäude_100m <- read_csv2("./Daten/Zensus/Gebaeude_nach_Baujahr_in_Mikrozensus_
   mutate(across(insgesamt_gebaeude:a2020undspaeter, as.numeric))
 
 # Einwohner -----------------------------
-einwohner_10km <- read_csv2("./Daten/Zensus/Zensus2022_Bevoelkerungszahl/Zensus2022_Bevoelkerungszahl_10km-Gitter.csv") %>%
+einwohner_10km <- read_csv2("../Daten/Zensus/Zensus2022_Bevoelkerungszahl/Zensus2022_Bevoelkerungszahl_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_10km,
          x_mp = x_mp_10km,
          y_mp = y_mp_10km)
 
-einwohner_1km <- read_csv2("./Daten/Zensus/Zensus2022_Bevoelkerungszahl/Zensus2022_Bevoelkerungszahl_1km-Gitter.csv") %>%
+einwohner_1km <- read_csv2("../Daten/Zensus/Zensus2022_Bevoelkerungszahl/Zensus2022_Bevoelkerungszahl_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_1km,
          x_mp = x_mp_1km,
          y_mp = y_mp_1km)
 
-einwohner_100m <- read_csv2("./Daten/Zensus/Zensus2022_Bevoelkerungszahl/Zensus2022_Bevoelkerungszahl_100m-Gitter.csv") %>%
+einwohner_100m <- read_csv2("../Daten/Zensus/Zensus2022_Bevoelkerungszahl/Zensus2022_Bevoelkerungszahl_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_100m,
          x_mp = x_mp_100m,
          y_mp = y_mp_100m)
 
 # Haushaltsgröße -----------------------------
-haushaltsgröße_10km <- read_csv2("./Daten/Zensus/Durchschnittliche_Haushaltsgroesse_in_Gitterzellen/Zensus2022_Durchschn_Haushaltsgroesse_10km-Gitter.csv") %>%
+haushaltsgröße_10km <- read_csv2("../Daten/Zensus/Durchschnittliche_Haushaltsgroesse_in_Gitterzellen/Zensus2022_Durchschn_Haushaltsgroesse_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_10km,
          x_mp = x_mp_10km,
          y_mp = y_mp_10km)
 
-haushaltsgröße_1km <- read_csv2("./Daten/Zensus/Durchschnittliche_Haushaltsgroesse_in_Gitterzellen/Zensus2022_Durchschn_Haushaltsgroesse_1km-Gitter.csv") %>%
+haushaltsgröße_1km <- read_csv2("../Daten/Zensus/Durchschnittliche_Haushaltsgroesse_in_Gitterzellen/Zensus2022_Durchschn_Haushaltsgroesse_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_1km,
          x_mp = x_mp_1km,
          y_mp = y_mp_1km)
 
-haushaltsgröße_100m <- read_csv2("./Daten/Zensus/Durchschnittliche_Haushaltsgroesse_in_Gitterzellen/Zensus2022_Durchschn_Haushaltsgroesse_100m-Gitter.csv") %>%
+haushaltsgröße_100m <- read_csv2("../Daten/Zensus/Durchschnittliche_Haushaltsgroesse_in_Gitterzellen/Zensus2022_Durchschn_Haushaltsgroesse_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_100m,
@@ -128,21 +128,21 @@ haushaltsgröße_100m <- read_csv2("./Daten/Zensus/Durchschnittliche_Haushaltsgr
          y_mp = y_mp_100m)
 
 # Wohnfläche -----------------------------
-wohnfläche_10km <- read_csv2("./Daten/Zensus/Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen/Zensus2022_Durchschn_Flaeche_je_Bewohner_10km-Gitter.csv") %>%
+wohnfläche_10km <- read_csv2("../Daten/Zensus/Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen/Zensus2022_Durchschn_Flaeche_je_Bewohner_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_10km,
          x_mp = x_mp_10km,
          y_mp = y_mp_10km)
 
-wohnfläche_1km <- read_csv2("./Daten/Zensus/Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen/Zensus2022_Durchschn_Flaeche_je_Bewohner_1km-Gitter.csv") %>%
+wohnfläche_1km <- read_csv2("../Daten/Zensus/Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen/Zensus2022_Durchschn_Flaeche_je_Bewohner_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_1km,
          x_mp = x_mp_1km,
          y_mp = y_mp_1km)
 
-wohnfläche_100m <- read_csv2("./Daten/Zensus/Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen/Zensus2022_Durchschn_Flaeche_je_Bewohner_100m-Gitter.csv") %>%
+wohnfläche_100m <- read_csv2("../Daten/Zensus/Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen/Zensus2022_Durchschn_Flaeche_je_Bewohner_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_100m,
@@ -150,7 +150,7 @@ wohnfläche_100m <- read_csv2("./Daten/Zensus/Durchschnittliche_Wohnflaeche_je_B
          y_mp = y_mp_100m)
 
 # Eigentümerquote -----------------------------
-eigentümerquote_10km <- read_csv2("./Daten/Zensus/Eigentuemerquote_in_Gitterzellen/Zensus2022_Eigentuemerquote_10km-Gitter.csv") %>%
+eigentümerquote_10km <- read_csv2("../Daten/Zensus/Eigentuemerquote_in_Gitterzellen/Zensus2022_Eigentuemerquote_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_10km,
@@ -158,7 +158,7 @@ eigentümerquote_10km <- read_csv2("./Daten/Zensus/Eigentuemerquote_in_Gitterzel
          y_mp = y_mp_10km) %>%
   mutate(eigentuemerquote = parse_number(eigentuemerquote, locale = locale(decimal_mark = ",")))
 
-eigentümerquote_1km <- read_csv2("./Daten/Zensus/Eigentuemerquote_in_Gitterzellen/Zensus2022_Eigentuemerquote_1km-Gitter.csv") %>%
+eigentümerquote_1km <- read_csv2("../Daten/Zensus/Eigentuemerquote_in_Gitterzellen/Zensus2022_Eigentuemerquote_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_1km,
@@ -166,7 +166,7 @@ eigentümerquote_1km <- read_csv2("./Daten/Zensus/Eigentuemerquote_in_Gitterzell
          y_mp = y_mp_1km) %>%
   mutate(eigentuemerquote = parse_number(eigentuemerquote, locale = locale(decimal_mark = ",")))
 
-eigentümerquote_100m <- read_csv2("./Daten/Zensus/Eigentuemerquote_in_Gitterzellen/Zensus2022_Eigentuemerquote_100m-Gitter.csv") %>%
+eigentümerquote_100m <- read_csv2("../Daten/Zensus/Eigentuemerquote_in_Gitterzellen/Zensus2022_Eigentuemerquote_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_100m,
@@ -175,7 +175,7 @@ eigentümerquote_100m <- read_csv2("./Daten/Zensus/Eigentuemerquote_in_Gitterzel
   mutate(eigentuemerquote = parse_number(eigentuemerquote, locale = locale(decimal_mark = ",")))
 
 # Leerstand -----------------------------
-leerstand_10km <- read_csv2("./Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zensus2022_Leerstandsquote_10km-Gitter.csv") %>%
+leerstand_10km <- read_csv2("../Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zensus2022_Leerstandsquote_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_10km,
@@ -183,7 +183,7 @@ leerstand_10km <- read_csv2("./Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zens
          y_mp = y_mp_10km) %>%
   mutate(leerstandsquote = parse_number(leerstandsquote, locale = locale(decimal_mark = ",")))
 
-leerstand_1km <- read_csv2("./Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zensus2022_Leerstandsquote_1km-Gitter.csv") %>%
+leerstand_1km <- read_csv2("../Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zensus2022_Leerstandsquote_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_1km,
@@ -191,7 +191,7 @@ leerstand_1km <- read_csv2("./Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zensu
          y_mp = y_mp_1km) %>%
   mutate(leerstandsquote = parse_number(leerstandsquote, locale = locale(decimal_mark = ",")))
 
-leerstand_100m <- read_csv2("./Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zensus2022_Leerstandsquote_100m-Gitter.csv") %>%
+leerstand_100m <- read_csv2("../Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zensus2022_Leerstandsquote_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_100m,
@@ -200,21 +200,21 @@ leerstand_100m <- read_csv2("./Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zens
   mutate(leerstandsquote = parse_number(leerstandsquote, locale = locale(decimal_mark = ",")))
 
 # Miete -----------------------------
-nettokaltmiete_10km <- read_csv2("./Daten/Zensus/Zensus2022_Durchschn_Nettokaltmiete/Zensus2022_Durchschn_Nettokaltmiete_10km-Gitter.csv") %>%
+nettokaltmiete_10km <- read_csv2("../Daten/Zensus/Zensus2022_Durchschn_Nettokaltmiete/Zensus2022_Durchschn_Nettokaltmiete_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_10km,
          x_mp = x_mp_10km,
          y_mp = y_mp_10km)
 
-nettokaltmiete_1km <- read_csv2("./Daten/Zensus/Zensus2022_Durchschn_Nettokaltmiete/Zensus2022_Durchschn_Nettokaltmiete_1km-Gitter.csv") %>%
+nettokaltmiete_1km <- read_csv2("../Daten/Zensus/Zensus2022_Durchschn_Nettokaltmiete/Zensus2022_Durchschn_Nettokaltmiete_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_1km,
          x_mp = x_mp_1km,
          y_mp = y_mp_1km)
 
-nettokaltmiete_100m <- read_csv2("./Daten/Zensus/Zensus2022_Durchschn_Nettokaltmiete/Zensus2022_Durchschn_Nettokaltmiete_100m-Gitter.csv") %>%
+nettokaltmiete_100m <- read_csv2("../Daten/Zensus/Zensus2022_Durchschn_Nettokaltmiete/Zensus2022_Durchschn_Nettokaltmiete_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_100m,
@@ -257,7 +257,7 @@ Schreiben als Arrow Dataset
 ```{r}
 zensus_final %>%
   group_by(typ) %>%
-  write_dataset("./Daten/Zensus/Gesamt/")
+  write_dataset("../Daten/Zensus/Gesamt/")
 ```
 
 # Breitbandatlas Aggregieren
@@ -267,7 +267,7 @@ Die Daten des Breitbandatlas sind auf dem 100m Raster gegeben, für die Auswertu
 Für die Aggregation der Breitband Daten verwende ich später einen gewichteten Mittelwert mit der Anzahl der Haushalte als Gewicht. Dafür lade ich hier die Zensus Daten und berechne die Anzahl der Haushalte für jedes 100m Quadrat.
 
 ```{r}
-zensus_arrow <- open_dataset("./Daten/Zensus/Gesamt/")
+zensus_arrow <- open_dataset("../Daten/Zensus/Gesamt/")
 
 zensus_haushalte_100m <- zensus_arrow %>%
   filter(typ == "100m") %>%
@@ -279,7 +279,7 @@ zensus_haushalte_100m <- zensus_arrow %>%
 Jetzt loope ich über alle Zeitpunkte und Variablen. Das ist nötig, weil die Operation sonst zu viel RAM benötigt. Ich lade die Daten des jeweiligen Zeitpunktes und Variable und joine die Anzahl der Haushalte. Ich entferne alle Beobachtungen, bei denen entweder die Anzahl der Haushalte oder der Wert der jeweiligen Variable fehlt. Anschließend wird alles im Long Format in einen Arrow Datensatz geschrieben. Im nächsten Schritt werde ich diesen dann ins Wide Format überführen, dafür müssen aber erst alle Variablen eines Jahres aggregiert worden sein.
 
 ```{r}
-breitband_100m_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_100m/")
+breitband_100m_arrow <- open_dataset("../Daten/Breitbandatlas/Raster_100m/")
 
 arrow_dates <- breitband_100m_arrow %>%
   distinct(date) %>%
@@ -319,7 +319,7 @@ for(d in arrow_dates) {
       pivot_longer(cols = all_of(v)) %>%
       mutate(value = round(value, 2)) %>%
       group_by(date, name) %>%
-      write_dataset("./Daten/Breitbandatlas/Raster_1km_long/")
+      write_dataset("../Daten/Breitbandatlas/Raster_1km_long/")
 
     counter <- counter + 1
   }
@@ -329,7 +329,7 @@ for(d in arrow_dates) {
 Und jetzt wieder zusammenfügen im Wide Format.
 
 ```{r}
-breitband_1km_long_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km_long/")
+breitband_1km_long_arrow <- open_dataset("../Daten/Breitbandatlas/Raster_1km_long/")
 
 arrow_names_sorted <- breitband_1km_long_arrow %>%
   distinct(name) %>%
@@ -346,15 +346,15 @@ for(d in arrow_dates) {
     pivot_wider(names_from = name, values_from = value) %>%
     select(date, x_mp, y_mp, all_of(arrow_names_sorted)) %>%
     group_by(date) %>%
-    write_dataset("./Daten/Breitbandatlas/Raster_1km/")
+    write_dataset("../Daten/Breitbandatlas/Raster_1km/")
 }
 ```
 
 Hier noch ein Vergleich der 100m Daten vs den aggregierten 1km Daten anhand Berlin.
 
 ```{r}
-breitband_100m_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_100m/")
-breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
+breitband_100m_arrow <- open_dataset("../Daten/Breitbandatlas/Raster_100m/")
+breitband_1km_arrow <- open_dataset("../Daten/Breitbandatlas/Raster_1km/")
 
 breitband_100m_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
@@ -370,7 +370,7 @@ breitband_100m_arrow %>%
   theme_void()+
   theme(legend.position = "none")
 
-ggsave("./Output/plots/plot_berlin_100m.pdf", width = 3, height = 2.5)
+ggsave("../Output/plots/plot_berlin_100m.pdf", width = 3, height = 2.5)
 
 breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
@@ -386,7 +386,7 @@ breitband_1km_arrow %>%
   theme_void()+
   theme(legend.position = "none")
 
-ggsave("./Output/plots/plot_berlin_1km.pdf", width = 3, height = 2.5)
+ggsave("../Output/plots/plot_berlin_1km.pdf", width = 3, height = 2.5)
 ```
 
 # Neue Variable: Maximale Geschwindigkeit
@@ -394,7 +394,7 @@ ggsave("./Output/plots/plot_berlin_1km.pdf", width = 3, height = 2.5)
 Ich extrahiere für jede Zelle und Jahr die maximal verfügbare Internetgeschwindigkeit. Dabei unterscheide ich nach Glasfaser (`_fiber`), nicht-Glasfaser (`_no_fiber`) und dem Maximum aus beidem (`_all`).
 
 ```{r}
-breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
+breitband_1km_arrow <- open_dataset("../Daten/Breitbandatlas/Raster_1km/")
 
 breitband_1km_arrow %>%
   select(date, x_mp, y_mp, contains("ftthb"), contains("hfc"), contains("fttc") ,contains("sonst")) %>%
@@ -412,7 +412,7 @@ breitband_1km_arrow %>%
   summarise(max_speed = max(speed), .groups = "drop") %>%
   pivot_wider(names_from = type, values_from = max_speed, names_prefix = "max_speed_") %>%
   mutate(max_speed_all = pmax(max_speed_fiber, max_speed_no_fiber, na.rm = TRUE)) %>%
-  write_parquet("./Daten/Breitbandatlas/Raster_1km_max_speed.parquet")
+  write_parquet("../Daten/Breitbandatlas/Raster_1km_max_speed.parquet")
 ```
 
 # Neuer Datensatz: Gitterzellen, bei denen Glasfaser verschwindet
@@ -422,7 +422,7 @@ In manchen Gitterzellen verschwindet plötzlich das Glasfaser. Dabei handelt es 
 Konkret werden zuerst alle verschiedenen Zeitpunkte in einem Dataframe `distinct_dates` gesammelt. Danach wird `disappeared_fiber` erstellt, ein Dataframe, das die Koordinaten sowie den Zeitpunkt enthält, an dem Glasfaser "verschwindet". Durch einen `left_join()` der `distinct_dates` auf diesen wird das kartesische Produkt aus dem Zeitpunkt des Verschwindens und aller möglichen Zeitpunkte erstellt. Anschließend werden je Zelle nur die Zeitpunkte behalten, die kleiner sind als der Zeitpunkt des Verschwindens.
 
 ```{r}
-breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
+breitband_1km_arrow <- open_dataset("../Daten/Breitbandatlas/Raster_1km/")
 
 distinct_dates <- breitband_1km_arrow %>%
   distinct(date) %>%
@@ -445,7 +445,7 @@ breitband_1km_arrow %>%
   filter(date.y < date.x) %>%
   select(date = date.y, x_mp, y_mp) %>%
   arrange(x_mp, y_mp, date) %>%
-  write_parquet("./Daten/Breitbandatlas/Raster_1km_problems.parquet")
+  write_parquet("../Daten/Breitbandatlas/Raster_1km_problems.parquet")
 ```
 
 # Neuer Datensatz: Zeitpunkt, bei dem erstmals Glasfaser vorhanden ist
@@ -453,7 +453,7 @@ breitband_1km_arrow %>%
 Hier verwende ich jetzt auch den `breitband_problems` Datensatz
 
 ```{r}
-breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
+breitband_1km_arrow <- open_dataset("../Daten/Breitbandatlas/Raster_1km/")
 
 breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
@@ -470,7 +470,7 @@ breitband_1km_arrow %>%
   group_by(x_mp, y_mp) %>%
   slice_min(order_by = got_fiber_date) %>%
   ungroup() %>%
-  write_parquet("./Daten/Breitbandatlas/Raster_1km_got_fiber_date.parquet")
+  write_parquet("../Daten/Breitbandatlas/Raster_1km_got_fiber_date.parquet")
 ```
 
 # Neuer Datensatz: BBSR Raumgliederung
@@ -486,7 +486,7 @@ Laden der Daten vom BBSR. Ich verwende nicht alle Variablen, sondern vier, die i
 Außerdem behalte ich den Amtlichen Gemeindeschlüssel sowie den Regionalschlüssel zum Matchen mit anderen Datensätzen. Der Gemeindename (`gem_name`) dient zur Plausibilisierung.
 
 ```{r}
-gemeinden_bbsr <- readxl::read_xlsx("./Daten/Raumgliederung_BBSR/raumgliederungen-referenzen-2022.xlsx",
+gemeinden_bbsr <- readxl::read_xlsx("../Daten/Raumgliederung_BBSR/raumgliederungen-referenzen-2022.xlsx",
                                sheet = "Gemeindereferenz (inkl. Kreise)",
                                skip = 1,
                                col_types = "text") %>%
@@ -510,16 +510,16 @@ gemeinden_bbsr <- readxl::read_xlsx("./Daten/Raumgliederung_BBSR/raumgliederunge
          gemeindetyp_differenziert_name = fct_reorder(gemeindetyp_differenziert_name, as.numeric(gemeindetyp_differenziert_kennziffer)))
 
 gemeinden_bbsr %>%
-  write_parquet("./Daten/Raumgliederung_BBSR/gemeinden_bbsr.parquet")
+  write_parquet("../Daten/Raumgliederung_BBSR/gemeinden_bbsr.parquet")
 ```
 
 ```{r}
-all_distinct_cells <- st_read("./Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
+all_distinct_cells <- st_read("../Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
 
-gemeinden <- st_read("./Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
+gemeinden <- st_read("../Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
   filter(geofaktor_gf == "mit Struktur Land") %>%
@@ -545,7 +545,7 @@ cells_gemeinden_bbsr %>%
   filter(is.na(gem_name))
 
 cells_gemeinden_bbsr %>%
-  write_parquet("./Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
+  write_parquet("../Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
 ```
 
 # Neuer Datensatz: Einkommen
@@ -553,18 +553,18 @@ cells_gemeinden_bbsr %>%
 Ich verwende Zahlen zum verfügbaren Einkommen auf Kreisebene. Stärker disaggregierte Zahlen konnte ich nicht finden.
 
 ```{r}
-all_distinct_cells <- st_read("./Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
+all_distinct_cells <- st_read("../Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
 
-kreise <- st_read("./Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_krs", as_tibble = TRUE) %>%
+kreise <- st_read("../Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_krs", as_tibble = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
   filter(geofaktor_gf == "mit Struktur Land") %>%
   select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
 
-kreise_einkommen <- readxl::read_xlsx("./Daten/Geodaten//vgrdl_r2b3_bs2023.xlsx", sheet = "2.4", skip = 4) %>%
+kreise_einkommen <- readxl::read_xlsx("../Daten/Geodaten//vgrdl_r2b3_bs2023.xlsx", sheet = "2.4", skip = 4) %>%
   janitor::clean_names() %>%
   drop_na(lfd_nr) %>%
   filter(nuts_3 == 3) %>%
@@ -580,18 +580,18 @@ cells_kreise_einkommen <- st_join(all_distinct_cells, kreise_einkommen) %>%
   select(x_mp, y_mp, ars, name, einkommen)
 
 cells_kreise_einkommen %>%
-  write_parquet("./Daten/Geodaten/Raster_1km_kreise_einkommen.parquet")
+  write_parquet("../Daten/Geodaten/Raster_1km_kreise_einkommen.parquet")
 ```
 
 # Neuer Datensatz: PLZ Gebiete
 
 ```{r}
-all_distinct_cells <- st_read("./Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
+all_distinct_cells <- st_read("../Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
 
-plz <- st_read("./Daten/Geodaten/PLZ_Gebiete_9143106783908117499.gpkg",
+plz <- st_read("../Daten/Geodaten/PLZ_Gebiete_9143106783908117499.gpkg",
                     as_tibble = TRUE, quiet = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
@@ -602,6 +602,6 @@ cells_plz <- st_join(all_distinct_cells, plz) %>%
   drop_na()
 
 cells_plz %>%
-  write_parquet("./Daten/Geodaten/Raster_1km_plz.parquet")
+  write_parquet("../Daten/Geodaten/Raster_1km_plz.parquet")
 ```
 

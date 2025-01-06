@@ -42,27 +42,27 @@ repmis::LoadandCite(
 Ich verwende nicht die Geodaten von GISCO, da diese aus dem Jahr 2016 sind und es seit dem wohl einige Änderungen bei Gemeinden, insbesondere in Thüringen gegeben hat. Das gab Probleme mit den Daten zur Raumgliederung vom BBSR. Daher lade ich hier die [Daten](https://gdz.bkg.bund.de/index.php/default/digitale-geodaten/verwaltungsgebiete/verwaltungsgebiete-1-250-000-mit-einwohnerzahlen-stand-31-12-vg250-ew-31-12.html) vom Bundesamt für Kartographie und Geodäsie mit Stand 31.12.2023
 
 ```{r}
-st_layers("./Daten/Geodaten/DE_VG250.gpkg")
+st_layers("../Daten/Geodaten/DE_VG250.gpkg")
 
-deutschland <- st_read("./Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_sta", as_tibble = TRUE) %>%
+deutschland <- st_read("../Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_sta", as_tibble = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
   filter(id == 1) %>%
   select(name = geografischer_name_gen, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
 
-bundesländer <- st_read("./Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_lan", as_tibble = TRUE) %>%
+bundesländer <- st_read("../Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_lan", as_tibble = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
   filter(geofaktor_gf == "mit Struktur Land") %>%
   select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
 
-kreise <- st_read("./Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_krs", as_tibble = TRUE) %>%
+kreise <- st_read("../Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_krs", as_tibble = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
   filter(geofaktor_gf == "mit Struktur Land") %>%
   select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
 
-gemeinden <- st_read("./Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
+gemeinden <- st_read("../Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
   filter(geofaktor_gf == "mit Struktur Land") %>%
@@ -87,8 +87,8 @@ hamburg <- get_stadt("Hamburg")
 
 ```{r}
 # Laden der Arrow Datensätze
-breitband_100m_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_100m/")
-breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
+breitband_100m_arrow <- open_dataset("../Daten/Breitbandatlas/Raster_100m/")
+breitband_1km_arrow <- open_dataset("../Daten/Breitbandatlas/Raster_1km/")
 
 # Funktion um automatisch Daten einer bestimmen Stadt zu laden
 get_breitband_stadt <- function(stadt_name, size = "100m", variables = everything()) {
@@ -115,16 +115,16 @@ breitband_glasfaser_berlin <- get_breitband_stadt("Berlin", size = "100m", varia
 
 ```{r}
 # Laden der Max-Speed Variablen
-breitband_1km_max_speed <- read_parquet("./Daten/Breitbandatlas/Raster_1km_max_speed.parquet")
+breitband_1km_max_speed <- read_parquet("../Daten/Breitbandatlas/Raster_1km_max_speed.parquet")
 
 # Laden des fehlerhaften Koordinaten
-breitband_1km_problems <- read_parquet("./Daten/Breitbandatlas/Raster_1km_problems.parquet")
+breitband_1km_problems <- read_parquet("../Daten/Breitbandatlas/Raster_1km_problems.parquet")
 ```
 
 ## Zensusdaten
 
 ```{r}
-zensus_arrow <- open_dataset("./Daten/Zensus/Gesamt/")
+zensus_arrow <- open_dataset("../Daten/Zensus/Gesamt/")
 ```
 
 ## LAEA Grid
@@ -223,7 +223,7 @@ p <- breitband_1km_arrow %>%
     ticks.colour = "black"         # Make tick marks black
   ))
 
-ggsave("./Output/plot_de_glasfaser_202406_1km.pdf", plot = p, width = 5, height = 7)
+ggsave("../Output/plot_de_glasfaser_202406_1km.pdf", plot = p, width = 5, height = 7)
 ```
 
 Vergleich über Jahre. Hier habe ich festgestellt, dass bis einschließlich 07.2021 ein 250m Raster verwendet wird.
@@ -254,7 +254,7 @@ for(d in breitband_dates) {
           plot.title.position = "plot",
           plot.background = element_rect(fill = "grey10"))
 
-  ggsave(str_glue("./Output/{str_to_lower(stadt)}_animation/{str_to_lower(stadt)}_glasfaser_100m_{d}.jpg"), plot = p, width = 5, height = 5, create.dir = TRUE)
+  ggsave(str_glue("../Output/{str_to_lower(stadt)}_animation/{str_to_lower(stadt)}_glasfaser_100m_{d}.jpg"), plot = p, width = 5, height = 5, create.dir = TRUE)
 }
 ```
 
@@ -286,7 +286,7 @@ for(d in breitband_dates) {
           plot.title.position = "plot",
           plot.background = element_rect(fill = "grey10"))
 
-  ggsave(str_glue("./Output/deutschland_animation/deutschland_glasfaser_1km_{d}.jpg"),
+  ggsave(str_glue("../Output/deutschland_animation/deutschland_glasfaser_1km_{d}.jpg"),
          plot = p, width = 5, height = 7, create.dir = TRUE)
 }
 ```
@@ -320,7 +320,7 @@ for(d in breitband_dates) {
           plot.title.position = "plot",
           plot.background = element_rect(fill = "grey10"))
 
-  ggsave(str_glue("./Output/deutschland_max_speed_animation/deutschland_max_speed_1km_{d}.jpg"),
+  ggsave(str_glue("../Output/deutschland_max_speed_animation/deutschland_max_speed_1km_{d}.jpg"),
          plot = p, width = 5, height = 7, create.dir = TRUE)
 }
 ```
@@ -407,7 +407,7 @@ zensus_arrow %>%
   theme_void()+
   theme(legend.position = "none")
 
-ggsave("./Output/plots/karten/plot_runkel_zensus_missing.pdf", width = 3, height = 3)
+ggsave("../Output/plots/karten/plot_runkel_zensus_missing.pdf", width = 3, height = 3)
 
 zensus_arrow %>%
   filter(typ == "100m") %>%
@@ -426,12 +426,12 @@ zensus_arrow %>%
   theme_void()+
   theme(legend.position = "none")
 
-ggsave("./Output/plots/karten/plot_darmstadt_zensus_missing.pdf", width = 3, height = 3)
+ggsave("../Output/plots/karten/plot_darmstadt_zensus_missing.pdf", width = 3, height = 3)
 ```
 
 Zuwächse an FTTHB über die Zeit
 ```{r}
-read_parquet("./Daten/Breitbandatlas/Raster_1km_got_fiber_date.parquet") %>%
+read_parquet("../Daten/Breitbandatlas/Raster_1km_got_fiber_date.parquet") %>%
   count(got_fiber_date) %>%
   mutate(got_fiber_date = ym(got_fiber_date)) %>%
   ggplot(aes(x = got_fiber_date, y = n))+
@@ -445,7 +445,7 @@ Zellen mit vollständigem Panel bei den Kauf/Miet Daten
 stadt_beispiel_1_bbox <- get_stadt("Runkel") %>% st_bbox()
 stadt_beispiel_2_bbox <- get_stadt("Darmstadt") %>% st_bbox()
 
-read_parquet("./Daten/data_miete_complete.parquet") %>%
+read_parquet("../Daten/data_miete_complete.parquet") %>%
   group_by(x_mp, y_mp) %>%
   summarise(is_complete = sum(n_cell_date == 0) <= 0,
             .groups = "drop") %>%
@@ -460,7 +460,7 @@ read_parquet("./Daten/data_miete_complete.parquet") %>%
   theme_void()+
   theme(legend.position = "right")
 
-read_parquet("./Daten/data_miete_complete.parquet") %>%
+read_parquet("../Daten/data_miete_complete.parquet") %>%
   group_by(x_mp, y_mp) %>%
   summarise(is_complete = sum(n_cell_date == 0) <= 0,
             .groups = "drop") %>%
@@ -570,7 +570,7 @@ breitband_1km_arrow %>%
   labs(x = "Anteil Glasfaseranschluss (1000 Mbit/s FTTHB) je Rasterzelle (%)",
        y = "Anzahl Rasterzellen (1000)")
 
-ggsave("./Output/plots/plot_verteilung_glasfaser_2018_2024.pdf", width = 5, height = 3)
+ggsave("../Output/plots/plot_verteilung_glasfaser_2018_2024.pdf", width = 5, height = 3)
 ```
 
 Summary Statistics für alle Variablen
@@ -647,8 +647,8 @@ Aufteilung Glasfaseranschlüsse nach den BBSR Gemeindetypen
 #| fig-width: 5
 #| fig-height: 4
 
-gemeinden_bbsr <- read_parquet("./Daten/Raumgliederung_BBSR/gemeinden_bbsr.parquet")
-cells_gemeinden_bbsr <- read_parquet("./Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
+gemeinden_bbsr <- read_parquet("../Daten/Raumgliederung_BBSR/gemeinden_bbsr.parquet")
+cells_gemeinden_bbsr <- read_parquet("../Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
 
 zensus_haushalte_1km <- zensus_arrow %>%
   filter(typ == "1km") %>%
@@ -688,7 +688,7 @@ gemeinden %>%
   theme(legend.position = "right")+
   labs(fill = element_blank())
 
-ggsave("./Output/plots/karten/plot_bbsr_gemeindetypen.pdf", width = 5, height = 4)
+ggsave("../Output/plots/karten/plot_bbsr_gemeindetypen.pdf", width = 5, height = 4)
 ```
 
 ## Immo
@@ -696,7 +696,7 @@ ggsave("./Output/plots/karten/plot_bbsr_gemeindetypen.pdf", width = 5, height = 
 Boxplots zu den Variablen im Kauf- und Mietdatensatz.
 
 ```{r}
-open_dataset("./Daten/Immo/Kauf/") %>%
+open_dataset("../Daten/Immo/Kauf/") %>%
   filter(ejahr >= 2016) %>%
   mutate(kaufpreis = kaufpreis / 1000) %>%
   select(ejahr, "Kaufpreis (1000€)" = kaufpreis, "Wohnfläche (m²)" = wohnflaeche, Zimmeranzahl = zimmeranzahl, Baujahr = baujahr) %>%
@@ -711,9 +711,9 @@ open_dataset("./Daten/Immo/Kauf/") %>%
        x = "Jahr")
 
 # `cairo_pdf` wird benötigt, um das € im PDF korrekt darzustellen
-ggsave("./Output/plots/plot_boxplot_variablen_kauf.pdf", width = 5, height = 4, device = cairo_pdf)
+ggsave("../Output/plots/plot_boxplot_variablen_kauf.pdf", width = 5, height = 4, device = cairo_pdf)
 
-open_dataset("./Daten/Immo/Miete/") %>%
+open_dataset("../Daten/Immo/Miete/") %>%
   filter(ejahr >= 2016) %>%
   mutate(mietekalt_m2 = mietekalt / wohnflaeche) %>%
   select(ejahr, "Mietekalt (€/m²)" = mietekalt_m2, "Wohnfläche (m²)" = wohnflaeche, Zimmeranzahl = zimmeranzahl, Baujahr = baujahr) %>%
@@ -728,6 +728,6 @@ open_dataset("./Daten/Immo/Miete/") %>%
        x = "Jahr")
 
 # `cairo_pdf` wird benötigt, um das € im PDF korrekt darzustellen
-ggsave("./Output/plots/plot_boxplot_variablen_miete.pdf", width = 5, height = 4, device = cairo_pdf)
+ggsave("../Output/plots/plot_boxplot_variablen_miete.pdf", width = 5, height = 4, device = cairo_pdf)
 ```
 
