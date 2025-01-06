@@ -1380,3 +1380,59 @@
 └── scraping.qmd
 
 27 directories, 91 files
+.
+├── Daten -> /Users/sebastiangeis/OneDrive/Dokumente/01_Uni/92_Masterthesis/Daten/
+├── Literatur -> /Users/sebastiangeis/OneDrive/Dokumente/01_Uni/92_Masterthesis/Literatur/
+├── Masterthesis.Rproj
+├── Output -> /Users/sebastiangeis/OneDrive/Dokumente/01_Uni/92_Masterthesis/Output/
+├── README.md
+├── Skripte
+│   ├── cleaning_breitband.qmd
+│   ├── cleaning_immo.qmd
+│   ├── cleaning_sonstige.qmd
+│   ├── cleaning_zensus.qmd
+│   ├── did.qmd
+│   ├── exploration.qmd
+│   ├── gemeinden_test.qmd
+│   ├── get_coords.cpp
+│   ├── honest_did_helper.R
+│   └── scraping.qmd
+├── overleaf
+│   ├── abbildungen
+│   │   ├── Unterschrift_Sebastian_Geis.jpeg
+│   │   ├── plot_bbsr_gemeindetypen.pdf
+│   │   ├── plot_berlin_100m.pdf
+│   │   ├── plot_berlin_1km.pdf
+│   │   ├── plot_darmstadt_zensus_missing.pdf
+│   │   ├── plot_de_glasfaser_202406_1km.pdf
+│   │   ├── plot_runkel_zensus_missing.pdf
+│   │   ├── plot_verteilung_glasfaser_2018_2023.pdf
+│   │   └── plot_verteilung_glasfaser_2018_2024.pdf
+│   ├── bibliography.bib
+│   ├── bibliography_r.bib
+│   ├── latexmkrc
+│   ├── main.pdf
+│   ├── main.tex
+│   ├── main.xmpdata
+│   ├── pdfa.xmpi
+│   ├── preamble.log
+│   ├── preamble.tex
+│   ├── text
+│   │   ├── 00_abkürzungen.tex
+│   │   ├── 01_aufgabenstellung.tex
+│   │   ├── 10_einleitung.tex
+│   │   ├── 20_literatur.tex
+│   │   ├── 30_daten.tex
+│   │   ├── 40_methodik.tex
+│   │   ├── 50_ergebnisse.tex
+│   │   ├── 60_diskussion.tex
+│   │   ├── 70_zusammenfassung.tex
+│   │   ├── 91_daten_appendix.tex
+│   │   └── 92_methodik_appendix.tex
+│   ├── tikz
+│   │   ├── did_schema_multiple_tikz.tex
+│   │   └── did_schema_tikz.tex
+│   └── tuda_logo.pdf
+└── r-references.bib
+
+9 directories, 45 files
