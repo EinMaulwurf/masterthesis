@@ -31,7 +31,7 @@ Alle verwendeten packages mit Zitationen in separate bib-Datei exportieren
 ```{r}
 repmis::LoadandCite(
   bibtex = TRUE,
-  file = "r-references.bib"
+  file = "../r-references.bib"
 )
 ```
 
@@ -675,7 +675,7 @@ breitband_1km_arrow %>%
   collect() %>%
   left_join(cells_gemeinden_bbsr, by = join_by(x_mp, y_mp)) %>%
   left_join(zensus_haushalte_1km, by = join_by(x_mp, y_mp)) %>%
-  drop_na(anzahl_haushalte) %>%
+  drop_na(anzahl_haushalte, gemeindetyp_name) %>%
   group_by("BBSR Gemeindetyp" = gemeindetyp_name) %>%
   summarise(n = n(),
             "Anteil %" = weighted.mean(down_fn_hh_ftthb_1000, anzahl_haushalte, na.rm = TRUE)) %>%

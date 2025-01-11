@@ -92,7 +92,7 @@ cells_gemeinden_bbsr %>%
 
 # Einkommen
 
-Ich verwende Zahlen zum verfügbaren Einkommen auf Kreisebene. Stärker disaggregierte Zahlen konnte ich nicht finden.
+Ich verwende Zahlen zum verfügbaren Einkommen auf Kreisebene. Stärker disaggregierte Zahlen konnte ich nicht finden. [Quelle](https://www.statistikportal.de/de/vgrdl/ergebnisse-kreisebene/einkommen-kreise)
 
 ```{r}
 all_distinct_cells <- st_read("../Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
@@ -112,19 +112,19 @@ kreise_einkommen <- readxl::read_xlsx("../Daten/Geodaten//vgrdl_r2b3_bs2023.xlsx
   filter(nuts_3 == 3) %>%
   mutate(name = str_extract(gebietseinheit, "^[^,\\n]+"), .before = 1) %>%
   mutate(regional_schlussel = str_pad(regional_schlussel, width = 5, side = "right", pad = "0")) %>%
-  select(ars = regional_schlussel, einkommen = x2022) %>%
+  mutate(einkommen_delta = x2022 / x2012) %>%
+  select(ars = regional_schlussel, einkommen = x2022, einkommen_delta) %>%
   left_join(kreise, by = "ars") %>%
   st_as_sf()
 
 cells_kreise_einkommen <- st_join(all_distinct_cells, kreise_einkommen) %>%
   st_drop_geometry() %>%
   drop_na() %>%
-  select(x_mp, y_mp, ars, name, einkommen)
+  select(x_mp, y_mp, ars, name, einkommen, einkommen_delta)
 
 cells_kreise_einkommen %>%
   write_parquet("../Daten/Geodaten/Raster_1km_kreise_einkommen.parquet")
 ```
-
 # PLZ Gebiete
 
 ```{r}

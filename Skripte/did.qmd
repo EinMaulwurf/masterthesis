@@ -504,24 +504,11 @@ createSensitivityPlot_relativeMagnitudes(cs21_agg_dyn_honest_did_rel$robust_ci,
 ```{r}
 dates_pseudo_halbjahr <- read_parquet("../Daten/dates_pseudo_halbjahr.parquet")
 
-raster_alter_haushalte <- open_dataset("../Daten/Zensus/Gesamt/") %>%
-  filter(typ == "1km") %>%
-  mutate(anzahl_haushalte = einwohner / durchschn_hh_groesse) %>%
-  select(x_mp, y_mp, durchschnittsalter, anzahl_haushalte) %>%
-  collect()
-```
-
-
-```{r}
 data_miete_complete <- read_parquet("../Daten/data_miete_complete.parquet")
-
-did::att_gt()
 ```
 
 ```{r}
 mod_miete <- data_miete_complete %>%
-  left_join(raster_alter_haushalte, by = join_by(x_mp, y_mp)) %>%
-  mutate(anzahl_haushalte = replace_na(anzahl_haushalte, median(anzahl_haushalte, na.rm = TRUE))) %>%
   filter(n_cell_date > 0) %>%
   #filter(n_cell > 10) %>%
   #filter(!gemeindetyp_name %in% c("Großstadt")) %>%
@@ -531,7 +518,7 @@ mod_miete <- data_miete_complete %>%
     tname = "date_pseudo_halbjahr",
     idname = "xy_mp",
     gname = "got_fiber_date_pseudo_halbjahr",
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen,
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta,
     weightsname = "anzahl_haushalte",
     anticipation = 0,
     alp = 0.05,
@@ -582,8 +569,6 @@ data_miete_complete %>%
 
 ```{r}
 mod_kauf <- data_kauf_complete %>%
-  left_join(raster_alter_haushalte, by = join_by(x_mp, y_mp)) %>%
-  mutate(anzahl_haushalte = replace_na(anzahl_haushalte, median(anzahl_haushalte, na.rm = TRUE))) %>%
   filter(n_cell_date > 0) %>%
   #filter(n_cell > 10) %>%
   #filter(!gemeindetyp_name %in% c("Großstadt")) %>%
@@ -593,7 +578,7 @@ mod_kauf <- data_kauf_complete %>%
     tname = "date_pseudo_halbjahr",
     idname = "xy_mp",
     gname = "got_fiber_date_pseudo_halbjahr",
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen,
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta,
     weightsname = "anzahl_haushalte",
     anticipation = 0,
     alp = 0.05,

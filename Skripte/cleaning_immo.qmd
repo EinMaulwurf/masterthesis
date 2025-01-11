@@ -9,7 +9,7 @@ format: html
 #| message: false
 #| warning: false
 
-library(mice)
+#library(mice) # Gibt Probleme mit tidyr::complete() vs mice::complete()
 library(tidyverse)
 library(vroom)
 library(arrow)
@@ -224,18 +224,54 @@ dates_pseudo_halbjahr %>%
   write_parquet("../Daten/dates_pseudo_halbjahr.parquet")
 ```
 
+Erklärende Variablen etc. laden, verbinden und imputieren.
+
+Hinweis zu `gemeindetyp_differenziert_name`: Dies soll später als Robustheitscheck verwendet werden können, deswegen nehme ich es mit. Allerdings hat mice bei der Imputierung Probleme, weil es zu ähnlich zu `gemeindetyp_name` ist. Daher verwende ich diesen nicht als erklärende Variable bei der Imputierung.
+
 ```{r}
+# Laden
 got_fiber_dates <- read_parquet("../Daten/Breitbandatlas//Raster_1km_got_fiber_date.parquet") %>%
   left_join(dates_pseudo_halbjahr, by = join_by(got_fiber_date == date)) %>%
   rename(got_fiber_date_pseudo_halbjahr = date_pseudo_halbjahr)
+
+cells_plz <- read_parquet("../Daten/Geodaten/Raster_1km_plz.parquet")
 
 cells_gemeinden_bbsr <- read_parquet("../Daten/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
 
 cells_kreise_einkommen <- read_parquet("../Daten/Geodaten/Raster_1km_kreise_einkommen.parquet")
 
-cells_plz <- read_parquet("../Daten/Geodaten/Raster_1km_plz.parquet")
+cells_baujahr <- open_dataset("../Daten/Zensus/Gesamt/") %>%
+  filter(typ == "1km") %>%
+  select(x_mp, y_mp, vor1919:a2020undspaeter) %>%
+  to_duckdb() %>%
+  pivot_longer(cols = -c(x_mp, y_mp), names_to = "mode_baujahr", values_to = "anzahl") %>%
+  group_by(x_mp, y_mp) %>%
+  slice_max(order_by = anzahl, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  collect() %>%
+  mutate(mode_baujahr = if_else(is.na(anzahl), NA, mode_baujahr)) %>%
+  mutate(mode_baujahr = fct_relevel(mode_baujahr, c("vor1919", "a1919bis1948", "a1949bis1978", "a1979bis1990", "a1991bis2000", "a2020undspaeter"))) %>%
+  select(x_mp, y_mp, mode_baujahr)
 
-breitband_problems <- read_parquet("../Daten/Breitbandatlas/Raster_1km_problems.parquet")
+cells_zensus_sonst <- open_dataset("../Daten/Zensus/Gesamt/") %>%
+  filter(typ == "1km") %>%
+  mutate(anzahl_haushalte = einwohner / durchschn_hh_groesse) %>%
+  select(x_mp, y_mp, durchschnittsalter, anzahl_haushalte, insgesamt_gebaeude, eigentuemerquote) %>%
+  collect()
+
+# Joinen und Imputieren
+erklärende_imp <- cells_zensus_sonst %>%
+  full_join(cells_baujahr, by = join_by(x_mp, y_mp)) %>%
+  full_join(cells_gemeinden_bbsr, by = join_by(x_mp, y_mp)) %>%
+  full_join(cells_kreise_einkommen, by = join_by(x_mp, y_mp)) %>%
+  select(x_mp, y_mp, durchschnittsalter, anzahl_haushalte, insgesamt_gebaeude, eigentuemerquote, mode_baujahr, einkommen, einkommen_delta, gemeindetyp_name, gemeindetyp_differenziert_name) %>%
+  mutate(imputed = if_else(!complete.cases(.), TRUE, FALSE)) %>%
+  #filter(!complete.cases(.)) %>%
+  mice::mice(m = 1, maxit = 1,
+             pred = mice::quickpred(., exclude = c("x_mp", "y_mp", "imputed", "gemeindetyp_differenziert_name")), 
+             seed = 1) %>%
+  mice::complete() %>%
+  as_tibble()
 ```
 
 ## Kauf
@@ -254,7 +290,7 @@ data_kauf <- open_dataset("../Daten/Immo/Kauf/") %>%
 
 # Imputieren, insb. das Baujahr
 data_kauf_imp <- data_kauf %>%
-  mice::mice(m = 1, maxit = 1, method = "pmm", pred = quickpred(., exclude = c("x_mp", "y_mp")), seed = 1) %>%
+  mice::mice(m = 1, maxit = 1, method = "pmm", pred = mice::quickpred(., exclude = c("x_mp", "y_mp")), seed = 1) %>%
   mice::complete() %>%
   as_tibble()
 
@@ -277,8 +313,7 @@ data_kauf_complete <- data_kauf_imp %>%
   fill(everything(), -n_cell_date, .direction = "downup") %>%
   ungroup() %>%
   mutate(n_cell_date = replace_na(n_cell_date, 0)) %>%
-  inner_join(cells_gemeinden_bbsr %>% select(x_mp, y_mp, ends_with("_name")), by = join_by(x_mp, y_mp)) %>%
-  inner_join(cells_kreise_einkommen, by = join_by(x_mp, y_mp)) %>%
+  inner_join(erklärende_imp, by = join_by(x_mp, y_mp)) %>%
   inner_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
   mutate(got_fiber_date = replace_na(got_fiber_date, 0),
@@ -343,7 +378,7 @@ data_miete <- open_dataset("../Daten/Immo/Miete/") %>%
 
 # Imputieren, insb. das Baujahr
 data_miete_imp <- data_miete %>%
-  mice::mice(m = 1, maxit = 1, method = "pmm", pred = quickpred(., exclude = c("x_mp", "y_mp")), seed = 1) %>%
+  mice::mice(m = 1, maxit = 1, method = "pmm", pred = mice::quickpred(., exclude = c("x_mp", "y_mp")), seed = 1) %>%
   mice::complete() %>%
   as_tibble()
 
@@ -366,9 +401,8 @@ data_miete_complete <- data_miete_imp %>%
   fill(everything(), -n_cell_date, .direction = "downup") %>%
   ungroup() %>%
   mutate(n_cell_date = replace_na(n_cell_date, 0)) %>%
-  left_join(cells_gemeinden_bbsr %>% select(x_mp, y_mp, ends_with("_name")), by = join_by(x_mp, y_mp)) %>%
-  left_join(cells_kreise_einkommen, by = join_by(x_mp, y_mp)) %>%
-  left_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
+  inner_join(erklärende_imp, by = join_by(x_mp, y_mp)) %>%
+  inner_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
   mutate(got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))
 
