@@ -503,6 +503,43 @@ data_leaflet %>%
   addPolygons(stroke = FALSE, fillOpacity = .5, color = ~ pal(down_fn_hh_ftthb_1000))
 ```
 
+## Einkommen
+
+Karte
+
+```{r}
+options(scipen = 999)
+
+einkommen <- read_parquet("../Daten/Geodaten/Raster_1km_kreise_einkommen.parquet") %>%
+  distinct(ars, einkommen, einkommen_delta)
+
+kreise %>%
+  left_join(einkommen, by = "ars") %>%
+  mutate(einkommen_cut = cut_number(einkommen, n = 4, dig.lab = 10)) %>%
+  ggplot()+
+  geom_sf(aes(fill = einkommen_cut), color = NA)+
+  scale_fill_viridis_d()+
+  theme_void()+
+  theme(legend.position = "top")+
+  labs(fill = element_blank())+
+  guides(fill = guide_legend(nrow = 2))
+
+ggsave("../Output/plots/karten/plot_deutschland_einkommen_2024.pdf", width = 3, height = 3)
+
+kreise %>%
+  left_join(einkommen, by = "ars") %>%
+  mutate(einkommen_delta_cut = cut_number(einkommen_delta, n = 4)) %>%
+  ggplot()+
+  geom_sf(aes(fill = einkommen_delta_cut), color = NA)+
+  scale_fill_viridis_d()+
+  theme_void()+
+  theme(legend.position = "top")+
+  labs(fill = element_blank())+
+  guides(fill = guide_legend(nrow = 2))
+
+ggsave("../Output/plots/karten/plot_deutschland_einkommen_delta.pdf", width = 3, height = 3)
+```
+
 # Summary Statistics
 
 ## Breitbanddaten
