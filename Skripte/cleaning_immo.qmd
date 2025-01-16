@@ -15,184 +15,173 @@ library(vroom)
 library(arrow)
 ```
 
-# Import
-Ich habe zuerst die verschiedenen .csv Dateien in eine Datei zusammengefasst:
+# Einlesen & Bereinigen
 
-```{bash}
-#| eval: false
+`dupID_gen`:
+- 0: ObjektID only once or 1st spell of ObjektID
+- 1: Probably belongs together, e.g. interruption due to delivery to RWI or slight adaptation of the advertisement
+- 2: As (1), but gap between advertisements >6 months, i.e. it could also be a new rental of the apartment e.g.
+- 3: Advertisements close together in time (<= 6 months), but differentiation in important variables
+- 4: As (3), but gap between advertisements >6 months
+- 5: Clear differences in important variables, so there are doubts that it is the same object.
 
-# Header von erster Datei in neue Datei `combined` schreiben
-head -n 1 WMSUF1.csv > combined
-for f in *.csv; do tail -n +2 "$f" >> combined; done
-# Eventuell ist folgende Methode schneller:
-# awk 'FNR>1' *.csv >> combined.csv
-# Getestet habe ich es nicht.
-```
-
-# Kauf
-
-Problem: In den Daten ab 2019 sind die `dupID_gen` komisch. Z.B. `Other missing,Other missing,Other missing,Other missing,Other missing,Other missing,Real-estate agent ,Other missing,1,8794233,"ID occurs once only, or first occurence of ID"` oder `Other missing,Other missing,Other missing,Other missing,Other missing,Other missing,Real-estate agent ,Other missing,2,8307328,Probably one spell`.
-
-Vorest bereinige ich es daher nicht.
+## Kauf
 
 ```{r}
-vroom_col_kauf <- cols_only(
-  obid = col_character(),
-  gkz = col_character(),
-  plz = col_character(),
-  kaufpreis = col_double(),
-  baujahr = col_integer(),
-  wohnflaeche = col_double(),
-  zimmeranzahl = col_double(),
-  ajahr = col_integer(),
-  amonat = col_integer(),
-  jahr = col_integer(),
-  emonat = col_integer(),
-  r1_id = col_character(),
-  dupID_gen = col_character()
+col_kauf <- c(
+  "kaufpreis", "plz", "baujahr", "wohnflaeche", "zimmeranzahl",
+  "ajahr", "amonat", "ejahr", "emonat", "ergg_1km", "dupID_gen"
 )
+```
 
-good_dupIDs <- c("ID occurs once only, or first occurence of ID", "Large differences in important features", "Like (4) but time gape >6 months", "Like (1) but time gap >6 months")
+```{r}
+import_hk <- read_parquet("../Daten/RWI_GEO_REX/Daten_Kauf/HK_SUF_ohneText.parquet",
+                          col_select = all_of(col_kauf)) %>%
+  haven::zap_labels() %>%
+  haven::zap_formats() %>%
+  haven::zap_label() %>%
+  haven::zap_missing() %>%
+  haven::zap_widths()
 
-import_vroom_kauf <- vroom("../Daten/Immo/Rohdaten/Kauf/combined", col_types = vroom_col_kauf)
-
-import_vroom_kauf_clean <- import_vroom_kauf %>%
-  filter(!r1_id %in% c("-11", "-9")) %>%
+import_hk_clean <- import_hk %>%
+  # Filtern
+  filter(ajahr >= 2016) %>%
+  filter(!ergg_1km %in% c("-11", "-9")) %>%
+  filter(kaufpreis %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
   #filter(dupID_gen %in% good_dupIDs) %>%
   select(-dupID_gen) %>%
   drop_na(kaufpreis) %>%
-  filter(kaufpreis %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
-  mutate(baujahr = na_if(baujahr, -1)) %>%
-  rename(ejahr = jahr) %>%
-  mutate(x_mp = r1_id %>% str_extract("^\\d{4}") %>% as.numeric(),
-         y_mp = r1_id %>% str_extract("\\d{4}$") %>% as.numeric(),
-         x_mp = x_mp * 1000 + 500,
-         y_mp = y_mp * 1000 + 500)
-
-import_vroom_kauf_clean %>%
-  group_by(ejahr) %>%
-  write_dataset("../Daten/Immo/Kauf/")
-```
-
-```{r}
-open_dataset("../Daten/Immo/Kauf/") %>%
-  group_by(ejahr) %>%
-  count() %>%
-  collect()
-```
-
-
-# Miete
-
-Gleiches Problem mit `dupID_gen` wie oben. Vorest bereinige ich es daher nicht.
-
-```{r}
-vroom_col_miete <- cols_only(
-  obid = col_character(),
-  gkz = col_character(),
-  plz = col_character(),
-  mietekalt = col_double(),
-  baujahr = col_integer(),
-  wohnflaeche = col_double(),
-  zimmeranzahl = col_double(),
-  ajahr = col_integer(),
-  amonat = col_integer(),
-  jahr = col_integer(),
-  emonat = col_integer(),
-  r1_id = col_character(),
-  dupID_gen = col_character()
-)
-
-good_dupIDs <- c("ID occurs once only, or first occurence of ID", "Large differences in important features", "Like (4) but time gape >6 months", "Like (1) but time gap >6 months")
-
-import_vroom_miete <- vroom("../Daten/Immo/Rohdaten/Miete/combined", col_types = vroom_col_miete)
-
-import_vroom_miete_clean <- import_vroom_miete %>%
-  filter(!r1_id %in% c("-11", "-9")) %>%
-  #filter(dupID_gen %in% good_dupIDs) %>%
-  select(-dupID_gen) %>%
-  drop_na(mietekalt) %>%
-  drop_na(wohnflaeche) %>%
-  filter(mietekalt %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
-  filter(wohnflaeche %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
-  mutate(baujahr = na_if(baujahr, -1)) %>%
-  rename(ejahr = jahr) %>%
-  mutate(x_mp = r1_id %>% str_extract("^\\d{4}") %>% as.numeric(),
-         y_mp = r1_id %>% str_extract("\\d{4}$") %>% as.numeric(),
-         x_mp = x_mp * 1000 + 500,
-         y_mp = y_mp * 1000 + 500)
-
-import_vroom_miete_clean %>%
-  group_by(ejahr) %>%
-  write_dataset("../Daten/Immo/Miete/")
-```
-
-Achtung: bei `import_vroom_miete_clean` sind nur Daten bis 2019. Irgendwie werden also spätere Anzeigen alle rausgefiltert. Möglicherweise wegen der `dupID_gen`.
-
-```{r}
-import_vroom_miete_clean_test <- import_vroom_miete %>%
-  filter(!r1_id %in% c("-11", "-9")) %>%
-  #filter(dupID_gen %in% good_dupIDs) %>%
-  #select(-dupID_gen) %>%
-  drop_na(mietekalt) %>%
-  drop_na(wohnflaeche) %>%
-  filter(mietekalt %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
-  filter(wohnflaeche %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
-  mutate(baujahr = na_if(baujahr, -1)) %>%
-  rename(ejahr = jahr) %>%
-  mutate(x_mp = r1_id %>% str_extract("^\\d{4}") %>% as.numeric(),
-         y_mp = r1_id %>% str_extract("\\d{4}$") %>% as.numeric(),
-         x_mp = x_mp * 1000 + 500,
-         y_mp = y_mp * 1000 + 500)
-
-import_vroom_miete_clean_test %>%
-  filter(ejahr > 2019) %>%
-  count(dupID_gen)
-```
-
-```{r}
-open_dataset("../Daten/Immo/Miete/") %>%
-  group_by(ejahr) %>%
-  count() %>%
-  collect()
-```
-
-# RWI GEO REDX PUF
-
-HK = House sales, WK = Apartment sales, WM = Apartment rents, CI = Combined Index
-
-```{r}
-rwi_geo_redx_puf <- readxl::read_xlsx("../Daten/RWI_GEO_REDX_PUF/RWIGEOREDX_GRIDS_v13_PUF.xlsx",
-                          sheet = "Grids_RegionEff_yearly") %>%
-  pivot_longer(
-    cols = starts_with(c("pindex", "NOBS")),
-    names_to = c(".value", "year"),
-    names_pattern = "(pindex|NOBS)(\\d{4})"
-  ) %>%
-  rename(nobs = NOBS) %>%
-  mutate(x_mp = grid %>% str_extract("^\\d{4}") %>% as.numeric(),
-         y_mp = grid %>% str_extract("\\d{4}$") %>% as.numeric(),
+  # Abändern
+  mutate(across(c("plz"), as.character)) %>%
+  mutate(baujahr = if_else(baujahr > 1000, baujahr, NA),
+         plz = if_else(nchar(plz) == 5, plz, NA)) %>%
+  mutate(x_mp = ergg_1km %>% str_extract("^\\d{4}") %>% as.numeric(),
+         y_mp = ergg_1km %>% str_extract("\\d{4}$") %>% as.numeric(),
          x_mp = x_mp * 1000 + 500,
          y_mp = y_mp * 1000 + 500,
-         .keep = "unused",
-         .before = 1) %>%
-  pivot_wider(names_from = housing_type, values_from = c(pindex, nobs)) %>%
-  mutate(year = as.numeric(year))
-
-rwi_geo_redx_puf %>%
-  write_parquet("../Daten/RWI_GEO_REDX_PUF/rwi_geo_redx_puf.parquet")
+         typ = "Haus")
 ```
 
 ```{r}
-rwi_geo_redx_puf %>%
-  inner_join(
-    cells_gemeinden_bbsr %>%
-      filter(gemeindetyp_differenziert_name == "Größere Großstadt")
-  ) %>%
-  filter(year >= 2018)
+import_wk <- read_parquet("../Daten/RWI_GEO_REX/Daten_Kauf/WK_SUF_ohneText.parquet",
+                          col_select = all_of(col_kauf)) %>%
+  haven::zap_labels() %>%
+  haven::zap_formats() %>%
+  haven::zap_label() %>%
+  haven::zap_missing() %>%
+  haven::zap_widths()
+
+import_wk_clean <- import_wk %>%
+  # Filtern
+  filter(ajahr >= 2016) %>%
+  filter(!ergg_1km %in% c("-11", "-9")) %>%
+  filter(kaufpreis %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
+  #filter(dupID_gen %in% good_dupIDs) %>%
+  select(-dupID_gen) %>%
+  drop_na(kaufpreis) %>%
+  # Abändern
+  mutate(across(c("plz"), as.character)) %>%
+  mutate(baujahr = if_else(baujahr > 1000, baujahr, NA),
+         plz = if_else(nchar(plz) == 5, plz, NA)) %>%
+  mutate(x_mp = ergg_1km %>% str_extract("^\\d{4}") %>% as.numeric(),
+         y_mp = ergg_1km %>% str_extract("\\d{4}$") %>% as.numeric(),
+         x_mp = x_mp * 1000 + 500,
+         y_mp = y_mp * 1000 + 500,
+         typ = "Wohnung")
 ```
 
-# RWI GEO RED aggregieren
+Verbinden
+
+```{r}
+data_kauf <- bind_rows(import_hk_clean, import_wk_clean)
+
+data_kauf %>%
+  write_parquet("../Daten/RWI_GEO_REX/Daten_Kauf/data_kauf.parquet")
+```
+
+## Miete
+
+```{r}
+col_miete <- c(
+  "mietekalt", "plz", "baujahr", "wohnflaeche", "zimmeranzahl",
+  "ajahr", "amonat", "ejahr", "emonat", "ergg_1km", "dupID_gen"
+)
+```
+
+```{r}
+import_hm <- read_parquet("../Daten/RWI_GEO_REX/Daten_Miete/HM_SUF_ohneText.parquet",
+                          col_select = all_of(col_miete)) %>%
+  haven::zap_labels() %>%
+  haven::zap_formats() %>%
+  haven::zap_label() %>%
+  haven::zap_missing() %>%
+  haven::zap_widths()
+
+import_hm_clean <- import_hm %>%
+  # Filtern
+  filter(ajahr >= 2016) %>%
+  filter(!ergg_1km %in% c("-11", "-9")) %>%
+  filter(mietekalt %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
+  filter(wohnflaeche %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
+  #filter(dupID_gen %in% good_dupIDs) %>%
+  select(-dupID_gen) %>%
+  drop_na(mietekalt, wohnflaeche) %>%
+  # Abändern
+  mutate(across(c("plz"), as.character)) %>%
+  mutate(baujahr = if_else(baujahr > 1000, baujahr, NA),
+         plz = if_else(nchar(plz) == 5, plz, NA)) %>%
+  mutate(mietekalt_m2 = mietekalt / wohnflaeche, .before = 1) %>%
+  select(-mietekalt) %>%
+  mutate(x_mp = ergg_1km %>% str_extract("^\\d{4}") %>% as.numeric(),
+         y_mp = ergg_1km %>% str_extract("\\d{4}$") %>% as.numeric(),
+         x_mp = x_mp * 1000 + 500,
+         y_mp = y_mp * 1000 + 500,
+         typ = "Haus")
+```
+
+```{r}
+import_wm <- read_parquet("../Daten/RWI_GEO_REX/Daten_Miete/WM_SUF_ohneText.parquet",
+                          col_select = all_of(col_miete)) %>%
+  haven::zap_labels() %>%
+  haven::zap_formats() %>%
+  haven::zap_label() %>%
+  haven::zap_missing() %>%
+  haven::zap_widths()
+
+import_wm_clean <- import_wm %>%
+  # Filtern
+  filter(ajahr >= 2016) %>%
+  filter(!ergg_1km %in% c("-11", "-9")) %>%
+  filter(mietekalt %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
+  filter(wohnflaeche %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
+  #filter(dupID_gen %in% good_dupIDs) %>%
+  select(-dupID_gen) %>%
+  drop_na(mietekalt, wohnflaeche) %>%
+  # Abändern
+  mutate(across(c("plz"), as.character)) %>%
+  mutate(baujahr = if_else(baujahr > 1000, baujahr, NA),
+         plz = if_else(nchar(plz) == 5, plz, NA)) %>%
+  mutate(mietekalt_m2 = mietekalt / wohnflaeche, .before = 1) %>%
+  select(-mietekalt) %>%
+  mutate(x_mp = ergg_1km %>% str_extract("^\\d{4}") %>% as.numeric(),
+         y_mp = ergg_1km %>% str_extract("\\d{4}$") %>% as.numeric(),
+         x_mp = x_mp * 1000 + 500,
+         y_mp = y_mp * 1000 + 500,
+         typ = "Wohnung")
+```
+
+Verbinden
+
+```{r}
+data_miete <- bind_rows(import_hm_clean, import_wm_clean)
+
+data_miete %>%
+  write_parquet("../Daten/RWI_GEO_REX/Daten_Miete/data_miete.parquet")
+```
+
+# Imputieren und Ergänzen
+
+## Pseude-Daten
 
 Definieren von Pseudo-Daten (halbjährlich). Von der `did` Funktion werden Zeitpunkte benötigt. Jahre wäre zu grob, Monate wahrscheinlich zu fein. Ein guter Kompromiss sind daher halbjahre. Diese stimmen dann auch mit den Breitband Meldungen überein.
 
@@ -223,6 +212,8 @@ dates_pseudo_halbjahr <- tibble(date = seq(
 dates_pseudo_halbjahr %>%
   write_parquet("../Daten/dates_pseudo_halbjahr.parquet")
 ```
+
+## Erklärende Variablen
 
 Erklärende Variablen etc. laden, verbinden und imputieren.
 
@@ -280,17 +271,16 @@ Hier werden die Kauf-Daten zu einem Index auf Rasterebene aggregiert. Im Idealfa
 
 ```{r}
 # Einlesen
-data_kauf <- open_dataset("../Daten/Immo/Kauf/") %>%
-  filter(ejahr >= 2016) %>%
-  mutate(date = ejahr*100 + emonat) %>%
-  select(date, x_mp, y_mp, kaufpreis, baujahr, wohnflaeche, zimmeranzahl) %>%
-  collect() %>%
-  left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
-  select(date_pseudo_halbjahr, x_mp, y_mp, kaufpreis, baujahr, wohnflaeche, zimmeranzahl)
+data_kauf <- read_parquet("../Daten/RWI_GEO_REX/Daten_Kauf/data_kauf.parquet")
 
 # Imputieren, insb. das Baujahr
 data_kauf_imp <- data_kauf %>%
-  mice::mice(m = 1, maxit = 1, method = "pmm", pred = mice::quickpred(., exclude = c("x_mp", "y_mp")), seed = 1) %>%
+  mutate(date = ejahr*100 + emonat) %>%
+  left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
+  select(date_pseudo_halbjahr, x_mp, y_mp, kaufpreis, baujahr, wohnflaeche, zimmeranzahl) %>%
+  mice::mice(m = 1, maxit = 1,
+             pred = mice::quickpred(., exclude = c("x_mp", "y_mp")), 
+             seed = 1) %>%
   mice::complete() %>%
   as_tibble()
 
@@ -319,46 +309,8 @@ data_kauf_complete <- data_kauf_imp %>%
   mutate(got_fiber_date = replace_na(got_fiber_date, 0),
          got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))
 
-write_parquet(data_kauf_complete, "../Daten/data_kauf_complete.parquet")
-```
-
-Wieviele Beobachtungen gibts so?
-
-```{r}
-data_kauf_missing <- data_kauf_complete %>%
-  select(x_mp, y_mp, n_cell_date) %>%
-  group_by(x_mp, y_mp) %>%
-  summarise(
-    has_missing = any(n_cell_date == 0),
-    missing_count = sum(n_cell_date == 0),
-    .groups = "drop"
-  ) %>%
-  filter(has_missing) %>%
-  select(x_mp, y_mp, missing_count)
-
-data_kauf_missing %>% pull(missing_count) %>% quantile()
-```
-
-```{r}
-top_cells <- data_kauf_complete %>%
-  arrange(desc(n_cell)) %>%
-  distinct(xy_mp, n_cell) %>%
-  head(1000) %>%
-  pull(xy_mp)
-
 data_kauf_complete %>%
-  #filter(xy_mp == "45543277") %>%
-  filter(xy_mp %in% top_cells) %>%
-  ggplot(aes(x = date_pseudo_halbjahr, y = mean_kaufpreis, group = as.factor(xy_mp)))+
-  geom_line(alpha = .1)+
-  scale_y_log10()+
-  scale_x_continuous(breaks = 0:16)
-
-data_kauf_complete %>%
-  arrange(desc(n_cell)) %>%
-  distinct(xy_mp, n_cell) %>%
-  head(10) %>%
-  pull(xy_mp)
+  write_parquet("../Daten/RWI_GEO_REX/Daten_Kauf/data_kauf_complete.parquet")
 ```
 
 ## Miete
@@ -367,18 +319,16 @@ Analog zu den Kauf-Daten.
 
 ```{r}
 # Einlesen
-data_miete <- open_dataset("../Daten/Immo/Miete/") %>%
-  filter(ejahr >= 2016) %>%
-  mutate(date = ejahr*100 + emonat) %>%
-  mutate(mietekalt_m2 = mietekalt / wohnflaeche) %>%
-  select(date, x_mp, y_mp, mietekalt_m2, baujahr, wohnflaeche, zimmeranzahl) %>%
-  collect() %>%
-  left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
-  select(date_pseudo_halbjahr, x_mp, y_mp, mietekalt_m2, baujahr, wohnflaeche, zimmeranzahl)
+data_miete <- read_parquet("../Daten/RWI_GEO_REX/Daten_Miete/data_miete.parquet")
 
 # Imputieren, insb. das Baujahr
 data_miete_imp <- data_miete %>%
-  mice::mice(m = 1, maxit = 1, method = "pmm", pred = mice::quickpred(., exclude = c("x_mp", "y_mp")), seed = 1) %>%
+  mutate(date = ejahr*100 + emonat) %>%
+  left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
+  select(date_pseudo_halbjahr, x_mp, y_mp, mietekalt_m2, baujahr, wohnflaeche, zimmeranzahl) %>%
+  mice::mice(m = 1, maxit = 1,
+             pred = mice::quickpred(., exclude = c("x_mp", "y_mp")), 
+             seed = 1) %>%
   mice::complete() %>%
   as_tibble()
 
@@ -404,7 +354,9 @@ data_miete_complete <- data_miete_imp %>%
   inner_join(erklärende_imp, by = join_by(x_mp, y_mp)) %>%
   inner_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
-  mutate(got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))
+  mutate(got_fiber_date = replace_na(got_fiber_date, 0),
+         got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))
 
-write_parquet(data_miete_complete, "../Daten/data_miete_complete.parquet")
+data_miete_complete %>%
+  write_parquet("../Daten/RWI_GEO_REX/Daten_Miete/data_miete_complete.parquet")
 ```
