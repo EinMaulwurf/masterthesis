@@ -15,9 +15,9 @@ library(tidyverse)
 library(arrow)
 library(did)
 library(broom)
-library(did2s)
-library(HonestDiD)
-source("honest_did_helper.R")
+#library(did2s)
+#library(HonestDiD)
+#source("honest_did_helper.R")
 ```
 
 # Import
@@ -76,10 +76,14 @@ tidy(mod_miete) %>%
   geom_linerange()+
   geom_point()+
   geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  facet_wrap(~date)+
-  scale_x_continuous(breaks = 1:20)+
+  facet_wrap(~date, nrow = 2)+
+  #scale_x_continuous(breaks = 1:20)+
   theme_bw()+
-  theme(legend.position = "none")
+  theme(legend.position = "none")+
+  labs(x = "Halbjahr",
+       y = "ATT: Miete (€/m²)",
+       title = element_blank())
+ggsave("../Output/plots/did/plot_did_miete.pdf", width = 5, height = 4, device = cairo_pdf)
 
 mod_miete_agg_dyn <- did::aggte(mod_miete, type = "dynamic")
 ggdid(mod_miete_agg_dyn)+
@@ -99,14 +103,16 @@ ggdid(mod_miete_agg_group)+
   labs(x = "ATT: Miete (€/m²)",
        y = "Halbjahr: Erstes Treatments",
        title = element_blank())
+ggsave("../Output/plots/did/plot_did_miete_agg_group.pdf", width = 5, height = 4, device = cairo_pdf)
 
 mod_miete_agg_calendar <- did::aggte(mod_miete, type = "calendar")
 ggdid(mod_miete_agg_calendar)+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "",
+  labs(x = "Halbjahr",
        y = "ATT: Miete (€/m²)",
        title = element_blank())
+ggsave("../Output/plots/did/plot_did_miete_agg_calendar.pdf", width = 5, height = 4, device = cairo_pdf)
 ```
 
 ## ohne PLZ Cluster
@@ -155,10 +161,17 @@ bind_rows(
   pivot_wider(names_from = id, values_from = c(conf.low, conf.high)) %>%
   mutate(is_treated = event.time >= 0) %>%
   ggplot(aes(x = event.time, color = is_treated))+
-  geom_linerange(aes(ymin = conf.low_1, ymax = conf.high_1), alpha = .5)+
+  geom_linerange(aes(ymin = conf.low_1, ymax = conf.high_1), alpha = .5, linetype = "dashed")+
   geom_linerange(aes(ymin = conf.low_2, ymax = conf.high_2))+
   geom_point(aes(y = estimate))+
-  theme_bw()
+  theme_bw()+
+  theme(legend.position = "none")+
+  labs(x = "Halbjahr: Relativ zum ersten Treatment",
+       y = "ATT: Miete (€/m²)",
+       title = element_blank())
+
+ggsave("../Output/plots/did/plot_did_miete_agg_dyn_cluster_comparison.pdf", width = 5, height = 4, device = cairo_pdf)
+  
 
 ggdid(mod_miete_agg_dyn)+
   coord_cartesian(ylim = c(-2.5, 2.5))
@@ -166,7 +179,7 @@ ggdid(mod_miete_2_agg_dyn)+
   coord_cartesian(ylim = c(-2.5, 2.5))
 ```
 
-## Never-Treated Vergtleichsgruppe
+## Never-Treated Vergleichsgruppe
 
 ```{r}
 mod_miete_never <- data_miete_complete %>%
@@ -327,7 +340,7 @@ ggdid(mod_miete_4_agg_dyn)+
 
 # Kauf
 
-# Bevorzugte Spezifikation
+## Bevorzugte Spezifikation
 
 ```{r}
 mod_kauf <- data_kauf_complete %>%
@@ -366,10 +379,14 @@ tidy(mod_kauf) %>%
   geom_linerange()+
   geom_point()+
   geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  facet_wrap(~date)+
-  scale_x_continuous(breaks = 1:20)+
+  facet_wrap(~date, nrow = 2)+
+  scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
-  theme(legend.position = "none")
+  theme(legend.position = "none")+
+  labs(x = "Halbjahr",
+       y = "ATT: Kaufpreis (1000€)",
+       title = element_blank())
+ggsave("../Output/plots/did/plot_did_kauf.pdf", width = 5, height = 4, device = cairo_pdf)
 
 mod_kauf_agg_dyn <- did::aggte(mod_kauf, type = "dynamic")
 ggdid(mod_kauf_agg_dyn)+
@@ -385,19 +402,23 @@ ggsave("../Output/plots/did/plot_did_kauf_agg_dyn.pdf", width = 5, height = 4, d
   
 mod_kauf_agg_group <- did::aggte(mod_kauf, type = "group")
 ggdid(mod_kauf_agg_group)+
+  scale_x_continuous(labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "ATT: Kaufpreis (€)",
+  labs(x = "ATT: Kaufpreis (1000€)",
        y = "Halbjahr: Erstes Treatments",
        title = element_blank())
+ggsave("../Output/plots/did/plot_did_kauf_agg_group.pdf", width = 5, height = 4, device = cairo_pdf)
 
 mod_kauf_agg_calendar <- did::aggte(mod_kauf, type = "calendar")
 ggdid(mod_kauf_agg_calendar)+
+  scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "",
-       y = "ATT: Kaufpreis (€)",
+  labs(x = "Halbjahr",
+       y = "ATT: Kaufpreis (1000€)",
        title = element_blank())
+ggsave("../Output/plots/did/plot_did_kauf_agg_calendar.pdf", width = 5, height = 4, device = cairo_pdf)
 ```
 
 ## Ohne PLZ Clustering
@@ -446,14 +467,109 @@ bind_rows(
   pivot_wider(names_from = id, values_from = c(conf.low, conf.high)) %>%
   mutate(is_treated = event.time >= 0) %>%
   ggplot(aes(x = event.time, color = is_treated))+
-  geom_linerange(aes(ymin = conf.low_1, ymax = conf.high_1), alpha = .5)+
+  geom_linerange(aes(ymin = conf.low_1, ymax = conf.high_1), alpha = .5, linetype = "dashed")+
   geom_linerange(aes(ymin = conf.low_2, ymax = conf.high_2))+
   geom_point(aes(y = estimate))+
-  theme_bw()
+  theme_bw()+
+  theme(legend.position = "none")+
+  labs(x = "Halbjahr: Relativ zum ersten Treatment",
+       y = "ATT: Kaufpreis (1000€)",
+       title = element_blank())
+
+ggsave("../Output/plots/did/plot_did_kauf_agg_dyn_cluster_comparison.pdf", width = 5, height = 4, device = cairo_pdf)
 
 ggdid(mod_kauf_agg_dyn)+
   coord_cartesian(ylim = c(-3e5, 3e5))
 ggdid(mod_kauf_2_agg_dyn)+
   coord_cartesian(ylim = c(-3e5, 3e5))
+```
+
+# Tabelle
+
+## Miete
+
+Tabelle mit Werten für 1 Jahr nach Treatment für die verschiedenen Modelle
+
+```{r}
+f_tidy_agg <- function(.x, type = "dynamic", event_time_filter = 2) {
+  did::aggte(.x, type = type) %>%
+    tidy(.x) %>% 
+    select(event.time, estimate, conf.low, conf.high) %>%
+    filter(event.time == event_time_filter)
+}
+
+bind_rows(
+  f_tidy_agg(mod_miete_agg_dyn) %>% mutate(typ = "Bevorzugt"),
+  f_tidy_agg(mod_miete_2_agg_dyn) %>% mutate(typ = "Nur Cell Cluster"),
+  f_tidy_agg(mod_miete_never_agg_dyn) %>% mutate(typ = "Never Treated")
+)
+```
+
+```{r}
+# First, create a base parameter list with your default settings
+base_params <- list(
+  data = data_miete_complete,
+  yname = "mean_mietekalt_m2",
+  tname = "date_pseudo_halbjahr",
+  idname = "xy_mp",
+  gname = "got_fiber_date_pseudo_halbjahr",
+  xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + 
+            gemeindetyp_name + durchschnittsalter + anzahl_haushalte + 
+            einkommen + einkommen_delta,
+  weightsname = "anzahl_haushalte",
+  anticipation = 0,
+  alp = 0.05,
+  est_method = "dr",
+  base_period = "varying",
+  biter = 1000,
+  pl = TRUE,
+  cores = 6,
+  allow_unbalanced_panel = TRUE,
+  print_details = FALSE
+)
+
+# Define your model variations
+model_specs <- list(
+  model1 = list(
+    clustervars = c("xy_mp", "plz"),
+    control_group = "notyettreated"
+  ),
+  model2 = list(
+    clustervars = c("xy_mp"),  # different clustering
+    control_group = "notyettreated"
+  ),
+  model3 = list(
+    clustervars = c("xy_mp", "plz"),
+    control_group = "nevertreated"  # different control group
+  ),
+  model4 = list(
+    clustervars = c("xy_mp", "plz"),
+    control_group = "notyettreated",
+    xformla = NULL  # no covariates
+  )
+)
+
+# Function to merge base parameters with model-specific parameters
+run_model <- function(model_params) {
+  final_params <- modifyList(base_params, model_params)
+  do.call(att_gt, final_params)
+}
+
+# Run all models
+models <- model_specs %>%
+  purrr::map(run_model, .progress = TRUE)
+```
+
+```{r}
+# First, let's extract the relevant statistics for each model
+table_stats <- models %>%
+  purrr::map_dfr(
+    ~f_tidy_agg(.x, type = "dynamic", event_time_filter = 2),
+    .id = "model",
+    .progress = TRUE
+  )
+
+table_stats %>%
+  mutate(params = model_specs)
 ```
 
