@@ -76,7 +76,7 @@ tidy(mod_miete) %>%
   geom_linerange()+
   geom_point()+
   geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  facet_wrap(~date, nrow = 2)+
+  facet_wrap(~date, nrow = 2, scales = "free")+
   #scale_x_continuous(breaks = 1:20)+
   theme_bw()+
   theme(legend.position = "none")+
@@ -88,13 +88,13 @@ ggsave("../Output/plots/did/plot_did_miete.pdf", width = 5, height = 4, device =
 mod_miete_agg_dyn <- did::aggte(mod_miete, type = "dynamic")
 ggdid(mod_miete_agg_dyn)+
   coord_cartesian(xlim = c(-6, 10))+
-  scale_x_continuous(breaks = -6:10)+
+  scale_x_continuous(breaks = seq(-6, 10, 2))+
   theme_bw()+
   theme(legend.position = "none")+
   labs(x = "Halbjahr: Relativ zum ersten Treatment",
        y = "ATT: Miete (€/m²)",
        title = element_blank())
-ggsave("../Output/plots/did/plot_did_miete_agg_dyn.pdf", width = 5, height = 4, device = cairo_pdf)
+ggsave("../Output/plots/did/plot_did_miete_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
   
 mod_miete_agg_group <- did::aggte(mod_miete, type = "group")
 ggdid(mod_miete_agg_group)+
@@ -103,7 +103,7 @@ ggdid(mod_miete_agg_group)+
   labs(x = "ATT: Miete (€/m²)",
        y = "Halbjahr: Erstes Treatments",
        title = element_blank())
-ggsave("../Output/plots/did/plot_did_miete_agg_group.pdf", width = 5, height = 4, device = cairo_pdf)
+ggsave("../Output/plots/did/plot_did_miete_agg_group.pdf", width = 3, height = 3, device = cairo_pdf)
 
 mod_miete_agg_calendar <- did::aggte(mod_miete, type = "calendar")
 ggdid(mod_miete_agg_calendar)+
@@ -112,7 +112,7 @@ ggdid(mod_miete_agg_calendar)+
   labs(x = "Halbjahr",
        y = "ATT: Miete (€/m²)",
        title = element_blank())
-ggsave("../Output/plots/did/plot_did_miete_agg_calendar.pdf", width = 5, height = 4, device = cairo_pdf)
+ggsave("../Output/plots/did/plot_did_miete_agg_calendar.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 ## ohne PLZ Cluster
@@ -379,7 +379,7 @@ tidy(mod_kauf) %>%
   geom_linerange()+
   geom_point()+
   geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  facet_wrap(~date, nrow = 2)+
+  facet_wrap(~date, nrow = 2, scales = "free")+
   scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
   theme(legend.position = "none")+
@@ -391,14 +391,14 @@ ggsave("../Output/plots/did/plot_did_kauf.pdf", width = 5, height = 4, device = 
 mod_kauf_agg_dyn <- did::aggte(mod_kauf, type = "dynamic")
 ggdid(mod_kauf_agg_dyn)+
   coord_cartesian(xlim = c(-6, 10))+
-  scale_x_continuous(breaks = -6:10)+
+  scale_x_continuous(breaks = seq(-6, 10, 2))+
   scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
   theme(legend.position = "none")+
   labs(x = "Halbjahr: Relativ zum ersten Treatment",
        y = "ATT: Kaufpreis (1000€)",
        title = element_blank())
-ggsave("../Output/plots/did/plot_did_kauf_agg_dyn.pdf", width = 5, height = 4, device = cairo_pdf)
+ggsave("../Output/plots/did/plot_did_kauf_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
   
 mod_kauf_agg_group <- did::aggte(mod_kauf, type = "group")
 ggdid(mod_kauf_agg_group)+
@@ -408,7 +408,7 @@ ggdid(mod_kauf_agg_group)+
   labs(x = "ATT: Kaufpreis (1000€)",
        y = "Halbjahr: Erstes Treatments",
        title = element_blank())
-ggsave("../Output/plots/did/plot_did_kauf_agg_group.pdf", width = 5, height = 4, device = cairo_pdf)
+ggsave("../Output/plots/did/plot_did_kauf_agg_group.pdf", width = 3, height = 3, device = cairo_pdf)
 
 mod_kauf_agg_calendar <- did::aggte(mod_kauf, type = "calendar")
 ggdid(mod_kauf_agg_calendar)+
@@ -418,7 +418,7 @@ ggdid(mod_kauf_agg_calendar)+
   labs(x = "Halbjahr",
        y = "ATT: Kaufpreis (1000€)",
        title = element_blank())
-ggsave("../Output/plots/did/plot_did_kauf_agg_calendar.pdf", width = 5, height = 4, device = cairo_pdf)
+ggsave("../Output/plots/did/plot_did_kauf_agg_calendar.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 ## Ohne PLZ Clustering
@@ -724,14 +724,14 @@ Was auffällt: Mit vielen Gruppen (Achtung, nicht Gruppen im Sinne von CS21) ist
 set.seed(1)
 
 # Parameters
-n_ids <- 100000
+n_ids <- 100
 n_time <- 10
 treatment_time <- 5
-treated_ids <- 1:(100000*0.2)
-base_slopes <- c(rep(1.005, length(treated_ids)), 
+treated_ids <- 1:(n_ids*0.2) # 20% of ids get treated
+base_slopes <- c(rep(1.2, length(treated_ids)), 
                  rep(1, n_ids - length(treated_ids)))  # Set slope for each id
-treatment_multiplier <- 2  # Slopes double after treatment
-treatment_jump <- 0 # Jump in the treatment periode
+treatment_multiplier <- 1.5  # Slopes double after treatment
+treatment_jump <- 0.5 # Jump in the treatment periode
 
 # Create base data
 dat <- expand_grid(
@@ -765,18 +765,18 @@ dat
 #   geom_line()+
 #   theme(legend.position = "none")
 
-set.seed(1)
-dat %>%
-  filter(id %in% sample(treated_ids, 3) |
-           id %in% sample(setdiff(1:n_ids, treated_ids), 3)) %>%
-  mutate(is_treated = if_else(first_treat == 5, "Treated", "Not Treated")) %>%
-  ggplot(aes(x = time, y = y, color = is_treated, group = as.factor(id)))+
-  geom_line()+
-  scale_x_continuous(breaks = 1:10)+
-  theme_bw()+
-  theme(legend.position = "top")+
-  labs(x = "Zeit", y = "Zielgröße", color = element_blank())
-ggsave("../Output/plots/did/plot_did_simulation.pdf", width = 3, height = 3, device = cairo_pdf)
+# set.seed(1)
+# dat %>%
+#   filter(id %in% sample(treated_ids, 3) |
+#            id %in% sample(setdiff(1:n_ids, treated_ids), 3)) %>%
+#   mutate(is_treated = if_else(first_treat == 5, "Treated", "Not Treated")) %>%
+#   ggplot(aes(x = time, y = y, color = is_treated, group = as.factor(id)))+
+#   geom_line()+
+#   scale_x_continuous(breaks = 1:10)+
+#   theme_bw()+
+#   theme(legend.position = "none")+
+#   labs(x = "Zeit", y = "Zielgröße", color = element_blank(), title = element_blank())
+# ggsave("../Output/plots/did/plot_did_simulation.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 
@@ -790,7 +790,7 @@ cs21 = att_gt(
   control_group = "nevertreated", # Too few groups for "nevertreated" default
   clustervars   = "id", 
   data          = dat,
-  base_period = "universal"
+  base_period   = "universal"
   )
 cs21$Wpval
 
@@ -798,29 +798,31 @@ cs21$Wpval
 
 cs21_agg_dyn <- aggte(cs21, type = "dynamic",
                       min_e = -5, max_e = 5)
-ggdid(cs21_agg_dyn)+
-  scale_x_continuous(breaks = -4:5)+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = "Zeit",
-       y = "ATT",
-       title = element_blank())
-ggsave("../Output/plots/did/plot_did_simulation_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
+ggdid(cs21_agg_dyn)
+
+# ggdid(cs21_agg_dyn)+
+#   scale_x_continuous(breaks = -4:5)+
+#   theme_bw()+
+#   theme(legend.position = "none")+
+#   labs(x = "Zeit (relativ)",
+#        y = "ATT",
+#        title = element_blank())
+# ggsave("../Output/plots/did/plot_did_simulation_agg_dyn_small.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 ```{r}
 source("honest_did_helper.R")
 # code for running honest_did
-cs21_agg_dyn_honest_smooth <- honest_did(es = cs21_agg_dyn,
-                           e = 0,
-                           type="smoothness")
-cs21_agg_dyn_honest_smooth
+# cs21_agg_dyn_honest_smooth <- honest_did(es = cs21_agg_dyn,
+#                            e = 0,
+#                            type="smoothness")
+# cs21_agg_dyn_honest_smooth
 
 
 cs21_agg_dyn_honest_rel <- honest_did(es = cs21_agg_dyn, 
-                          e = 0,
+                          e = 1,
                           type="relative_magnitude",
-                          Mbarvec = seq(from = 0, to = .5, length.out = 10)
+                          Mbarvec = seq(from = 0, to = 2, by = 0.1)
                           )
 cs21_agg_dyn_honest_rel
 # Drop 0 as that is not really allowed.
@@ -828,9 +830,19 @@ cs21_agg_dyn_honest_rel$robust_ci <- cs21_agg_dyn_honest_rel$robust_ci[-1,]
 
 ## -----------------------------------------------------------------------------
 # make sensitivity analysis plots
-createSensitivityPlot(cs21_agg_dyn_honest_smooth$robust_ci,
-                      cs21_agg_dyn_honest_smooth$orig_ci)
+# createSensitivityPlot(cs21_agg_dyn_honest_smooth$robust_ci,
+#                       cs21_agg_dyn_honest_smooth$orig_ci)
 
 createSensitivityPlot_relativeMagnitudes(cs21_agg_dyn_honest_rel$robust_ci,
-                                         cs21_agg_dyn_honest_rel$orig_ci)
+                                         cs21_agg_dyn_honest_rel$orig_ci,
+                                         add_xAxis = FALSE)+
+  geom_hline(yintercept = 0, linetype = "dashed")+
+  theme_bw()+
+  theme(legend.position = "none")+
+  labs(y = "ATT",
+       title = element_blank())
+ggsave("../Output/plots/did/plot_did_simulation_agg_dyn_small_honest.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
+
+Beobachtung: HonestDiD kann (bei relative magnitude) nur sinnvolle Ergebnisse geben, wenn die Ergebnisse der dynamic aggregation (bei dem e) auch statistisch signifikante Ergebnisse hat.
+Beispiel: Bei einer kleinen Stichprobe (kleines `n_ids`) und einem niedrigen `treatment_multiplier` (nahe 1) und `treatment_jump` (nahe Null) findet `aggte(cs21, type = "dynamic")` keine signifikanten Ergebnisse. Und dann gibt es auch kein interessantes "breakdown" $\bar{M}$. Interessant wird es dann, wenn bei einer relativ kleinen Stichprobe der `treatment_multiplier` oder `treatment_jump` so gewählt werden, dass die Ergebnisse von `aggte()` nur knapp signifikant sind.
