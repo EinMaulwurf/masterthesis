@@ -854,6 +854,7 @@ dat %>%
   ggplot(aes(x = time, y = y, color = as.factor(first_treat), group = as.factor(id)))+
   geom_vline(xintercept = treatment_groups$treatment_time, linetype = "dotted")+
   geom_line(alpha = .8)+
+  scale_x_continuous(breaks = seq(0, 10, 2))+
   theme_bw()+
   theme(legend.position = "none")+
   labs(color = "Gruppe",
