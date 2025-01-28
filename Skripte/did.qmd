@@ -83,7 +83,7 @@ tidy(mod_miete) %>%
   labs(x = "Halbjahr",
        y = "ATT: Miete (€/m²)",
        title = element_blank())
-ggsave("../Output/plots/did/plot_did_miete.pdf", width = 5, height = 4, device = cairo_pdf)
+ggsave("../Output/plots/did/plot_did_miete.pdf", width = 6, height = 4, device = cairo_pdf)
 
 mod_miete_agg_dyn <- did::aggte(mod_miete, type = "dynamic")
 ggdid(mod_miete_agg_dyn)+
@@ -161,7 +161,7 @@ tidy(mod_kauf) %>%
   labs(x = "Halbjahr",
        y = "ATT: Kaufpreis (1000€)",
        title = element_blank())
-ggsave("../Output/plots/did/plot_did_kauf.pdf", width = 5, height = 4, device = cairo_pdf)
+ggsave("../Output/plots/did/plot_did_kauf.pdf", width = 6, height = 4, device = cairo_pdf)
 
 mod_kauf_agg_dyn <- did::aggte(mod_kauf, type = "dynamic")
 ggdid(mod_kauf_agg_dyn)+
