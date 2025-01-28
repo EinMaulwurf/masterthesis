@@ -81,37 +81,51 @@ tidy(mod_miete) %>%
   theme_bw()+
   theme(legend.position = "none")+
   labs(x = "Halbjahr",
-       y = "ATT: Miete (€/m²)",
-       title = element_blank())
+       y = "ATT: Miete (€/m²)")
 ggsave("../Output/plots/did/plot_did_miete.pdf", width = 6, height = 4, device = cairo_pdf)
 
 mod_miete_agg_dyn <- did::aggte(mod_miete, type = "dynamic")
-ggdid(mod_miete_agg_dyn)+
+tidy(mod_miete_agg_dyn) %>%
+  mutate(is_treated = event.time >= 0) %>%
+  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
+  geom_linerange()+
+  geom_point(size = 1.5)+
+  geom_hline(aes(yintercept = 0), linetype = "dashed")+
   coord_cartesian(xlim = c(-6, 10))+
   scale_x_continuous(breaks = seq(-6, 10, 2))+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "Halbjahr: Relativ zum ersten Treatment",
-       y = "ATT: Miete (€/m²)",
-       title = element_blank())
+  labs(x = "Halbjahr: Rel. zum ersten Treatment",
+       y = "ATT: Miete (€/m²)")
 ggsave("../Output/plots/did/plot_did_miete_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
   
 mod_miete_agg_group <- did::aggte(mod_miete, type = "group")
-ggdid(mod_miete_agg_group)+
+tidy(mod_miete_agg_group) %>%
+  filter(group != "Average") %>%
+  mutate(group = factor(group, levels = as.character(sort(as.numeric(group))))) %>%
+  ggplot(aes(x = estimate, y = group, xmin = conf.low, xmax = conf.high))+
+  geom_linerange()+
+  geom_point(size = 1.5)+
+  geom_vline(aes(xintercept = 0), linetype = "dashed")+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "ATT: Miete (€/m²)",
-       y = "Halbjahr: Erstes Treatments",
-       title = element_blank())
+  labs(y = "Halbjahr: Rel. zum ersten Treatment",
+       x = "ATT: Miete (€/m²)")
 ggsave("../Output/plots/did/plot_did_miete_agg_group.pdf", width = 3, height = 3, device = cairo_pdf)
 
 mod_miete_agg_calendar <- did::aggte(mod_miete, type = "calendar")
-ggdid(mod_miete_agg_calendar)+
+tidy(mod_miete_agg_calendar) %>%
+  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high))+
+  geom_linerange()+
+  geom_point(size = 1.5)+
+  geom_hline(aes(yintercept = 0), linetype = "dashed")+
+  #coord_cartesian(xlim = c(-6, 10))+
+  scale_x_continuous(breaks = seq(8, 17, 2))+
+  scale_y_continuous(breaks = seq(-1, 1, by = 0.5))+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "Halbjahr",
-       y = "ATT: Miete (€/m²)",
-       title = element_blank())
+  labs(x = "Halbjahr: Rel. zum ersten Treatment",
+       y = "ATT: Miete (€/m²)")
 ggsave("../Output/plots/did/plot_did_miete_agg_calendar.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
@@ -159,40 +173,54 @@ tidy(mod_kauf) %>%
   theme_bw()+
   theme(legend.position = "none")+
   labs(x = "Halbjahr",
-       y = "ATT: Kaufpreis (1000€)",
-       title = element_blank())
+       y = "ATT: Kaufpreis (1000€)")
 ggsave("../Output/plots/did/plot_did_kauf.pdf", width = 6, height = 4, device = cairo_pdf)
 
 mod_kauf_agg_dyn <- did::aggte(mod_kauf, type = "dynamic")
-ggdid(mod_kauf_agg_dyn)+
+tidy(mod_kauf_agg_dyn) %>%
+  mutate(is_treated = event.time >= 0) %>%
+  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
+  geom_linerange()+
+  geom_point(size = 1.5)+
+  geom_hline(aes(yintercept = 0), linetype = "dashed")+
   coord_cartesian(xlim = c(-6, 10))+
   scale_x_continuous(breaks = seq(-6, 10, 2))+
   scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "Halbjahr: Relativ zum ersten Treatment",
-       y = "ATT: Kaufpreis (1000€)",
-       title = element_blank())
+  labs(x = "Halbjahr: Rel. zum ersten Treatment",
+       y = "ATT: Kaufpreis (1000€)")
 ggsave("../Output/plots/did/plot_did_kauf_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
   
 mod_kauf_agg_group <- did::aggte(mod_kauf, type = "group")
-ggdid(mod_kauf_agg_group)+
+tidy(mod_kauf_agg_group) %>%
+  filter(group != "Average") %>%
+  mutate(group = factor(group, levels = as.character(sort(as.numeric(group))))) %>%
+  ggplot(aes(x = estimate, y = group, xmin = conf.low, xmax = conf.high))+
+  geom_linerange()+
+  geom_point(size = 1.5)+
+  geom_vline(aes(xintercept = 0), linetype = "dashed")+
   scale_x_continuous(labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "ATT: Kaufpreis (1000€)",
-       y = "Halbjahr: Erstes Treatments",
-       title = element_blank())
+  labs(y = "Halbjahr: Rel. zum ersten Treatment",
+       x = "ATT: Miete (€/m²)")
 ggsave("../Output/plots/did/plot_did_kauf_agg_group.pdf", width = 3, height = 3, device = cairo_pdf)
 
 mod_kauf_agg_calendar <- did::aggte(mod_kauf, type = "calendar")
-ggdid(mod_kauf_agg_calendar)+
-  scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
+tidy(mod_kauf_agg_calendar) %>%
+  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high))+
+  geom_linerange()+
+  geom_point(size = 1.5)+
+  geom_hline(aes(yintercept = 0), linetype = "dashed")+
+  #coord_cartesian(xlim = c(-6, 10))+
+  scale_x_continuous(breaks = seq(8, 17, 2))+
+  scale_y_continuous(breaks = seq(-150000, 150000, by = 75000),
+                     labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
   theme(legend.position = "none")+
   labs(x = "Halbjahr",
-       y = "ATT: Kaufpreis (1000€)",
-       title = element_blank())
+       y = "ATT: Kaufpreis (1000€)")
 ggsave("../Output/plots/did/plot_did_kauf_agg_calendar.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
@@ -271,7 +299,8 @@ models_räumlich_miete_agg_dyn_tidy %>%
   filter(event.time == 2) %>%
   select(model, name_clean, estimate, conf.low, conf.high) %>%
   ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
-  geom_pointrange()+
+  geom_point(size = 1.5)+
+  geom_linerange()+
   geom_vline(xintercept = 0, linetype = "dashed")+
   scale_x_continuous(breaks = seq(-2, 2, by = 0.5))+
   theme_bw()+
@@ -354,7 +383,8 @@ models_räumlich_kauf_agg_dyn_tidy %>%
   filter(event.time == 2) %>%
   select(model, name_clean, estimate, conf.low, conf.high) %>%
   ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
-  geom_pointrange()+
+  geom_point(size = 1.5)+
+  geom_linerange()+
   geom_vline(xintercept = 0, linetype = "dashed")+
   scale_x_continuous(breaks = seq(-60000, 60000, by = 20000), labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
@@ -443,7 +473,8 @@ models_miete_agg_dyn_tidy %>%
   filter(event.time == 2) %>%
   select(model, name_clean, estimate, conf.low, conf.high) %>%
   ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
-  geom_pointrange()+
+  geom_point(size = 1.5)+
+  geom_linerange()+
   geom_vline(xintercept = 0, linetype = "dashed")+
   scale_x_continuous(breaks = seq(-2, 2, by = 0.25))+
   theme_bw()+
@@ -530,7 +561,8 @@ models_kauf_agg_dyn_tidy %>%
   filter(event.time == 2) %>%
   select(model, name_clean, estimate, conf.low, conf.high) %>%
   ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
-  geom_pointrange()+
+  geom_point(size = 1.5)+
+  geom_linerange()+
   geom_vline(xintercept = 0, linetype = "dashed")+
   scale_x_continuous(breaks = seq(-60000, 60000, by = 20000), labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
