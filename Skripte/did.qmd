@@ -246,12 +246,12 @@ model_specs_subset_miete <- list(
   )
 )
 
-models_subset_miete <- model_specs_subset_miete %>%
+models_räumlich_miete <- model_specs_subset_miete %>%
   map(~ modifyList(base_params_subset_miete, .x)) %>%
   map(~do.call(att_gt, .x), .progress = TRUE)
 
 # Calculate dynamig aggregation
-models_subset_miete_agg_dyn_tidy <- models_subset_miete %>%
+models_räumlich_miete_agg_dyn_tidy <- models_räumlich_miete %>%
   purrr::map(
     ~did::aggte(.x, type = "dynamic"),
     .progress = TRUE
@@ -260,12 +260,12 @@ models_subset_miete_agg_dyn_tidy <- models_subset_miete %>%
   bind_rows(.id = "model")
 
 # Save results
-write_parquet(models_subset_miete_agg_dyn_tidy, "../Daten/Sonstige/models_subset_miete_agg_dyn_tidy.parquet")
-#models_subset_miete_agg_dyn_tidy <- read_parquet("../Daten/Sonstige/models_subset_miete_agg_dyn_tidy.parquet")
+write_parquet(models_räumlich_miete_agg_dyn_tidy, "../Daten/Sonstige/models_räumlich_miete_agg_dyn_tidy.parquet")
+#models_räumlich_miete_agg_dyn_tidy <- read_parquet("../Daten/Sonstige/models_räumlich_miete_agg_dyn_tidy.parquet")
 ```
 
 ```{r}
-models_subset_miete_agg_dyn_tidy %>%
+models_räumlich_miete_agg_dyn_tidy %>%
   mutate(number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
          name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)) %>%
   filter(event.time == 2) %>%
@@ -273,10 +273,12 @@ models_subset_miete_agg_dyn_tidy %>%
   ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
   geom_pointrange()+
   geom_vline(xintercept = 0, linetype = "dashed")+
-  scale_x_continuous(breaks = seq(-2, 2, by = 0.25))+
+  scale_x_continuous(breaks = seq(-2, 2, by = 0.5))+
   theme_bw()+
   labs(x = "ATT(g, g+2): Miete (€/m²)",
        y = "Modell")
+
+ggsave("../Output/plots/did/plot_did_räumliche_miete.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 ## Kauf
@@ -309,7 +311,7 @@ model_specs_subset_kauf <- list(
   ),
   model3 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name %in% c("Großstadt")),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + eigentuemerquote
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + eigentuemerquote # + einkommen + einkommen_delta wegen Singularität
   ),
   model4 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name %in% c("Mittelstadt")),
@@ -327,12 +329,12 @@ model_specs_subset_kauf <- list(
   )
 )
 
-models_subset_kauf <- model_specs_subset_kauf %>%
+models_räumlich_kauf <- model_specs_subset_kauf %>%
   map(~ modifyList(base_params_subset_kauf, .x)) %>%
   map(~do.call(att_gt, .x), .progress = TRUE)
 
 # Calculate dynamig aggregation
-models_subset_kauf_agg_dyn_tidy <- models_subset_kauf %>%
+models_räumlich_kauf_agg_dyn_tidy <- models_räumlich_kauf %>%
   purrr::map(
     ~did::aggte(.x, type = "dynamic"),
     .progress = TRUE
@@ -341,12 +343,12 @@ models_subset_kauf_agg_dyn_tidy <- models_subset_kauf %>%
   bind_rows(.id = "model")
 
 # Save results
-write_parquet(models_subset_kauf_agg_dyn_tidy, "../Daten/Sonstige/models_subset_kauf_agg_dyn_tidy.parquet")
-#models_subset_kauf_agg_dyn_tidy <- read_parquet("../Daten/Sonstige/models_subset_kauf_agg_dyn_tidy.parquet")
+write_parquet(models_räumlich_kauf_agg_dyn_tidy, "../Daten/Sonstige/models_räumlich_kauf_agg_dyn_tidy.parquet")
+#models_räumlich_kauf_agg_dyn_tidy <- read_parquet("../Daten/Sonstige/models_räumlich_kauf_agg_dyn_tidy.parquet")
 ```
 
 ```{r}
-models_subset_kauf_agg_dyn_tidy %>%
+models_räumlich_kauf_agg_dyn_tidy %>%
   mutate(number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
          name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)) %>%
   filter(event.time == 2) %>%
@@ -354,10 +356,12 @@ models_subset_kauf_agg_dyn_tidy %>%
   ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
   geom_pointrange()+
   geom_vline(xintercept = 0, linetype = "dashed")+
-  #scale_x_continuous(breaks = seq(-2, 2, by = 0.25))+
+  scale_x_continuous(breaks = seq(-60000, 60000, by = 20000), labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
-  labs(x = "ATT(g, g+2): Kaufpreis (€)",
+  labs(x = "ATT(g, g+2): Kaufpreis (1000€)",
        y = "Modell")
+
+ggsave("../Output/plots/did/plot_did_räumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 # Alternativ Modellspezifikationen
@@ -441,6 +445,7 @@ models_miete_agg_dyn_tidy %>%
   ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
   geom_pointrange()+
   geom_vline(xintercept = 0, linetype = "dashed")+
+  scale_x_continuous(breaks = seq(-2, 2, by = 0.25))+
   theme_bw()+
   labs(x = "ATT(g, g+2): Miete (€/m²)",
        y = "Modell")
@@ -527,8 +532,9 @@ models_kauf_agg_dyn_tidy %>%
   ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
   geom_pointrange()+
   geom_vline(xintercept = 0, linetype = "dashed")+
+  scale_x_continuous(breaks = seq(-60000, 60000, by = 20000), labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
-  labs(x = "ATT(g, g+2): Kaufpreis (€)",
+  labs(x = "ATT(g, g+2): Kaufpreis (1000€)",
        y = "Modell")
 
 ggsave("../Output/plots/did/plot_did_alternative_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
