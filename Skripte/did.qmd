@@ -845,3 +845,94 @@ ggsave("../Output/plots/did/plot_did_simulation_agg_dyn_small_honest.pdf", width
 
 Beobachtung: HonestDiD kann (bei relative magnitude) nur sinnvolle Ergebnisse geben, wenn die Ergebnisse der dynamic aggregation (bei dem e) auch statistisch signifikante Ergebnisse hat.
 Beispiel: Bei einer kleinen Stichprobe (kleines `n_ids`) und einem niedrigen `treatment_multiplier` (nahe 1) und `treatment_jump` (nahe Null) findet `aggte(cs21, type = "dynamic")` keine signifikanten Ergebnisse. Und dann gibt es auch kein interessantes "breakdown" $\bar{M}$. Interessant wird es dann, wenn bei einer relativ kleinen Stichprobe der `treatment_multiplier` oder `treatment_jump` so gewählt werden, dass die Ergebnisse von `aggte()` nur knapp signifikant sind.
+
+# Test mit `staggered`
+
+Package nach Roth and Sant'Anna (2023), [arXiv](https://arxiv.org/abs/2102.01291v7) und [GitHub](https://github.com/jonathandroth/staggered)
+
+```{r}
+library(staggered)
+```
+
+Einzelne Werte, demnach wäre beim Kauf ein Preiszuwachs statistisch signifikant, bei Miete aber nicht.
+
+```{r}
+data_miete_complete %>%
+  #filter(n_cell_date > 0) %>%
+  staggered(df = .,
+            i = "xy_mp",
+            t = "date_pseudo_halbjahr",
+            g = "got_fiber_date_pseudo_halbjahr",
+            y = "mean_mietekalt_m2",
+            estimand = "cohort") %>% # simple cohort calendar eventstudy
+  mutate(conf.low = estimate-1.96*se,
+         conf.high = estimate+1.96*se,
+         is_significant = sign(conf.low) == sign(conf.high))
+
+data_kauf_complete %>%
+  #filter(n_cell_date > 0) %>%
+  staggered(df = .,
+            i = "xy_mp",
+            t = "date_pseudo_halbjahr",
+            g = "got_fiber_date_pseudo_halbjahr",
+            y = "mean_kaufpreis",
+            estimand = "cohort") %>%
+  mutate(conf.low = estimate-1.96*se,
+         conf.high = estimate+1.96*se,
+         is_significant = sign(conf.low) == sign(conf.high))
+```
+
+```{r}
+data_kauf_complete %>%
+  #filter(n_cell_date > 0) %>%
+  staggered(df = .,
+            i = "xy_mp",
+            t = "date_pseudo_halbjahr",
+            g = "got_fiber_date_pseudo_halbjahr",
+            y = "mean_kaufpreis",
+            estimand = "eventstudy",
+            eventTime = -6:8) %>%
+  ggplot(aes(x = eventTime, y = estimate, ymin = estimate-1.96*se, ymax = estimate+1.96*se))+
+  geom_linerange()+
+  geom_point(size = 1.5)+
+  geom_hline(aes(yintercept = 0), linetype = "dashed")+
+  theme_bw()+
+  theme(legend.position = "none")+
+  labs(x = "Zeit",
+       y = "ATT",
+       title = element_blank())
+
+data_miete_complete %>%
+  #filter(n_cell_date > 0) %>%
+  staggered(df = .,
+            i = "xy_mp",
+            t = "date_pseudo_halbjahr",
+            g = "got_fiber_date_pseudo_halbjahr",
+            y = "mean_mietekalt_m2",
+            estimand = "eventstudy",
+            eventTime = -6:6) %>%
+  ggplot(aes(x = eventTime, y = estimate, ymin = estimate-1.96*se, ymax = estimate+1.96*se))+
+  geom_linerange()+
+  geom_point(size = 1.5)+
+  geom_hline(aes(yintercept = 0), linetype = "dashed")+
+  theme_bw()+
+  theme(legend.position = "none")+
+  labs(x = "Zeit",
+       y = "ATT",
+       title = element_blank())
+```
+
+Nochmal das gleiche, aber über das `did2s` Package
+
+```{r}
+did2s_staggered <- did2s::event_study(
+  yname         = "mean_kaufpreis",
+  tname         = "date_pseudo_halbjahr",
+  idname        = "xy_mp",
+  gname         = "got_fiber_date_pseudo_halbjahr",
+  data          = data_kauf_complete,
+  estimator = c("staggered") # TWFE
+)
+
+did2s::plot_event_study(did2s_staggered)
+```
