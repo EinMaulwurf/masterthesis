@@ -307,7 +307,7 @@ models_räumlich_miete_agg_dyn_tidy %>%
   labs(x = "ATT(g, g+2): Miete (€/m²)",
        y = "Modell")
 
-ggsave("../Output/plots/did/plot_did_räumliche_miete.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("../Output/plots/did/plot_did_räumlich_miete.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 ## Kauf
