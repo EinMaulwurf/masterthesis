@@ -80,8 +80,8 @@ tidy(mod_miete) %>%
   #scale_x_continuous(breaks = 1:20)+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "Halbjahr",
-       y = "ATT: Miete (€/m²)")
+  labs(x = latex2exp::TeX("Halbjahr ($t$)"),
+       y = latex2exp::TeX("$ATT(g,t)$: Miete (€/m²)"))
 ggsave("../Output/plots/did/plot_did_miete.pdf", width = 6, height = 4, device = cairo_pdf)
 
 mod_miete_agg_dyn <- did::aggte(mod_miete, type = "dynamic")
@@ -95,22 +95,22 @@ tidy(mod_miete_agg_dyn) %>%
   scale_x_continuous(breaks = seq(-6, 10, 2))+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "Halbjahr: Rel. zum ersten Treatment",
-       y = "ATT: Miete (€/m²)")
+  labs(x = latex2exp::TeX("Halbjahr rel. ($e$)"),
+       y = latex2exp::TeX("$ATT_{dyn}(e)$: Miete (€/m²)"))
 ggsave("../Output/plots/did/plot_did_miete_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
   
-mod_miete_agg_group <- did::aggte(mod_miete, type = "group")
+mod_miete_agg_group <- did::aggte(mod_miete, type = "group", max_e = 4)
 tidy(mod_miete_agg_group) %>%
   filter(group != "Average") %>%
   mutate(group = factor(group, levels = as.character(sort(as.numeric(group))))) %>%
-  ggplot(aes(x = estimate, y = group, xmin = conf.low, xmax = conf.high))+
+  ggplot(aes(y = estimate, x = group, ymin = conf.low, ymax = conf.high))+
   geom_linerange()+
   geom_point(size = 1.5)+
-  geom_vline(aes(xintercept = 0), linetype = "dashed")+
+  geom_hline(aes(yintercept = 0), linetype = "dashed")+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(y = "Halbjahr: Rel. zum ersten Treatment",
-       x = "ATT: Miete (€/m²)")
+  labs(x = latex2exp::TeX("Gruppe ($\\tilde{g}$)"),
+       y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g}, e_{max})$: Miete (€/m²)"))
 ggsave("../Output/plots/did/plot_did_miete_agg_group.pdf", width = 3, height = 3, device = cairo_pdf)
 
 mod_miete_agg_calendar <- did::aggte(mod_miete, type = "calendar")
@@ -124,8 +124,8 @@ tidy(mod_miete_agg_calendar) %>%
   scale_y_continuous(breaks = seq(-1, 1, by = 0.5))+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "Halbjahr: Rel. zum ersten Treatment",
-       y = "ATT: Miete (€/m²)")
+  labs(x = latex2exp::TeX("Halbjahr ($\\tilde{t}$)"),
+       y = latex2exp::TeX("$ATT_{cal}(\\tilde{t})$: Miete (€/m²)"))
 ggsave("../Output/plots/did/plot_did_miete_agg_calendar.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
@@ -172,8 +172,8 @@ tidy(mod_kauf) %>%
   scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "Halbjahr",
-       y = "ATT: Kaufpreis (1000€)")
+  labs(x = latex2exp::TeX("Halbjahr ($t$)"),
+       y = latex2exp::TeX("$ATT(g,t)$: Kaufpreis (1000€)"))
 ggsave("../Output/plots/did/plot_did_kauf.pdf", width = 6, height = 4, device = cairo_pdf)
 
 mod_kauf_agg_dyn <- did::aggte(mod_kauf, type = "dynamic")
@@ -188,23 +188,23 @@ tidy(mod_kauf_agg_dyn) %>%
   scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "Halbjahr: Rel. zum ersten Treatment",
-       y = "ATT: Kaufpreis (1000€)")
+  labs(x = latex2exp::TeX("Halbjahr rel. ($e$)"),
+       y = latex2exp::TeX("$ATT_{dyn}(e)$: Kaufpreis (1000€)"))
 ggsave("../Output/plots/did/plot_did_kauf_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
   
-mod_kauf_agg_group <- did::aggte(mod_kauf, type = "group")
+mod_kauf_agg_group <- did::aggte(mod_kauf, type = "group", max_e = 4)
 tidy(mod_kauf_agg_group) %>%
   filter(group != "Average") %>%
   mutate(group = factor(group, levels = as.character(sort(as.numeric(group))))) %>%
-  ggplot(aes(x = estimate, y = group, xmin = conf.low, xmax = conf.high))+
+  ggplot(aes(y = estimate, x = group, ymin = conf.low, ymax = conf.high))+
   geom_linerange()+
   geom_point(size = 1.5)+
-  geom_vline(aes(xintercept = 0), linetype = "dashed")+
-  scale_x_continuous(labels = scales::label_number(scale = 1/1000))+
+  geom_hline(aes(yintercept = 0), linetype = "dashed")+
+  scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(y = "Halbjahr: Rel. zum ersten Treatment",
-       x = "ATT: Miete (€/m²)")
+  labs(x = latex2exp::TeX("Gruppe ($\\tilde{g}$)"),
+       y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g}, e_{max})$: Kaufpreis (1000€)"))
 ggsave("../Output/plots/did/plot_did_kauf_agg_group.pdf", width = 3, height = 3, device = cairo_pdf)
 
 mod_kauf_agg_calendar <- did::aggte(mod_kauf, type = "calendar")
@@ -219,8 +219,8 @@ tidy(mod_kauf_agg_calendar) %>%
                      labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "Halbjahr",
-       y = "ATT: Kaufpreis (1000€)")
+  labs(x = latex2exp::TeX("Halbjahr ($\\tilde{t}$)"),
+       y = latex2exp::TeX("$ATT_{cal}(\\tilde{t})$: Kaufpreis (1000€)"))
 ggsave("../Output/plots/did/plot_did_kauf_agg_calendar.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
@@ -304,7 +304,7 @@ models_räumlich_miete_agg_dyn_tidy %>%
   geom_vline(xintercept = 0, linetype = "dashed")+
   scale_x_continuous(breaks = seq(-2, 2, by = 0.5))+
   theme_bw()+
-  labs(x = "ATT(g, g+2): Miete (€/m²)",
+  labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Miete (€/m²)"),
        y = "Modell")
 
 ggsave("../Output/plots/did/plot_did_raeumlich_miete.pdf", width = 3, height = 3, device = cairo_pdf)
@@ -388,7 +388,7 @@ models_räumlich_kauf_agg_dyn_tidy %>%
   geom_vline(xintercept = 0, linetype = "dashed")+
   scale_x_continuous(breaks = seq(-60000, 60000, by = 20000), labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
-  labs(x = "ATT(g, g+2): Kaufpreis (1000€)",
+  labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Kaufpreis (1000€)"),
        y = "Modell")
 
 ggsave("../Output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
@@ -478,7 +478,7 @@ models_miete_agg_dyn_tidy %>%
   geom_vline(xintercept = 0, linetype = "dashed")+
   scale_x_continuous(breaks = seq(-2, 2, by = 0.25))+
   theme_bw()+
-  labs(x = "ATT(g, g+2): Miete (€/m²)",
+  labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Miete (€/m²)"),
        y = "Modell")
 
 ggsave("../Output/plots/did/plot_did_alternative_miete.pdf", width = 3, height = 3, device = cairo_pdf)
@@ -566,7 +566,7 @@ models_kauf_agg_dyn_tidy %>%
   geom_vline(xintercept = 0, linetype = "dashed")+
   scale_x_continuous(breaks = seq(-60000, 60000, by = 20000), labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
-  labs(x = "ATT(g, g+2): Kaufpreis (1000€)",
+  labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Kaufpreis (1000€)"),
        y = "Modell")
 
 ggsave("../Output/plots/did/plot_did_alternative_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
