@@ -68,8 +68,8 @@ tidy(dat_att) %>%
   scale_y_continuous(breaks = seq(0, 8, by = 2))+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "Zeit",
-       y = "ATT")
+  labs(x = latex2exp::TeX("Zeit ($t$)"),
+       y = latex2exp::TeX("$ATT(g,t)$"))
 ggsave("../Output/plots/did/plot_did_example_att.pdf", width = 4, height = 3, device = cairo_pdf)
 ```
 
@@ -88,8 +88,8 @@ dat_att %>%
   scale_color_manual(values = c("#2E8B8B", "#E67E22"))+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "Zeit",
-       y = "ATT")
+  labs(x = latex2exp::TeX("Zeit relativ ($e$)"),
+       y = latex2exp::TeX("$ATT_{dyn}(e)$"))
 ggsave("../Output/plots/did/plot_did_example_agg_dyn.pdf", width = 2, height = 3, device = cairo_pdf)
 
 dat_att %>%
@@ -97,15 +97,14 @@ dat_att %>%
   tidy() %>%
   filter(group != "Average") %>%
   mutate(group = factor(group, levels = as.character(sort(as.numeric(group))))) %>%
-  ggplot(aes(x = estimate, y = group, xmin = conf.low, xmax = conf.high))+
+  ggplot(aes(y = estimate, x = group, ymin = conf.low, ymax = conf.high))+
   geom_linerange()+
   geom_point(size = 1.5)+
-  geom_vline(aes(xintercept = 0), linetype = "dashed")+
+  geom_hline(aes(yintercept = 0), linetype = "dashed")+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "ATT",
-       y = "Gruppe",
-       title = element_blank())
+  labs(y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g},e_{max}=2)$"),
+       x = latex2exp::TeX("Gruppe ($\\tilde{g}$)"))
 ggsave("../Output/plots/did/plot_did_example_agg_group.pdf", width = 2, height = 3, device = cairo_pdf)
 
 dat_att %>%
@@ -117,9 +116,8 @@ dat_att %>%
   geom_hline(aes(yintercept = 0), linetype = "dashed")+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "Zeit",
-       y = "ATT",
-       title = element_blank())
+  labs(x = latex2exp::TeX("Zeit ($\\tilde{t}$)"),
+       y = latex2exp::TeX("$ATT_{cal}(\\tilde{t})$"))
 ggsave("../Output/plots/did/plot_did_example_agg_calendar.pdf", width = 2, height = 3, device = cairo_pdf)
 ```
 
