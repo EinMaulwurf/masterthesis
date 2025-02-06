@@ -123,7 +123,7 @@ dat_att %>%
 ggsave("../Output/plots/did/plot_did_example_agg_calendar.pdf", width = 2, height = 3, device = cairo_pdf)
 ```
 
-# p-values in CS21
+# p-values in CS21, großer Datensatz
 
 Um rauszufinden, wie sensibel der Wald-Test für die Pretrends und `honestDiD` sind, hier eine Simulation mit einem synthetischen Datensatz.
 
@@ -166,7 +166,7 @@ dat %>%
   scale_x_continuous(breaks = 1:10)+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(x = "Zeit", y = "Zielgröße", color = element_blank(), title = element_blank())
+  labs(x = "Zeit", y = "Zielgröße", color = element_blank())
 ggsave("../Output/plots/did/plot_did_simulation.pdf", width = 3, height = 3, device = cairo_pdf)
 
 cs21_agg_dyn %>% 
@@ -221,11 +221,85 @@ createSensitivityPlot_relativeMagnitudes(cs21_agg_dyn_honest_rel$robust_ci,
   geom_hline(yintercept = 0, linetype = "dashed")+
   theme_bw()+
   theme(legend.position = "none")+
-  labs(y = "ATT",
-       title = element_blank())
+  labs(y = "ATT")
 ggsave("../Output/plots/did/plot_did_simulation_agg_dyn_honest.pdf", width = 5, height = 2.5, device = cairo_pdf)
 ```
 
 Beobachtung: HonestDiD kann (bei relative magnitude) nur sinnvolle Ergebnisse geben, wenn die Ergebnisse der dynamic aggregation (bei dem e) auch statistisch signifikante Ergebnisse hat.
 Beispiel: Bei einer kleinen Stichprobe (kleines `n_ids`) und einem niedrigen `treatment_multiplier` (nahe 1) und `treatment_jump` (nahe Null) findet `aggte(cs21, type = "dynamic")` keine signifikanten Ergebnisse. Und dann gibt es auch kein interessantes "breakdown" $\bar{M}$. Interessant wird es dann, wenn bei einer relativ kleinen Stichprobe der `treatment_multiplier` oder `treatment_jump` so gewählt werden, dass die Ergebnisse von `aggte()` nur knapp signifikant sind.
 
+# Simulation kleiner Datensatz
+
+```{r}
+dat_small <- simulate_panel(n_ids = 100, n_time = 10, base_slopes = c(1.2,1),
+                            treatment_percentage = 0.2,
+                            treatment_groups = tibble(group = 1, 
+                                                      treatment_time = 5, 
+                                                      treatment_multiplier = 2, 
+                                                      treatment_jump = 0),
+                            seed = 1
+                            )
+
+cs21_small = att_gt(
+  yname         = "y",
+  tname         = "time",
+  idname        = "id",
+  gname         = "first_treat",
+  control_group = "nevertreated",
+  clustervars   = "id", 
+  data          = dat_small,
+  base_period   = "universal"
+  )
+cs21_small$Wpval
+
+cs21_small_agg_dyn <- aggte(cs21_small, type = "dynamic", min_e = -5, max_e = 5)
+```
+
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+
+cs21_small_agg_dyn %>% 
+  tidy() %>%
+  mutate(is_treated = event.time >= 0) %>%
+  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
+  geom_linerange()+
+  geom_point(size = 1.5)+
+  geom_hline(aes(yintercept = 0), linetype = "dashed")+
+  #coord_cartesian(xlim = c(-6, 10))+
+  scale_x_continuous(breaks = seq(-4, 5, 1))+
+  theme_bw()+
+  theme(legend.position = "none")+
+  labs(x = latex2exp::TeX("Zeit relativ ($e$)"),
+       y = latex2exp::TeX("$ATT_{dyn}(e)$"))
+ggsave("../Output/plots/did/plot_did_simulation_small_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
+```
+
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+
+cs21_small_agg_dyn_honest_rel <- honest_did(es = cs21_small_agg_dyn,
+                          e = 1,
+                          type="relative_magnitude",
+                          Mbarvec = seq(from = 0, to = 2, by = 0.25),
+                          #monotonicityDirection = "increasing",
+                          method = "Conditional",
+                          #gridPoints = 5e3,
+                          #grid.ub = 1e2, grid.lb = -1e2
+                          )
+#cs21_small_agg_dyn_honest_rel
+
+# Drop 0 as that is not really allowed.
+cs21_small_agg_dyn_honest_rel$robust_ci <- cs21_small_agg_dyn_honest_rel$robust_ci[-1,]
+
+## -----------------------------------------------------------------------------
+createSensitivityPlot_relativeMagnitudes(cs21_small_agg_dyn_honest_rel$robust_ci,
+                                         cs21_small_agg_dyn_honest_rel$orig_ci,
+                                         add_xAxis = FALSE)+
+  geom_hline(yintercept = 0, linetype = "dashed")+
+  theme_bw()+
+  theme(legend.position = "none")+
+  labs(y = latex2exp::TeX("$ATT_{dyn}(e=1)$"))
+ggsave("../Output/plots/did/plot_did_simulation_small_agg_dyn_honest.pdf", width = 3, height = 3, device = cairo_pdf)
+```
