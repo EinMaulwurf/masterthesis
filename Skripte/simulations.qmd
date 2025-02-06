@@ -132,7 +132,7 @@ Was auffällt: Mit vielen Gruppen (Achtung, nicht Gruppen im Sinne von CS21) ist
 [Hier](https://chat.maulwurf.fun/share/rny9CO7eNsA-r35oMip_z) eine Erklärung von o1
 
 ```{r}
-dat <- simulate_panel(n_ids = 1000, n_time = 10, base_slopes = c(1.005,1),
+dat <- simulate_panel(n_ids = 100000, n_time = 10, base_slopes = c(1.01,1),
                       treatment_groups = tibble(group = 1, 
                                                 treatment_time = 5, 
                                                 treatment_multiplier = 2, 
@@ -160,7 +160,7 @@ cs21_agg_dyn <- aggte(cs21, type = "dynamic", min_e = -5, max_e = 5)
 #| fig-height: 3
 
 dat %>%
-  filter(id %in% c(1:3, 5000:5002)) %>%
+  filter(id %in% c(1:3, 50000:50002)) %>%
   ggplot(aes(x = time, y = y, color = as.factor(first_treat), group = as.factor(id)))+
   geom_line()+
   scale_x_continuous(breaks = 1:10)+
@@ -182,11 +182,14 @@ cs21_agg_dyn %>%
   theme(legend.position = "none")+
   labs(x = "Zeit (relativ)",
        y = "ATT")
-ggsave("../Output/plots/did/plot_did_simulation_agg_dyn_small.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("../Output/plots/did/plot_did_simulation_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 
 ```{r}
+#| fig-width: 5
+#| fig-height: 2.5
+
 # code for running honest_did
 # cs21_agg_dyn_honest_smooth <- honest_did(es = cs21_agg_dyn,
 #                            e = 1,
@@ -197,12 +200,15 @@ ggsave("../Output/plots/did/plot_did_simulation_agg_dyn_small.pdf", width = 3, h
 cs21_agg_dyn_honest_rel <- honest_did(es = cs21_agg_dyn,
                           e = 1,
                           type="relative_magnitude",
-                          Mbarvec = seq(from = 60, to = 70, length.out = 11),
-                          grid.ub = 10e3, grid.lb = -10e3, gridPoints = 10e4
+                          Mbarvec = seq(from = 24, to = 26, by = 0.25),
+                          #monotonicityDirection = "increasing",
+                          method = "Conditional",
+                          #gridPoints = 5e3,
+                          #grid.ub = 1e2, grid.lb = -1e2
                           )
 cs21_agg_dyn_honest_rel
 # Drop 0 as that is not really allowed.
-cs21_agg_dyn_honest_rel$robust_ci <- cs21_agg_dyn_honest_rel$robust_ci[-1,]
+#cs21_agg_dyn_honest_rel$robust_ci <- cs21_agg_dyn_honest_rel$robust_ci[-1,]
 
 ## -----------------------------------------------------------------------------
 # make sensitivity analysis plots
@@ -217,31 +223,9 @@ createSensitivityPlot_relativeMagnitudes(cs21_agg_dyn_honest_rel$robust_ci,
   theme(legend.position = "none")+
   labs(y = "ATT",
        title = element_blank())
-#ggsave("../Output/plots/did/plot_did_simulation_agg_dyn_small_honest.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("../Output/plots/did/plot_did_simulation_agg_dyn_honest.pdf", width = 5, height = 2.5, device = cairo_pdf)
 ```
 
 Beobachtung: HonestDiD kann (bei relative magnitude) nur sinnvolle Ergebnisse geben, wenn die Ergebnisse der dynamic aggregation (bei dem e) auch statistisch signifikante Ergebnisse hat.
 Beispiel: Bei einer kleinen Stichprobe (kleines `n_ids`) und einem niedrigen `treatment_multiplier` (nahe 1) und `treatment_jump` (nahe Null) findet `aggte(cs21, type = "dynamic")` keine signifikanten Ergebnisse. Und dann gibt es auch kein interessantes "breakdown" $\bar{M}$. Interessant wird es dann, wenn bei einer relativ kleinen Stichprobe der `treatment_multiplier` oder `treatment_jump` so gewählt werden, dass die Ergebnisse von `aggte()` nur knapp signifikant sind.
-
-```{r}
-es <- cs21_agg_dyn
-e <- 1
-
-es_inf_func <- es$inf.function$dynamic.inf.func.e
-
-# Recover variance-covariance matrix
-n <- nrow(es_inf_func)
-V <- t(es_inf_func) %*% es_inf_func / n / n
-
-referencePeriodIndex <- which(es$egt == -1)
-V    <- V[-referencePeriodIndex,-referencePeriodIndex]
-beta <- es$att.egt[-referencePeriodIndex]
-
-nperiods <- nrow(V)
-npre     <- sum(1*(es$egt < -1))
-npost    <- nperiods - npre
-baseVec1 <- basisVector(index=(e+1),size=npost)
-
-baseVec1 %*% beta
-```
 
