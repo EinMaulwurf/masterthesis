@@ -517,6 +517,7 @@ einkommen <- read_parquet("../Daten/Geodaten/Raster_1km_kreise_einkommen.parquet
 kreise %>%
   left_join(einkommen, by = "ars") %>%
   mutate(einkommen_cut = cut_number(einkommen, n = 4, dig.lab = 10)) %>%
+  st_simplify(dTolerance = 200) %>%
   ggplot()+
   geom_sf(aes(fill = einkommen_cut), color = NA)+
   scale_fill_viridis_d()+
@@ -530,6 +531,7 @@ ggsave("../Output/plots/karten/plot_deutschland_einkommen_2024.pdf", width = 3, 
 kreise %>%
   left_join(einkommen, by = "ars") %>%
   mutate(einkommen_delta_cut = cut_number(einkommen_delta, n = 4)) %>%
+  st_simplify(dTolerance = 200) %>%
   ggplot()+
   geom_sf(aes(fill = einkommen_delta_cut), color = NA)+
   scale_fill_viridis_d()+
@@ -729,6 +731,7 @@ breitband_1km_arrow %>%
 
 gemeinden %>%
   left_join(gemeinden_bbsr, by = join_by(ags == gem_kennziffer)) %>%
+  st_simplify(dTolerance = 100) %>%
   ggplot()+
   geom_sf(aes(fill = gemeindetyp_name), color = NA)+
   geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5)+
