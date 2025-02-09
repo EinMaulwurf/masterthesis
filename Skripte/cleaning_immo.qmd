@@ -63,10 +63,11 @@ data_kauf <- bind_rows(import_hk, import_wk) %>%
   # Filtern
   filter(ajahr >= 2016) %>%
   filter(!ergg_1km %in% c("-11", "-9")) %>%
-  filter(kaufpreis %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
-  #filter(dupID_gen %in% good_dupIDs) %>%
-  select(-dupID_gen) %>%
   drop_na(kaufpreis) %>%
+  filter(kaufpreis %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
+  filter(dupID_gen %in% c(0, 4, 5)) %>%
+  select(-dupID_gen) %>%
+  distinct(kaufpreis, plz, baujahr, wohnflaeche, zimmeranzahl, ajahr, ejahr, ergg_1km, .keep_all = TRUE) %>%
   # Abändern
   mutate(across(c("plz"), as.character)) %>%
   mutate(baujahr = if_else(baujahr > 1000, baujahr, NA),
@@ -74,7 +75,8 @@ data_kauf <- bind_rows(import_hk, import_wk) %>%
   mutate(x_mp = ergg_1km %>% str_extract("^\\d{4}") %>% as.numeric(),
          y_mp = ergg_1km %>% str_extract("\\d{4}$") %>% as.numeric(),
          x_mp = x_mp * 1000 + 500,
-         y_mp = y_mp * 1000 + 500) %>%
+         y_mp = y_mp * 1000 + 500,
+         .keep = "unused") %>%
   # fehlende PLZ hinzufügen
   left_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
   mutate(plz = coalesce(plz.x, plz.y),
@@ -121,11 +123,12 @@ data_miete <- bind_rows(import_hm, import_wm) %>%
   # Filtern
   filter(ajahr >= 2016) %>%
   filter(!ergg_1km %in% c("-11", "-9")) %>%
+  drop_na(mietekalt, wohnflaeche) %>%
   filter(mietekalt %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
   filter(wohnflaeche %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
-  #filter(dupID_gen %in% good_dupIDs) %>%
+  filter(dupID_gen %in% c(0, 4, 5)) %>%
   select(-dupID_gen) %>%
-  drop_na(mietekalt, wohnflaeche) %>%
+  distinct(mietekalt, wohnflaeche, plz, baujahr, wohnflaeche, zimmeranzahl, ajahr, ejahr, ergg_1km, .keep_all = TRUE) %>%
   # Abändern
   mutate(across(c("plz"), as.character)) %>%
   mutate(baujahr = if_else(baujahr > 1000, baujahr, NA),
