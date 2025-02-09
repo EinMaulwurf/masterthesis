@@ -394,6 +394,147 @@ models_räumlich_kauf_agg_dyn_tidy %>%
 ggsave("../Output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
+# Subset Gebäudetypen
+
+## Miete
+
+```{r}
+base_params_subset_gebäudetyp_miete <- list(
+  yname = "mean_mietekalt_m2",
+  tname = "date_pseudo_halbjahr",
+  idname = "xy_mp",
+  gname = "got_fiber_date_pseudo_halbjahr",
+  xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
+  weightsname = "anzahl_haushalte",
+  anticipation = 0,
+  control_group = "notyettreated",
+  est_method = "dr",
+  base_period = "varying",
+  clustervars = c("xy_mp", "plz"),
+  pl = TRUE,
+  cores = 6,
+  allow_unbalanced_panel = TRUE
+)
+
+model_specs_subset_gebäudetyp_miete <- list(
+  model1 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0)
+  ),
+  model2 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0, anteil_efh > 0.9)
+  ),
+  model3 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0, anteil_efh <= 0.9)
+  )
+)
+
+
+models_gebäudetyp_miete <- model_specs_subset_gebäudetyp_miete %>%
+  map(~ modifyList(base_params_subset_gebäudetyp_miete, .x)) %>%
+  map(~do.call(att_gt, .x), .progress = TRUE)
+
+# Calculate dynamig aggregation
+models_gebäudetyp_miete_agg_dyn_tidy <- models_gebäudetyp_miete %>%
+  purrr::map(
+    ~did::aggte(.x, type = "dynamic"),
+    .progress = TRUE
+  ) %>%
+  map(tidy) %>%
+  bind_rows(.id = "model")
+
+# Save results
+write_parquet(models_gebäudetyp_miete_agg_dyn_tidy, "../Daten/Sonstige/models_gebäudetyp_miete_agg_dyn_tidy.parquet")
+#models_räumlich_miete_agg_dyn_tidy <- read_parquet("../Daten/Sonstige/models_räumlich_miete_agg_dyn_tidy.parquet")
+```
+
+```{r}
+models_gebäudetyp_miete_agg_dyn_tidy %>%
+  mutate(number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
+         name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)) %>%
+  filter(event.time == 2) %>%
+  select(model, name_clean, estimate, conf.low, conf.high) %>%
+  ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
+  geom_point(size = 1.5)+
+  geom_linerange()+
+  geom_vline(xintercept = 0, linetype = "dashed")+
+  scale_x_continuous(breaks = seq(-60000, 60000, by = 20000), labels = scales::label_number(scale = 1/1000))+
+  theme_bw()+
+  labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Miete (€/m²)"),
+       y = "Modell")
+
+#ggsave("../Output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
+```
+
+## Kauf
+
+```{r}
+base_params_subset_gebäudetyp_kauf <- list(
+  yname = "mean_kaufpreis",
+  tname = "date_pseudo_halbjahr",
+  idname = "xy_mp",
+  gname = "got_fiber_date_pseudo_halbjahr",
+  xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
+  weightsname = "anzahl_haushalte",
+  anticipation = 0,
+  control_group = "notyettreated",
+  est_method = "dr",
+  base_period = "varying",
+  clustervars = c("xy_mp", "plz"),
+  pl = TRUE,
+  cores = 6,
+  allow_unbalanced_panel = TRUE
+)
+
+model_specs_subset_gebäudetyp_kauf <- list(
+  model1 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0)
+  ),
+  model2 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0, anteil_efh > 0.9)
+  ),
+  model3 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0, anteil_efh <= 0.9)
+  )
+)
+
+
+models_gebäudetyp_kauf <- model_specs_subset_gebäudetyp_kauf %>%
+  map(~ modifyList(base_params_subset_gebäudetyp_kauf, .x)) %>%
+  map(~do.call(att_gt, .x), .progress = TRUE)
+
+# Calculate dynamig aggregation
+models_gebäudetyp_kauf_agg_dyn_tidy <- models_gebäudetyp_kauf %>%
+  purrr::map(
+    ~did::aggte(.x, type = "dynamic"),
+    .progress = TRUE
+  ) %>%
+  map(tidy) %>%
+  bind_rows(.id = "model")
+
+# Save results
+write_parquet(models_gebäudetyp_kauf_agg_dyn_tidy, "../Daten/Sonstige/models_gebäudetyp_kauf_agg_dyn_tidy.parquet")
+#models_gebäudetyp_kauf_agg_dyn_tidy <- read_parquet("../Daten/Sonstige/models_gebäudetyp_kauf_agg_dyn_tidy.parquet")
+```
+
+```{r}
+models_gebäudetyp_kauf_agg_dyn_tidy %>%
+  mutate(number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
+         name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)) %>%
+  filter(event.time == 2) %>%
+  select(model, name_clean, estimate, conf.low, conf.high) %>%
+  ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
+  geom_point(size = 1.5)+
+  geom_linerange()+
+  geom_vline(xintercept = 0, linetype = "dashed")+
+  scale_x_continuous(breaks = seq(-60000, 60000, by = 20000), labels = scales::label_number(scale = 1/1000))+
+  theme_bw()+
+  labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Kaufpreis (1000€)"),
+       y = "Modell")
+
+#ggsave("../Output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
+```
+
+
 # Alternativ Modellspezifikationen
 
 ## Miete
