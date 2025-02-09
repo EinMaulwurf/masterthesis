@@ -125,6 +125,7 @@ cells_kreise_einkommen <- st_join(all_distinct_cells, kreise_einkommen) %>%
 cells_kreise_einkommen %>%
   write_parquet("../Daten/Geodaten/Raster_1km_kreise_einkommen.parquet")
 ```
+
 # PLZ Gebiete
 
 ```{r}
@@ -146,3 +147,70 @@ cells_plz <- st_join(all_distinct_cells, plz) %>%
 cells_plz %>%
   write_parquet("../Daten/Geodaten/Raster_1km_plz.parquet")
 ```
+
+# Zensus Gebäudetyp
+
+```{r}
+all_distinct_cells <- st_read("../Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
+                              query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
+                              as_tibble = TRUE, quiet = TRUE) %>%
+  st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
+
+gemeinden <- st_read("../Daten/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
+  st_transform(3035) %>%
+  janitor::clean_names() %>%
+  filter(geofaktor_gf == "mit Struktur Land") %>%
+  select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
+
+zensus_gebäudetyp <- readxl::read_xlsx("../Daten/Zensus/Regionaltabelle_Gebaeude_Wohnungen.xlsx", 
+                          sheet = "CSV-Gebäude", col_types = "text") %>%
+  janitor::clean_names() %>%
+  filter(regionalebene == "Gemeinde") %>%
+  select(ars = rs, name, gebäude_ges = gebaeudeart_sys_1, efh = gebtypbauweise_1, dhh = gebtypbauweise_2) %>%
+  mutate(across(gebäude_ges:dhh, as.numeric),
+         across(gebäude_ges:dhh, ~replace_na(.x, 0))) %>%
+  mutate(anteil_efh = (efh + dhh) / gebäude_ges) %>%
+  mutate(anteil_efh = pmin(anteil_efh, 1))
+
+zensus_gebäudetyp %>%
+  write_parquet("../Daten/Zensus/zensus_gebäudetypen.parquet")
+
+gemeinden_gebäudetypen <- zensus_gebäudetyp %>%
+  select(-name) %>%
+  left_join(gemeinden, by = "ars") %>%
+  st_as_sf()
+
+cells_gemeinden_gebäudetypen <- st_join(all_distinct_cells, gemeinden_gebäudetypen) %>%
+  st_drop_geometry() %>%
+  drop_na() %>%
+  select(x_mp, y_mp, ars, name, anteil_efh)
+
+cells_gemeinden_gebäudetypen %>%
+  write_parquet("../Daten/Geodaten/Raster_1km_gemeinden_gebäudetypen.parquet")
+```
+
+# Raster und PLZ
+
+Zum Bereinigen der Immo-Datensatzes werden fehlende PLZ basierend auf der Rasterzelle ersetzt
+
+```{r}
+all_distinct_cells <- st_read("../Daten/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
+                              query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
+                              as_tibble = TRUE, quiet = TRUE) %>%
+  st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
+
+plz <- st_read("../Daten/Geodaten/PLZ_Gebiete_9143106783908117499.gpkg",
+                    as_tibble = TRUE, quiet = TRUE) %>%
+  st_transform(3035) %>%
+  janitor::clean_names() %>%
+  select(plz)
+
+cells_plz <- st_join(all_distinct_cells, plz) %>%
+  st_drop_geometry() %>%
+  drop_na() %>%
+  select(x_mp, y_mp, plz)
+
+cells_plz %>%
+  write_parquet("../Daten/Geodaten/Raster_1km_plz.parquet")
+```
+
