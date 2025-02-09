@@ -32,6 +32,8 @@ col_kauf <- c(
   "kaufpreis", "plz", "baujahr", "wohnflaeche", "zimmeranzahl",
   "ajahr", "amonat", "ejahr", "emonat", "ergg_1km", "dupID_gen"
 )
+
+cells_plz <- read_parquet("../Daten/Geodaten/Raster_1km_plz.parquet")
 ```
 
 ```{r}
@@ -41,37 +43,23 @@ import_hk <- read_parquet("../Daten/RWI_GEO_REX/Daten_Kauf/HK_SUF_ohneText.parqu
   haven::zap_formats() %>%
   haven::zap_label() %>%
   haven::zap_missing() %>%
-  haven::zap_widths()
+  haven::zap_widths() %>%
+  mutate(typ = "Haus")
 
-import_hk_clean <- import_hk %>%
-  # Filtern
-  filter(ajahr >= 2016) %>%
-  filter(!ergg_1km %in% c("-11", "-9")) %>%
-  filter(kaufpreis %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
-  #filter(dupID_gen %in% good_dupIDs) %>%
-  select(-dupID_gen) %>%
-  drop_na(kaufpreis) %>%
-  # Abändern
-  mutate(across(c("plz"), as.character)) %>%
-  mutate(baujahr = if_else(baujahr > 1000, baujahr, NA),
-         plz = if_else(nchar(plz) == 5, plz, NA)) %>%
-  mutate(x_mp = ergg_1km %>% str_extract("^\\d{4}") %>% as.numeric(),
-         y_mp = ergg_1km %>% str_extract("\\d{4}$") %>% as.numeric(),
-         x_mp = x_mp * 1000 + 500,
-         y_mp = y_mp * 1000 + 500,
-         typ = "Haus")
-```
-
-```{r}
 import_wk <- read_parquet("../Daten/RWI_GEO_REX/Daten_Kauf/WK_SUF_ohneText.parquet",
                           col_select = all_of(col_kauf)) %>%
   haven::zap_labels() %>%
   haven::zap_formats() %>%
   haven::zap_label() %>%
   haven::zap_missing() %>%
-  haven::zap_widths()
+  haven::zap_widths() %>%
+  mutate(typ = "Wohnung")
+```
 
-import_wk_clean <- import_wk %>%
+Verbinden und bereinigen
+
+```{r}
+data_kauf <- bind_rows(import_hk, import_wk) %>%
   # Filtern
   filter(ajahr >= 2016) %>%
   filter(!ergg_1km %in% c("-11", "-9")) %>%
@@ -86,14 +74,12 @@ import_wk_clean <- import_wk %>%
   mutate(x_mp = ergg_1km %>% str_extract("^\\d{4}") %>% as.numeric(),
          y_mp = ergg_1km %>% str_extract("\\d{4}$") %>% as.numeric(),
          x_mp = x_mp * 1000 + 500,
-         y_mp = y_mp * 1000 + 500,
-         typ = "Wohnung")
-```
-
-Verbinden
-
-```{r}
-data_kauf <- bind_rows(import_hk_clean, import_wk_clean)
+         y_mp = y_mp * 1000 + 500) %>%
+  # fehlende PLZ hinzufügen
+  left_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
+  mutate(plz = coalesce(plz.x, plz.y),
+         .keep = "unused",
+         .before = baujahr)
 
 data_kauf %>%
   write_parquet("../Daten/RWI_GEO_REX/Daten_Kauf/data_kauf.parquet")
@@ -115,40 +101,23 @@ import_hm <- read_parquet("../Daten/RWI_GEO_REX/Daten_Miete/HM_SUF_ohneText.parq
   haven::zap_formats() %>%
   haven::zap_label() %>%
   haven::zap_missing() %>%
-  haven::zap_widths()
+  haven::zap_widths() %>%
+  mutate(typ = "Haus")
 
-import_hm_clean <- import_hm %>%
-  # Filtern
-  filter(ajahr >= 2016) %>%
-  filter(!ergg_1km %in% c("-11", "-9")) %>%
-  filter(mietekalt %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
-  filter(wohnflaeche %>% between(., quantile(., 0.01), quantile(., 0.99))) %>%
-  #filter(dupID_gen %in% good_dupIDs) %>%
-  select(-dupID_gen) %>%
-  drop_na(mietekalt, wohnflaeche) %>%
-  # Abändern
-  mutate(across(c("plz"), as.character)) %>%
-  mutate(baujahr = if_else(baujahr > 1000, baujahr, NA),
-         plz = if_else(nchar(plz) == 5, plz, NA)) %>%
-  mutate(mietekalt_m2 = mietekalt / wohnflaeche, .before = 1) %>%
-  select(-mietekalt) %>%
-  mutate(x_mp = ergg_1km %>% str_extract("^\\d{4}") %>% as.numeric(),
-         y_mp = ergg_1km %>% str_extract("\\d{4}$") %>% as.numeric(),
-         x_mp = x_mp * 1000 + 500,
-         y_mp = y_mp * 1000 + 500,
-         typ = "Haus")
-```
-
-```{r}
 import_wm <- read_parquet("../Daten/RWI_GEO_REX/Daten_Miete/WM_SUF_ohneText.parquet",
                           col_select = all_of(col_miete)) %>%
   haven::zap_labels() %>%
   haven::zap_formats() %>%
   haven::zap_label() %>%
   haven::zap_missing() %>%
-  haven::zap_widths()
+  haven::zap_widths() %>%
+  mutate(typ = "Wohnung")
+```
 
-import_wm_clean <- import_wm %>%
+Verbinden
+
+```{r}
+data_miete <- bind_rows(import_hm, import_wm) %>%
   # Filtern
   filter(ajahr >= 2016) %>%
   filter(!ergg_1km %in% c("-11", "-9")) %>%
@@ -166,14 +135,12 @@ import_wm_clean <- import_wm %>%
   mutate(x_mp = ergg_1km %>% str_extract("^\\d{4}") %>% as.numeric(),
          y_mp = ergg_1km %>% str_extract("\\d{4}$") %>% as.numeric(),
          x_mp = x_mp * 1000 + 500,
-         y_mp = y_mp * 1000 + 500,
-         typ = "Wohnung")
-```
-
-Verbinden
-
-```{r}
-data_miete <- bind_rows(import_hm_clean, import_wm_clean)
+         y_mp = y_mp * 1000 + 500) %>%
+  # fehlende PLZ hinzufügen
+  left_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
+  mutate(plz = coalesce(plz.x, plz.y),
+         .keep = "unused",
+         .before = baujahr)
 
 data_miete %>%
   write_parquet("../Daten/RWI_GEO_REX/Daten_Miete/data_miete.parquet")
@@ -231,6 +198,8 @@ cells_gemeinden_bbsr <- read_parquet("../Daten/Raumgliederung_BBSR/Raster_1km_ge
 
 cells_kreise_einkommen <- read_parquet("../Daten/Geodaten/Raster_1km_kreise_einkommen.parquet")
 
+cells_gemeinden_gebäudetypen <- read_parquet("../Daten/Geodaten/Raster_1km_gemeinden_gebäudetypen.parquet")
+
 cells_baujahr <- open_dataset("../Daten/Zensus/Gesamt/") %>%
   filter(typ == "1km") %>%
   select(x_mp, y_mp, vor1919:a2020undspaeter) %>%
@@ -255,7 +224,8 @@ erklärende_imp <- cells_zensus_sonst %>%
   full_join(cells_baujahr, by = join_by(x_mp, y_mp)) %>%
   full_join(cells_gemeinden_bbsr, by = join_by(x_mp, y_mp)) %>%
   full_join(cells_kreise_einkommen, by = join_by(x_mp, y_mp)) %>%
-  select(x_mp, y_mp, durchschnittsalter, anzahl_haushalte, insgesamt_gebaeude, eigentuemerquote, mode_baujahr, einkommen, einkommen_delta, gemeindetyp_name, gemeindetyp_differenziert_name) %>%
+  full_join(cells_gemeinden_gebäudetypen, by = join_by(x_mp, y_mp)) %>%
+  select(x_mp, y_mp, durchschnittsalter, anzahl_haushalte, insgesamt_gebaeude, anteil_efh, eigentuemerquote, mode_baujahr, einkommen, einkommen_delta, gemeindetyp_name, gemeindetyp_differenziert_name) %>%
   mutate(imputed = if_else(!complete.cases(.), TRUE, FALSE)) %>%
   #filter(!complete.cases(.)) %>%
   mice::mice(m = 1, maxit = 1,
