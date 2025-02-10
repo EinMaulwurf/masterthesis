@@ -125,7 +125,7 @@ breitband_1km_problems <- read_parquet("./data/processed/Breitbandatlas/Raster_1
 ## Zensusdaten
 
 ```{r}
-zensus_arrow <- open_dataset("./data/Zensus/Gesamt/")
+zensus_arrow <- open_dataset("./data/processed/Zensus/Gesamt/")
 ```
 
 # Funktion um Grid zu erstellen

@@ -203,7 +203,7 @@ cells_kreise_einkommen <- read_parquet("./data/processed/Geodaten/Raster_1km_kre
 
 cells_gemeinden_gebäudetypen <- read_parquet("./data/processed/Geodaten/Raster_1km_gemeinden_gebäudetypen.parquet")
 
-cells_baujahr <- open_dataset("./data/Zensus/Gesamt/") %>%
+cells_baujahr <- open_dataset("./data/processed/Zensus/Gesamt/") %>%
   filter(typ == "1km") %>%
   select(x_mp, y_mp, vor1919:a2020undspaeter) %>%
   to_duckdb() %>%
@@ -216,7 +216,7 @@ cells_baujahr <- open_dataset("./data/Zensus/Gesamt/") %>%
   mutate(mode_baujahr = fct_relevel(mode_baujahr, c("vor1919", "a1919bis1948", "a1949bis1978", "a1979bis1990", "a1991bis2000", "a2020undspaeter"))) %>%
   select(x_mp, y_mp, mode_baujahr)
 
-cells_zensus_sonst <- open_dataset("./data/Zensus/Gesamt/") %>%
+cells_zensus_sonst <- open_dataset("./data/processed/Zensus/Gesamt/") %>%
   filter(typ == "1km") %>%
   mutate(anzahl_haushalte = einwohner / durchschn_hh_groesse) %>%
   select(x_mp, y_mp, durchschnittsalter, anzahl_haushalte, insgesamt_gebaeude, eigentuemerquote) %>%

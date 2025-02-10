@@ -162,7 +162,7 @@ gemeinden <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem",
   filter(geofaktor_gf == "mit Struktur Land") %>%
   select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
 
-zensus_gebäudetyp <- readxl::read_xlsx("./data/Zensus/Regionaltabelle_Gebaeude_Wohnungen.xlsx", 
+zensus_gebäudetyp <- readxl::read_xlsx("./data/raw/Zensus/Regionaltabelle_Gebaeude_Wohnungen.xlsx", 
                           sheet = "CSV-Gebäude", col_types = "text") %>%
   janitor::clean_names() %>%
   filter(regionalebene == "Gemeinde") %>%
@@ -173,7 +173,7 @@ zensus_gebäudetyp <- readxl::read_xlsx("./data/Zensus/Regionaltabelle_Gebaeude_
   mutate(anteil_efh = pmin(anteil_efh, 1))
 
 zensus_gebäudetyp %>%
-  write_parquet("./data/Zensus/zensus_gebäudetypen.parquet")
+  write_parquet("./data/processed/Zensus/zensus_gebäudetypen.parquet")
 
 gemeinden_gebäudetypen <- zensus_gebäudetyp %>%
   select(-name) %>%
