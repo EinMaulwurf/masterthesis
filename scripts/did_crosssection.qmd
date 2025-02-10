@@ -24,7 +24,7 @@ library(broom)
 # Import & Verbinden
 
 ```{r}
-data_kauf <- read_parquet("./data/RWI_GEO_REDX/Daten_Kauf/data_kauf.parquet")
+data_kauf <- read_parquet("./data/RWI_GEO_RED/Daten_Kauf/data_kauf.parquet")
 
 erklärende_imp <- read_parquet("./data/Sonstige/erklärende_imp.parquet")
 

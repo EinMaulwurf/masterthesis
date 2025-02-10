@@ -25,8 +25,8 @@ source("./src/R/honest_did_helper.R")
 ```{r}
 dates_pseudo_halbjahr <- read_parquet("./data/dates_pseudo_halbjahr.parquet")
 
-data_miete_complete <- read_parquet("./data/RWI_GEO_REDX/Daten_Miete/data_miete_complete.parquet")
-data_kauf_complete <- read_parquet("./data/RWI_GEO_REDX/Daten_Kauf/data_kauf_complete.parquet")
+data_miete_complete <- read_parquet("./data/RWI_GEO_RED/Daten_Miete/data_miete_complete.parquet")
+data_kauf_complete <- read_parquet("./data/RWI_GEO_RED/Daten_Kauf/data_kauf_complete.parquet")
 ```
 
 # Bevorzugte Spezifikation
