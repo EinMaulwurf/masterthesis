@@ -56,7 +56,7 @@ gemeinden_bbsr %>%
 ```
 
 ```{r}
-all_distinct_cells <- st_read("./data/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
+all_distinct_cells <- st_read("./data/raw/Geodaten/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
@@ -95,7 +95,7 @@ cells_gemeinden_bbsr %>%
 Ich verwende Zahlen zum verfügbaren Einkommen auf Kreisebene. Stärker disaggregierte Zahlen konnte ich nicht finden. [Quelle](https://www.statistikportal.de/de/vgrdl/ergebnisse-kreisebene/einkommen-kreise)
 
 ```{r}
-all_distinct_cells <- st_read("./data/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
+all_distinct_cells <- st_read("./data/raw/Geodaten/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
@@ -129,7 +129,7 @@ cells_kreise_einkommen %>%
 # PLZ Gebiete
 
 ```{r}
-all_distinct_cells <- st_read("./data/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
+all_distinct_cells <- st_read("./data/raw/Geodaten/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
@@ -151,7 +151,7 @@ cells_plz %>%
 # Zensus Gebäudetyp
 
 ```{r}
-all_distinct_cells <- st_read("./data/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
+all_distinct_cells <- st_read("./data/raw/Geodaten/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
@@ -194,7 +194,7 @@ cells_gemeinden_gebäudetypen %>%
 Zum Bereinigen der Immo-Datensatzes werden fehlende PLZ basierend auf der Rasterzelle ersetzt
 
 ```{r}
-all_distinct_cells <- st_read("./data/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
+all_distinct_cells <- st_read("./data/raw/Geodaten/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
