@@ -445,7 +445,7 @@ Zellen mit vollständigem Panel bei den Kauf/Miet Daten
 stadt_beispiel_1_bbox <- get_stadt("Runkel") %>% st_bbox()
 stadt_beispiel_2_bbox <- get_stadt("Darmstadt") %>% st_bbox()
 
-read_parquet("./data/data_miete_complete.parquet") %>%
+read_parquet("./data/processed/RWI_GEO_RED/data_miete_complete.parquet") %>%
   group_by(x_mp, y_mp) %>%
   summarise(is_complete = sum(n_cell_date == 0) <= 0,
             .groups = "drop") %>%
@@ -460,7 +460,7 @@ read_parquet("./data/data_miete_complete.parquet") %>%
   theme_void()+
   theme(legend.position = "right")
 
-read_parquet("./data/data_miete_complete.parquet") %>%
+read_parquet("./data/processed/RWI_GEO_RED/data_miete_complete.parquet") %>%
   group_by(x_mp, y_mp) %>%
   summarise(is_complete = sum(n_cell_date == 0) <= 0,
             .groups = "drop") %>%

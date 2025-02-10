@@ -37,7 +37,7 @@ cells_plz <- read_parquet("./data/processed/Geodaten/Raster_1km_plz.parquet")
 ```
 
 ```{r}
-import_hk <- read_parquet("./data/RWI_GEO_RED/Daten_Kauf/HK_SUF_ohneText.parquet",
+import_hk <- read_parquet("./data/raw/RWI_GEO_RED/Daten_Kauf/HK_SUF_ohneText.parquet",
                           col_select = all_of(col_kauf)) %>%
   haven::zap_labels() %>%
   haven::zap_formats() %>%
@@ -46,7 +46,7 @@ import_hk <- read_parquet("./data/RWI_GEO_RED/Daten_Kauf/HK_SUF_ohneText.parquet
   haven::zap_widths() %>%
   mutate(typ = "Haus")
 
-import_wk <- read_parquet("./data/RWI_GEO_RED/Daten_Kauf/WK_SUF_ohneText.parquet",
+import_wk <- read_parquet("./data/raw/RWI_GEO_RED/Daten_Kauf/WK_SUF_ohneText.parquet",
                           col_select = all_of(col_kauf)) %>%
   haven::zap_labels() %>%
   haven::zap_formats() %>%
@@ -84,7 +84,7 @@ data_kauf <- bind_rows(import_hk, import_wk) %>%
          .before = baujahr)
 
 data_kauf %>%
-  write_parquet("./data/RWI_GEO_RED/Daten_Kauf/data_kauf.parquet")
+  write_parquet("./data/processed/RWI_GEO_RED/data_kauf.parquet")
 ```
 
 ## Miete
@@ -97,7 +97,7 @@ col_miete <- c(
 ```
 
 ```{r}
-import_hm <- read_parquet("./data/RWI_GEO_RED/Daten_Miete/HM_SUF_ohneText.parquet",
+import_hm <- read_parquet("./data/raw/RWI_GEO_RED/Daten_Miete/HM_SUF_ohneText.parquet",
                           col_select = all_of(col_miete)) %>%
   haven::zap_labels() %>%
   haven::zap_formats() %>%
@@ -106,7 +106,7 @@ import_hm <- read_parquet("./data/RWI_GEO_RED/Daten_Miete/HM_SUF_ohneText.parque
   haven::zap_widths() %>%
   mutate(typ = "Haus")
 
-import_wm <- read_parquet("./data/RWI_GEO_RED/Daten_Miete/WM_SUF_ohneText.parquet",
+import_wm <- read_parquet("./data/raw/RWI_GEO_RED/Daten_Miete/WM_SUF_ohneText.parquet",
                           col_select = all_of(col_miete)) %>%
   haven::zap_labels() %>%
   haven::zap_formats() %>%
@@ -146,7 +146,7 @@ data_miete <- bind_rows(import_hm, import_wm) %>%
          .before = baujahr)
 
 data_miete %>%
-  write_parquet("./data/RWI_GEO_RED/Daten_Miete/data_miete.parquet")
+  write_parquet("./data/processed/RWI_GEO_RED/data_miete.parquet")
 ```
 
 # Imputieren und Ergänzen
@@ -238,7 +238,7 @@ erklärende_imp <- cells_zensus_sonst %>%
   as_tibble()
 
 erklärende_imp %>%
-  write_parquet("./data/Sonstige/erklärende_imp.parquet")
+  write_parquet("./data/processed/Sonstige/erklärende_imp.parquet")
 ```
 
 ## Kauf
@@ -247,7 +247,7 @@ Hier werden die Kauf-Daten zu einem Index auf Rasterebene aggregiert. Im Idealfa
 
 ```{r}
 # Einlesen
-data_kauf <- read_parquet("./data/RWI_GEO_RED/Daten_Kauf/data_kauf.parquet")
+data_kauf <- read_parquet("./data/processed/RWI_GEO_RED/data_kauf.parquet")
 
 # Imputieren, insb. das Baujahr
 data_kauf_imp <- data_kauf %>%
@@ -286,7 +286,7 @@ data_kauf_complete <- data_kauf_imp %>%
          got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))
 
 data_kauf_complete %>%
-  write_parquet("./data/RWI_GEO_RED/Daten_Kauf/data_kauf_complete.parquet")
+  write_parquet("./data/processed/RWI_GEO_RED/data_kauf_complete.parquet")
 ```
 
 ## Miete
@@ -295,7 +295,7 @@ Analog zu den Kauf-Daten.
 
 ```{r}
 # Einlesen
-data_miete <- read_parquet("./data/RWI_GEO_RED/Daten_Miete/data_miete.parquet")
+data_miete <- read_parquet("./data/processed/RWI_GEO_RED/data_miete.parquet")
 
 # Imputieren, insb. das Baujahr
 data_miete_imp <- data_miete %>%
@@ -334,5 +334,5 @@ data_miete_complete <- data_miete_imp %>%
          got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))
 
 data_miete_complete %>%
-  write_parquet("./data/RWI_GEO_RED/Daten_Miete/data_miete_complete.parquet")
+  write_parquet("./data/processed/RWI_GEO_RED/data_miete_complete.parquet")
 ```

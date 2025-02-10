@@ -106,7 +106,7 @@ kreise <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_krs", as
   filter(geofaktor_gf == "mit Struktur Land") %>%
   select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
 
-kreise_einkommen <- readxl::read_xlsx("./data/Geodaten//vgrdl_r2b3_bs2023.xlsx", sheet = "2.4", skip = 4) %>%
+kreise_einkommen <- readxl::read_xlsx("./data/raw/Sonstige/vgrdl_r2b3_bs2023.xlsx", sheet = "2.4", skip = 4) %>%
   janitor::clean_names() %>%
   drop_na(lfd_nr) %>%
   filter(nuts_3 == 3) %>%
