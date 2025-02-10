@@ -180,7 +180,7 @@ dates_pseudo_halbjahr <- tibble(date = seq(
   fill(date_pseudo_halbjahr, .direction = "down")
 
 dates_pseudo_halbjahr %>%
-  write_parquet("./data/dates_pseudo_halbjahr.parquet")
+  write_parquet("./data/processed/Sonstige/dates_pseudo_halbjahr.parquet")
 ```
 
 ## Erklärende Variablen
