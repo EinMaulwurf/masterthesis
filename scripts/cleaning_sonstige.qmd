@@ -61,7 +61,7 @@ all_distinct_cells <- st_read("./data/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
 
-gemeinden <- st_read("./data/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
+gemeinden <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
   filter(geofaktor_gf == "mit Struktur Land") %>%
@@ -100,7 +100,7 @@ all_distinct_cells <- st_read("./data/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
 
-kreise <- st_read("./data/Geodaten/DE_VG250.gpkg", layer = "v_vg250_krs", as_tibble = TRUE) %>%
+kreise <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_krs", as_tibble = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
   filter(geofaktor_gf == "mit Struktur Land") %>%
@@ -123,7 +123,7 @@ cells_kreise_einkommen <- st_join(all_distinct_cells, kreise_einkommen) %>%
   select(x_mp, y_mp, ars, name, einkommen, einkommen_delta)
 
 cells_kreise_einkommen %>%
-  write_parquet("./data/Geodaten/Raster_1km_kreise_einkommen.parquet")
+  write_parquet("./data/processed/Geodaten/Raster_1km_kreise_einkommen.parquet")
 ```
 
 # PLZ Gebiete
@@ -134,7 +134,7 @@ all_distinct_cells <- st_read("./data/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
 
-plz <- st_read("./data/Geodaten/PLZ_Gebiete_9143106783908117499.gpkg",
+plz <- st_read("./data/raw/Geodaten/PLZ_Gebiete_9143106783908117499.gpkg",
                     as_tibble = TRUE, quiet = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
@@ -145,7 +145,7 @@ cells_plz <- st_join(all_distinct_cells, plz) %>%
   drop_na()
 
 cells_plz %>%
-  write_parquet("./data/Geodaten/Raster_1km_plz.parquet")
+  write_parquet("./data/processed/Geodaten/Raster_1km_plz.parquet")
 ```
 
 # Zensus Gebäudetyp
@@ -156,7 +156,7 @@ all_distinct_cells <- st_read("./data/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
 
-gemeinden <- st_read("./data/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
+gemeinden <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
   filter(geofaktor_gf == "mit Struktur Land") %>%
@@ -186,7 +186,7 @@ cells_gemeinden_gebäudetypen <- st_join(all_distinct_cells, gemeinden_gebäudet
   select(x_mp, y_mp, ars, name, anteil_efh)
 
 cells_gemeinden_gebäudetypen %>%
-  write_parquet("./data/Geodaten/Raster_1km_gemeinden_gebäudetypen.parquet")
+  write_parquet("./data/processed/Geodaten/Raster_1km_gemeinden_gebäudetypen.parquet")
 ```
 
 # Raster und PLZ
@@ -199,7 +199,7 @@ all_distinct_cells <- st_read("./data/LAEA_Grid/DE_Grid_ETRS89-LAEA_1km.gpkg",
                               as_tibble = TRUE, quiet = TRUE) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
 
-plz <- st_read("./data/Geodaten/PLZ_Gebiete_9143106783908117499.gpkg",
+plz <- st_read("./data/raw/Geodaten/PLZ_Gebiete_9143106783908117499.gpkg",
                     as_tibble = TRUE, quiet = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
@@ -211,6 +211,6 @@ cells_plz <- st_join(all_distinct_cells, plz) %>%
   select(x_mp, y_mp, plz)
 
 cells_plz %>%
-  write_parquet("./data/Geodaten/Raster_1km_plz.parquet")
+  write_parquet("./data/processed/Geodaten/Raster_1km_plz.parquet")
 ```
 

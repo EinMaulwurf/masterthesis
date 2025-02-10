@@ -43,27 +43,27 @@ repmis::LoadandCite(
 Ich verwende nicht die Geodaten von GISCO, da diese aus dem Jahr 2016 sind und es seit dem wohl einige Änderungen bei Gemeinden, insbesondere in Thüringen gegeben hat. Das gab Probleme mit den Daten zur Raumgliederung vom BBSR. Daher lade ich hier die [Daten](https://gdz.bkg.bund.de/index.php/default/digitale-geodaten/verwaltungsgebiete/verwaltungsgebiete-1-250-000-mit-einwohnerzahlen-stand-31-12-vg250-ew-31-12.html) vom Bundesamt für Kartographie und Geodäsie mit Stand 31.12.2023
 
 ```{r}
-st_layers("./data/Geodaten/DE_VG250.gpkg")
+st_layers("./data/raw/Geodaten/DE_VG250.gpkg")
 
-deutschland <- st_read("./data/Geodaten/DE_VG250.gpkg", layer = "v_vg250_sta", as_tibble = TRUE) %>%
+deutschland <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_sta", as_tibble = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
   filter(id == 1) %>%
   select(name = geografischer_name_gen, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
 
-bundesländer <- st_read("./data/Geodaten/DE_VG250.gpkg", layer = "v_vg250_lan", as_tibble = TRUE) %>%
+bundesländer <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_lan", as_tibble = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
   filter(geofaktor_gf == "mit Struktur Land") %>%
   select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
 
-kreise <- st_read("./data/Geodaten/DE_VG250.gpkg", layer = "v_vg250_krs", as_tibble = TRUE) %>%
+kreise <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_krs", as_tibble = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
   filter(geofaktor_gf == "mit Struktur Land") %>%
   select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
 
-gemeinden <- st_read("./data/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
+gemeinden <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
   filter(geofaktor_gf == "mit Struktur Land") %>%
@@ -502,7 +502,7 @@ Karte
 ```{r}
 options(scipen = 999)
 
-einkommen <- read_parquet("./data/Geodaten/Raster_1km_kreise_einkommen.parquet") %>%
+einkommen <- read_parquet("./data/processed/Geodaten/Raster_1km_kreise_einkommen.parquet") %>%
   distinct(ars, einkommen, einkommen_delta)
 
 kreise %>%

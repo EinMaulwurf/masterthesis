@@ -33,7 +33,7 @@ col_kauf <- c(
   "ajahr", "amonat", "ejahr", "emonat", "ergg_1km", "dupID_gen"
 )
 
-cells_plz <- read_parquet("./data/Geodaten/Raster_1km_plz.parquet")
+cells_plz <- read_parquet("./data/processed/Geodaten/Raster_1km_plz.parquet")
 ```
 
 ```{r}
@@ -195,13 +195,13 @@ got_fiber_dates <- read_parquet("./data/processed/Breitbandatlas//Raster_1km_got
   left_join(dates_pseudo_halbjahr, by = join_by(got_fiber_date == date)) %>%
   rename(got_fiber_date_pseudo_halbjahr = date_pseudo_halbjahr)
 
-cells_plz <- read_parquet("./data/Geodaten/Raster_1km_plz.parquet")
+cells_plz <- read_parquet("./data/processed/Geodaten/Raster_1km_plz.parquet")
 
 cells_gemeinden_bbsr <- read_parquet("./data/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
 
-cells_kreise_einkommen <- read_parquet("./data/Geodaten/Raster_1km_kreise_einkommen.parquet")
+cells_kreise_einkommen <- read_parquet("./data/processed/Geodaten/Raster_1km_kreise_einkommen.parquet")
 
-cells_gemeinden_gebäudetypen <- read_parquet("./data/Geodaten/Raster_1km_gemeinden_gebäudetypen.parquet")
+cells_gemeinden_gebäudetypen <- read_parquet("./data/processed/Geodaten/Raster_1km_gemeinden_gebäudetypen.parquet")
 
 cells_baujahr <- open_dataset("./data/Zensus/Gesamt/") %>%
   filter(typ == "1km") %>%
