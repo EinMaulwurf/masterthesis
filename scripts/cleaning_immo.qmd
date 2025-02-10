@@ -197,7 +197,7 @@ got_fiber_dates <- read_parquet("./data/processed/Breitbandatlas//Raster_1km_got
 
 cells_plz <- read_parquet("./data/processed/Geodaten/Raster_1km_plz.parquet")
 
-cells_gemeinden_bbsr <- read_parquet("./data/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
+cells_gemeinden_bbsr <- read_parquet("./data/processed/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
 
 cells_kreise_einkommen <- read_parquet("./data/processed/Geodaten/Raster_1km_kreise_einkommen.parquet")
 

@@ -690,8 +690,8 @@ Aufteilung Glasfaseranschlüsse nach den BBSR Gemeindetypen
 #| fig-width: 5
 #| fig-height: 4
 
-gemeinden_bbsr <- read_parquet("./data/Raumgliederung_BBSR/gemeinden_bbsr.parquet")
-cells_gemeinden_bbsr <- read_parquet("./data/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
+gemeinden_bbsr <- read_parquet("./data/processed/Raumgliederung_BBSR/gemeinden_bbsr.parquet")
+cells_gemeinden_bbsr <- read_parquet("./data/processed/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
 
 zensus_haushalte_1km <- zensus_arrow %>%
   filter(typ == "1km") %>%

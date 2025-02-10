@@ -28,7 +28,7 @@ Laden der Daten vom BBSR. Ich verwende nicht alle Variablen, sondern vier, die i
 Außerdem behalte ich den Amtlichen Gemeindeschlüssel sowie den Regionalschlüssel zum Matchen mit anderen Datensätzen. Der Gemeindename (`gem_name`) dient zur Plausibilisierung.
 
 ```{r}
-gemeinden_bbsr <- readxl::read_xlsx("./data/Raumgliederung_BBSR/raumgliederungen-referenzen-2022.xlsx",
+gemeinden_bbsr <- readxl::read_xlsx("./data/raw/Raumgliederung_BBSR/raumgliederungen-referenzen-2022.xlsx",
                                sheet = "Gemeindereferenz (inkl. Kreise)",
                                skip = 1,
                                col_types = "text") %>%
@@ -52,7 +52,7 @@ gemeinden_bbsr <- readxl::read_xlsx("./data/Raumgliederung_BBSR/raumgliederungen
          gemeindetyp_differenziert_name = fct_reorder(gemeindetyp_differenziert_name, as.numeric(gemeindetyp_differenziert_kennziffer)))
 
 gemeinden_bbsr %>%
-  write_parquet("./data/Raumgliederung_BBSR/gemeinden_bbsr.parquet")
+  write_parquet("./data/processed/Raumgliederung_BBSR/gemeinden_bbsr.parquet")
 ```
 
 ```{r}
@@ -87,7 +87,7 @@ cells_gemeinden_bbsr %>%
   filter(is.na(gem_name))
 
 cells_gemeinden_bbsr %>%
-  write_parquet("./data/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
+  write_parquet("./data/processed/Raumgliederung_BBSR/Raster_1km_gemeinden_bbsr.parquet")
 ```
 
 # Einkommen
