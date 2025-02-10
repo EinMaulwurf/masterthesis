@@ -1,4 +1,28 @@
-# for simulations
+#' Simulate Panel Data with Treatment Effects
+#' 
+#' Generates synthetic panel data with customizable treatment effects for 
+#' difference-in-differences analyses or similar causal inference approaches.
+#'
+#' @param n_ids Positive integer specifying total number of units/individuals
+#' @param n_time Positive integer specifying number of time periods
+#' @param treatment_percentage Numeric between 0-1 specifying proportion of units to treat
+#' @param treatment_groups Tibble specifying treatment parameters (optional). Must contain:
+#'   - group: Treatment group identifier
+#'   - treatment_time: Time period when treatment starts
+#'   - treatment_multiplier: Multiplicative effect on post-treatment slope
+#'   - treatment_jump: Immediate additive effect at treatment time
+#' @param base_slopes Numeric vector of length 2 specifying baseline slopes for:
+#'   [1] treated units pre-treatment 
+#'   [2] control units
+#' @param seed Optional numeric seed for reproducibility
+#' 
+#' @return A tibble with columns:
+#' - time: Time period (integer)
+#' - id: Unit identifier (integer)
+#' - y: Outcome variable (numeric)
+#' - treat: Treatment indicator (0/1)
+#' - first_treat: First treatment period (0 for never-treated)
+
 simulate_panel <- function(n_ids = 15, 
                            n_time = 10, 
                            treatment_percentage = 0.5, 

@@ -9,8 +9,8 @@ format: html
 library(tidyverse)
 library(did)
 library(HonestDiD)
-source("honest_did_helper.R")
-source("helper_functions.R")
+source("./src/R/honest_did_helper.R")
+source("./src/R/simulate_panel.R")
 ```
 
 # CS21 allgemeine Beispiele

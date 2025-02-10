@@ -134,12 +134,25 @@ Erstelle Grid zu sf Objekt
 ```{r}
 # moved to src/R/make_laea_grid.R
 source("./src/R/make_laea_grid.R")
+
+darmstadt %>%
+  make_laea_grid(size = "1km") %>%
+  ggplot() +
+  geom_sf(fill = NA) +
+  geom_sf(data = darmstadt, color = "red")
 ```
 
 Füge Grid zu Daten hinzu
 ```{r}
 # moved to src/R/add_laea_grid.R
 source("./src/R/add_laea_grid.R")
+
+get_breitband_stadt("Darmstadt", size = "1km", variables = down_fn_hh_ftthb_1000) %>%
+  filter(date == 202312) %>%
+  add_laea_grid(size = "1km") %>%
+  ggplot()+
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
+  scale_fill_viridis_c()
 ```
 
 # Visualisierungen

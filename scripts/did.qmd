@@ -17,7 +17,7 @@ library(did)
 library(broom)
 library(did2s)
 library(HonestDiD)
-source("honest_did_helper.R")
+source("./src/R/honest_did_helper.R")
 ```
 
 # Import
@@ -762,7 +762,6 @@ ggdid(mod_kauf_honest_did_agg_dyn)
 
 
 ```{r}
-source("honest_did_helper.R")
 # ----
 # mod_kauf_honest_did_agg_dyn_honest_smooth <- honest_did(
 #   es = mod_kauf_honest_did_agg_dyn,
@@ -825,7 +824,6 @@ ggdid(CS_es_never_cond)
 ```
 
 ```{r}
-source("honest_did_helper.R")
 # code for running honest_did
 hd_cs_smooth_never <- honest_did(es = CS_es_never_cond,
                            e = 0,
