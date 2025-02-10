@@ -236,6 +236,9 @@ erklärende_imp <- cells_zensus_sonst %>%
              seed = 1) %>%
   mice::complete() %>%
   as_tibble()
+
+erklärende_imp %>%
+  write_parquet("../Daten/Sonstige/erklärende_imp.parquet")
 ```
 
 ## Kauf
