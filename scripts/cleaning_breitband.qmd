@@ -22,7 +22,7 @@ Die Daten des Breitbandatlas sind auf dem 100m Raster gegeben, für die Auswertu
 Für die Aggregation der Breitband Daten verwende ich später einen gewichteten Mittelwert mit der Anzahl der Haushalte als Gewicht. Dafür lade ich hier die Zensus Daten und berechne die Anzahl der Haushalte für jedes 100m Quadrat. Da öfter die `durchschn_hh_groesse` fehlt, verwende ich das mice Package um die Werte zu imputieren
 
 ```{r}
-zensus_arrow <- open_dataset("./Daten/Zensus/Gesamt/")
+zensus_arrow <- open_dataset("./data/Zensus/Gesamt/")
 
 zensus_haushalte_100m <- zensus_arrow %>%
   filter(typ == "100m") %>%
@@ -39,7 +39,7 @@ zensus_haushalte_100m <- zensus_arrow %>%
 Jetzt loope ich über alle Zeitpunkte und Variablen. Das ist nötig, weil die Operation sonst zu viel RAM benötigt. Ich lade die Daten des jeweiligen Zeitpunktes und Variable und joine die Anzahl der Haushalte. Ich entferne alle Beobachtungen, bei denen entweder die Anzahl der Haushalte oder der Wert der jeweiligen Variable fehlt. Anschließend wird alles im Long Format in einen Arrow Datensatz geschrieben. Im nächsten Schritt werde ich diesen dann ins Wide Format überführen, dafür müssen aber erst alle Variablen eines Jahres aggregiert worden sein.
 
 ```{r}
-breitband_100m_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_100m/")
+breitband_100m_arrow <- open_dataset("./data/Breitbandatlas/Raster_100m/")
 
 arrow_dates <- breitband_100m_arrow %>%
   distinct(date) %>%
@@ -79,7 +79,7 @@ for(d in arrow_dates) {
       pivot_longer(cols = all_of(v)) %>%
       mutate(value = round(value, 2)) %>%
       group_by(date, name) %>%
-      write_dataset("./Daten/Breitbandatlas/Raster_1km_long/")
+      write_dataset("./data/Breitbandatlas/Raster_1km_long/")
 
     counter <- counter + 1
   }
@@ -89,7 +89,7 @@ for(d in arrow_dates) {
 Und jetzt wieder zusammenfügen im Wide Format.
 
 ```{r}
-breitband_1km_long_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km_long/")
+breitband_1km_long_arrow <- open_dataset("./data/Breitbandatlas/Raster_1km_long/")
 
 arrow_names_sorted <- breitband_1km_long_arrow %>%
   distinct(name) %>%
@@ -106,15 +106,15 @@ for(d in arrow_dates) {
     pivot_wider(names_from = name, values_from = value) %>%
     select(date, x_mp, y_mp, all_of(arrow_names_sorted)) %>%
     group_by(date) %>%
-    write_dataset("./Daten/Breitbandatlas/Raster_1km/")
+    write_dataset("./data/Breitbandatlas/Raster_1km/")
 }
 ```
 
 Hier noch ein Vergleich der 100m Daten vs den aggregierten 1km Daten anhand Berlin.
 
 ```{r}
-breitband_100m_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_100m/")
-breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
+breitband_100m_arrow <- open_dataset("./data/Breitbandatlas/Raster_100m/")
+breitband_1km_arrow <- open_dataset("./data/Breitbandatlas/Raster_1km/")
 
 breitband_100m_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
@@ -130,7 +130,7 @@ breitband_100m_arrow %>%
   theme_void()+
   theme(legend.position = "none")
 
-ggsave("./Output/plots/plot_berlin_100m.pdf", width = 3, height = 2.5)
+ggsave("./output/plots/plot_berlin_100m.pdf", width = 3, height = 2.5)
 
 breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
@@ -146,7 +146,7 @@ breitband_1km_arrow %>%
   theme_void()+
   theme(legend.position = "none")
 
-ggsave("./Output/plots/plot_berlin_1km.pdf", width = 3, height = 2.5)
+ggsave("./output/plots/plot_berlin_1km.pdf", width = 3, height = 2.5)
 ```
 
 # Maximale Geschwindigkeit
@@ -154,7 +154,7 @@ ggsave("./Output/plots/plot_berlin_1km.pdf", width = 3, height = 2.5)
 Ich extrahiere für jede Zelle und Jahr die maximal verfügbare Internetgeschwindigkeit. Dabei unterscheide ich nach Glasfaser (`_fiber`), nicht-Glasfaser (`_no_fiber`) und dem Maximum aus beidem (`_all`).
 
 ```{r}
-breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
+breitband_1km_arrow <- open_dataset("./data/Breitbandatlas/Raster_1km/")
 
 breitband_1km_arrow %>%
   select(date, x_mp, y_mp, contains("ftthb"), contains("hfc"), contains("fttc") ,contains("sonst")) %>%
@@ -172,7 +172,7 @@ breitband_1km_arrow %>%
   summarise(max_speed = max(speed), .groups = "drop") %>%
   pivot_wider(names_from = type, values_from = max_speed, names_prefix = "max_speed_") %>%
   mutate(max_speed_all = pmax(max_speed_fiber, max_speed_no_fiber, na.rm = TRUE)) %>%
-  write_parquet("./Daten/Breitbandatlas/Raster_1km_max_speed.parquet")
+  write_parquet("./data/Breitbandatlas/Raster_1km_max_speed.parquet")
 ```
 
 # Gitterzellen, bei denen Glasfaser verschwindet
@@ -182,7 +182,7 @@ In manchen Gitterzellen verschwindet plötzlich das Glasfaser. Dabei handelt es 
 Konkret werden zuerst alle verschiedenen Zeitpunkte in einem Dataframe `distinct_dates` gesammelt. Danach wird `disappeared_fiber` erstellt, ein Dataframe, das die Koordinaten sowie den Zeitpunkt enthält, an dem Glasfaser "verschwindet". Durch einen `left_join()` der `distinct_dates` auf diesen wird das kartesische Produkt aus dem Zeitpunkt des Verschwindens und aller möglichen Zeitpunkte erstellt. Anschließend werden je Zelle nur die Zeitpunkte behalten, die kleiner sind als der Zeitpunkt des Verschwindens.
 
 ```{r}
-breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
+breitband_1km_arrow <- open_dataset("./data/Breitbandatlas/Raster_1km/")
 
 distinct_dates <- breitband_1km_arrow %>%
   distinct(date) %>%
@@ -205,7 +205,7 @@ breitband_1km_arrow %>%
   filter(date.y < date.x) %>%
   select(date = date.y, x_mp, y_mp) %>%
   arrange(x_mp, y_mp, date) %>%
-  write_parquet("./Daten/Breitbandatlas/Raster_1km_problems.parquet")
+  write_parquet("./data/Breitbandatlas/Raster_1km_problems.parquet")
 ```
 
 # Zeitpunkt, bei dem erstmals Glasfaser vorhanden ist
@@ -213,9 +213,9 @@ breitband_1km_arrow %>%
 Hier verwende ich jetzt auch den `breitband_problems` Datensatz
 
 ```{r}
-breitband_problems <- read_parquet("./Daten/Breitbandatlas/Raster_1km_problems.parquet")
+breitband_problems <- read_parquet("./data/Breitbandatlas/Raster_1km_problems.parquet")
 
-breitband_1km_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_1km/")
+breitband_1km_arrow <- open_dataset("./data/Breitbandatlas/Raster_1km/")
 
 breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
@@ -232,5 +232,5 @@ breitband_1km_arrow %>%
   group_by(x_mp, y_mp) %>%
   slice_min(order_by = got_fiber_date) %>%
   ungroup() %>%
-  write_parquet("./Daten/Breitbandatlas/Raster_1km_got_fiber_date.parquet")
+  write_parquet("./data/Breitbandatlas/Raster_1km_got_fiber_date.parquet")
 ```

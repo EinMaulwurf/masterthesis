@@ -151,7 +151,7 @@ for(i in seq_along(grid_chunks)) {
 
   chunk_result <- future_map(grid_chunks[[i]], fetch_api, .progress = TRUE) %>% list_rbind()
 
-  write_parquet(chunk_result, str_glue("./Daten/Breitbandatlas/Rohdaten/raster_chunk_{i}.parquet"))
+  write_parquet(chunk_result, str_glue("./data/Breitbandatlas/Rohdaten/raster_chunk_{i}.parquet"))
   rm(chunk_result)
   gc()
 }
@@ -168,7 +168,7 @@ Für Zeitpunkte ab 2022 runde ich den Mittelpunkt jeder Zelle auf die nächste 5
 Durch die Aufteilung von 250m auf 100m entstehen viele Zellen, die es in den 100m Daten nicht gibt. Beispielsweise in einem kleinen Dorf, bei dem alle Häuser in einer 100m sowie auch der 250m Zelle liegen. Dort würden dann ca. 6 Zellen statt einer entstehen. Aus diesem Grund führe ich einen Inner-Join mit den 202312 Daten durch. Dadurch lösche ich alle überflüssigen Zellen, die durch die Aufteilung entstehen.
 
 ```{r}
-dataset_old <- list.files(path = "./Daten/Breitbandatlas/Rohdaten",
+dataset_old <- list.files(path = "./data/Breitbandatlas/Rohdaten",
                            pattern = "raster_chunk_.*\\.parquet",
                            full.names = TRUE) %>%
     open_dataset()
@@ -193,7 +193,7 @@ for(d in dates %>% head(-6) %>% unname()) {
     select(date, x_mp, y_mp, all_of(arrow_colnames_sorted)) %>%
     distinct() %>%
     group_by(date) %>%
-    write_dataset("./Daten/Breitbandatlas/Raster_100m")
+    write_dataset("./data/Breitbandatlas/Raster_100m")
 
     gc()
 }
@@ -201,7 +201,7 @@ for(d in dates %>% head(-6) %>% unname()) {
 # Jahre vor 2022 mit 250m Raster, das aufgeteilt werden muss
 sourceCpp("./src/cpp/get_coords.cpp")
 
-data_202312 <- open_dataset("./Daten/Breitbandatlas/Raster_100m/") %>%
+data_202312 <- open_dataset("./data/Breitbandatlas/Raster_100m/") %>%
   filter(date == 202312) %>%
   select(x_mp, y_mp) %>%
   distinct() %>%
@@ -226,7 +226,7 @@ for(d in dates %>% tail(6) %>% unname()) {
     inner_join(data_202312, by = join_by(x_mp, y_mp)) %>%
     distinct() %>%
     group_by(date) %>%
-    write_dataset("./Daten/Breitbandatlas/Raster_100m")
+    write_dataset("./data/Breitbandatlas/Raster_100m")
 
   gc()
 }
@@ -237,7 +237,7 @@ for(d in dates %>% tail(6) %>% unname()) {
 Der Datensatz kann jetzt wie folgt verwendet werden (beachte, dass die `date` Variable jetzt numeric ist):
 
 ```{r}
-breitband_100m_arrow <- open_dataset("./Daten/Breitbandatlas/Raster_100m/")
+breitband_100m_arrow <- open_dataset("./data/Breitbandatlas/Raster_100m/")
 
 breitband_100m_arrow %>%
   group_by(date) %>%

@@ -6,10 +6,11 @@ Die eigentlichen Daten und generierten Outputs (hauptsächlich Grafiken und Tabe
 
 ## Ordnerstruktur:
 
-- `Daten/`: Enthält die Rohdaten und aufbereiteten Daten. Wird nicht über git getrackt, da die Daten teilweise sehr groß und zudem vertraulich sind.
+- `data/`: Enthält die Rohdaten und aufbereiteten Daten. Wird nicht über git getrackt, da die Daten teilweise sehr groß und zudem vertraulich sind.
 - `Literatur/`: Enthält PDFs und Zusammenfassungen der verwendeten Literatur. Wird nicht über git getrackt.
-- `Output/`: Enthält alle generierten Outputs (insbesondere Grafiken). Wird nicht über git getrackt, da die Dateien teilweise groß sind.
-- `Skripte/`: Enthält alle Code-Dokumente.
+- `output/`: Enthält alle generierten Outputs (insbesondere Grafiken). Wird nicht über git getrackt, da die Dateien teilweise groß sind.
+- `scripts/`: Enthält alle interaktiven Code-Dokumente.
+- `src`: Enthält alle Helfer-Skripte.
 - `overleaf/`: Link zum overleaf-git-repo.
 
 ## Skripte:

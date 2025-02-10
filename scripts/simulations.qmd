@@ -39,7 +39,7 @@ dat %>%
   theme(legend.position = "none")+
   labs(color = "Gruppe",
        x = "Zeit", y = "Zielgröße")
-ggsave("./Output/plots/did/plot_did_example_data.pdf", width = 2, height = 3, device = cairo_pdf)
+ggsave("./output/plots/did/plot_did_example_data.pdf", width = 2, height = 3, device = cairo_pdf)
 ```
 
 ```{r}
@@ -70,7 +70,7 @@ tidy(dat_att) %>%
   theme(legend.position = "none")+
   labs(x = latex2exp::TeX("Zeit ($t$)"),
        y = latex2exp::TeX("$ATT(g,t)$"))
-ggsave("./Output/plots/did/plot_did_example_att.pdf", width = 4, height = 3, device = cairo_pdf)
+ggsave("./output/plots/did/plot_did_example_att.pdf", width = 4, height = 3, device = cairo_pdf)
 ```
 
 ```{r}
@@ -90,7 +90,7 @@ dat_att %>%
   theme(legend.position = "none")+
   labs(x = latex2exp::TeX("Zeit relativ ($e$)"),
        y = latex2exp::TeX("$ATT_{dyn}(e)$"))
-ggsave("./Output/plots/did/plot_did_example_agg_dyn.pdf", width = 2, height = 3, device = cairo_pdf)
+ggsave("./output/plots/did/plot_did_example_agg_dyn.pdf", width = 2, height = 3, device = cairo_pdf)
 
 dat_att %>%
   aggte(type = "group", max_e = 2) %>%
@@ -105,7 +105,7 @@ dat_att %>%
   theme(legend.position = "none")+
   labs(y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g},e_{max}=2)$"),
        x = latex2exp::TeX("Gruppe ($\\tilde{g}$)"))
-ggsave("./Output/plots/did/plot_did_example_agg_group.pdf", width = 2, height = 3, device = cairo_pdf)
+ggsave("./output/plots/did/plot_did_example_agg_group.pdf", width = 2, height = 3, device = cairo_pdf)
 
 dat_att %>%
   aggte(type = "calendar") %>%
@@ -118,7 +118,7 @@ dat_att %>%
   theme(legend.position = "none")+
   labs(x = latex2exp::TeX("Zeit ($\\tilde{t}$)"),
        y = latex2exp::TeX("$ATT_{cal}(\\tilde{t})$"))
-ggsave("./Output/plots/did/plot_did_example_agg_calendar.pdf", width = 2, height = 3, device = cairo_pdf)
+ggsave("./output/plots/did/plot_did_example_agg_calendar.pdf", width = 2, height = 3, device = cairo_pdf)
 ```
 
 # p-values in CS21, großer Datensatz
@@ -165,7 +165,7 @@ dat %>%
   theme_bw()+
   theme(legend.position = "none")+
   labs(x = "Zeit", y = "Zielgröße", color = element_blank())
-ggsave("./Output/plots/did/plot_did_simulation.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("./output/plots/did/plot_did_simulation.pdf", width = 3, height = 3, device = cairo_pdf)
 
 cs21_agg_dyn %>% 
   tidy() %>%
@@ -180,7 +180,7 @@ cs21_agg_dyn %>%
   theme(legend.position = "none")+
   labs(x = "Zeit (relativ)",
        y = "ATT")
-ggsave("./Output/plots/did/plot_did_simulation_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("./output/plots/did/plot_did_simulation_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 
@@ -220,7 +220,7 @@ createSensitivityPlot_relativeMagnitudes(cs21_agg_dyn_honest_rel$robust_ci,
   theme_bw()+
   theme(legend.position = "none")+
   labs(y = "ATT")
-ggsave("./Output/plots/did/plot_did_simulation_agg_dyn_honest.pdf", width = 5, height = 2.5, device = cairo_pdf)
+ggsave("./output/plots/did/plot_did_simulation_agg_dyn_honest.pdf", width = 5, height = 2.5, device = cairo_pdf)
 ```
 
 Beobachtung: HonestDiD kann (bei relative magnitude) nur sinnvolle Ergebnisse geben, wenn die Ergebnisse der dynamic aggregation (bei dem e) auch statistisch signifikante Ergebnisse hat.
@@ -270,7 +270,7 @@ cs21_small_agg_dyn %>%
   theme(legend.position = "none")+
   labs(x = latex2exp::TeX("Zeit relativ ($e$)"),
        y = latex2exp::TeX("$ATT_{dyn}(e)$"))
-ggsave("./Output/plots/did/plot_did_simulation_small_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("./output/plots/did/plot_did_simulation_small_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 ```{r}
@@ -299,5 +299,5 @@ createSensitivityPlot_relativeMagnitudes(cs21_small_agg_dyn_honest_rel$robust_ci
   theme_bw()+
   theme(legend.position = "none")+
   labs(y = latex2exp::TeX("$ATT_{dyn}(e=1)$"))
-ggsave("./Output/plots/did/plot_did_simulation_small_agg_dyn_honest.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("./output/plots/did/plot_did_simulation_small_agg_dyn_honest.pdf", width = 3, height = 3, device = cairo_pdf)
 ```

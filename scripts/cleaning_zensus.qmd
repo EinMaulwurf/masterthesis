@@ -20,21 +20,21 @@ Ich lese hier die Daten vom Zensus auf allen drei Rasterebenen (10km, 1km, 100m)
 
 ```{r}
 # Altersverteilung -----------------------------
-alter_10km <- read_csv2("./Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_10km-Gitter.csv") %>%
+alter_10km <- read_csv2("./data/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_10km,
          x_mp = x_mp_10km,
          y_mp = y_mp_10km) %>%
   mutate(across(unter10:a80undaelter, as.numeric))
 
-alter_1km <- read_csv2("./Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_1km-Gitter.csv") %>%
+alter_1km <- read_csv2("./data/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_1km,
          x_mp = x_mp_1km,
          y_mp = y_mp_1km) %>%
   mutate(across(unter10:a80undaelter, as.numeric))
 
-alter_100m <- read_csv2("./Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_100m-Gitter.csv") %>%
+alter_100m <- read_csv2("./data/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_Alter_in_10er-Jahresgruppen_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_100m,
          x_mp = x_mp_100m,
@@ -42,21 +42,21 @@ alter_100m <- read_csv2("./Daten/Zensus/Alter_in_10er-Jahresgruppen/Zensus2022_A
   mutate(across(unter10:a80undaelter, as.numeric))
 
 # Durchschnittsalter -----------------------------
-durchschnittsalter_10km <- read_csv2("./Daten/Zensus/Durchschnittsalter_in_Gitterzellen/Zensus2022_Durchschnittsalter_10km-Gitter.csv") %>%
+durchschnittsalter_10km <- read_csv2("./data/Zensus/Durchschnittsalter_in_Gitterzellen/Zensus2022_Durchschnittsalter_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_10km,
          x_mp = x_mp_10km,
          y_mp = y_mp_10km)
 
-durchschnittsalter_1km <- read_csv2("./Daten/Zensus/Durchschnittsalter_in_Gitterzellen/Zensus2022_Durchschnittsalter_1km-Gitter.csv") %>%
+durchschnittsalter_1km <- read_csv2("./data/Zensus/Durchschnittsalter_in_Gitterzellen/Zensus2022_Durchschnittsalter_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_1km,
          x_mp = x_mp_1km,
          y_mp = y_mp_1km)
 
-durchschnittsalter_100m <- read_csv2("./Daten/Zensus/Durchschnittsalter_in_Gitterzellen/Zensus2022_Durchschnittsalter_100m-Gitter.csv") %>%
+durchschnittsalter_100m <- read_csv2("./data/Zensus/Durchschnittsalter_in_Gitterzellen/Zensus2022_Durchschnittsalter_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_100m,
@@ -64,21 +64,21 @@ durchschnittsalter_100m <- read_csv2("./Daten/Zensus/Durchschnittsalter_in_Gitte
          y_mp = y_mp_100m)
 
 # Gebäude Baujahre -----------------------------
-gebäude_10km <- read_csv2("./Daten/Zensus/Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen/Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_10km-Gitter.csv") %>%
+gebäude_10km <- read_csv2("./data/Zensus/Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen/Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_10km,
          x_mp = x_mp_10km,
          y_mp = y_mp_10km) %>%
   mutate(across(insgesamt_gebaeude:a2020undspaeter, as.numeric))
 
-gebäude_1km <- read_csv2("./Daten/Zensus/Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen/Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_1km-Gitter.csv") %>%
+gebäude_1km <- read_csv2("./data/Zensus/Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen/Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_1km,
          x_mp = x_mp_1km,
          y_mp = y_mp_1km) %>%
   mutate(across(insgesamt_gebaeude:a2020undspaeter, as.numeric))
 
-gebäude_100m <- read_csv2("./Daten/Zensus/Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen/Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_100m-Gitter.csv") %>%
+gebäude_100m <- read_csv2("./data/Zensus/Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen/Zensus2022_Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_100m,
          x_mp = x_mp_100m,
@@ -86,40 +86,40 @@ gebäude_100m <- read_csv2("./Daten/Zensus/Gebaeude_nach_Baujahr_in_Mikrozensus_
   mutate(across(insgesamt_gebaeude:a2020undspaeter, as.numeric))
 
 # Einwohner -----------------------------
-einwohner_10km <- read_csv2("./Daten/Zensus/Zensus2022_Bevoelkerungszahl/Zensus2022_Bevoelkerungszahl_10km-Gitter.csv") %>%
+einwohner_10km <- read_csv2("./data/Zensus/Zensus2022_Bevoelkerungszahl/Zensus2022_Bevoelkerungszahl_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_10km,
          x_mp = x_mp_10km,
          y_mp = y_mp_10km)
 
-einwohner_1km <- read_csv2("./Daten/Zensus/Zensus2022_Bevoelkerungszahl/Zensus2022_Bevoelkerungszahl_1km-Gitter.csv") %>%
+einwohner_1km <- read_csv2("./data/Zensus/Zensus2022_Bevoelkerungszahl/Zensus2022_Bevoelkerungszahl_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_1km,
          x_mp = x_mp_1km,
          y_mp = y_mp_1km)
 
-einwohner_100m <- read_csv2("./Daten/Zensus/Zensus2022_Bevoelkerungszahl/Zensus2022_Bevoelkerungszahl_100m-Gitter.csv") %>%
+einwohner_100m <- read_csv2("./data/Zensus/Zensus2022_Bevoelkerungszahl/Zensus2022_Bevoelkerungszahl_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   rename(gitter_id = gitter_id_100m,
          x_mp = x_mp_100m,
          y_mp = y_mp_100m)
 
 # Haushaltsgröße -----------------------------
-haushaltsgröße_10km <- read_csv2("./Daten/Zensus/Durchschnittliche_Haushaltsgroesse_in_Gitterzellen/Zensus2022_Durchschn_Haushaltsgroesse_10km-Gitter.csv") %>%
+haushaltsgröße_10km <- read_csv2("./data/Zensus/Durchschnittliche_Haushaltsgroesse_in_Gitterzellen/Zensus2022_Durchschn_Haushaltsgroesse_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_10km,
          x_mp = x_mp_10km,
          y_mp = y_mp_10km)
 
-haushaltsgröße_1km <- read_csv2("./Daten/Zensus/Durchschnittliche_Haushaltsgroesse_in_Gitterzellen/Zensus2022_Durchschn_Haushaltsgroesse_1km-Gitter.csv") %>%
+haushaltsgröße_1km <- read_csv2("./data/Zensus/Durchschnittliche_Haushaltsgroesse_in_Gitterzellen/Zensus2022_Durchschn_Haushaltsgroesse_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_1km,
          x_mp = x_mp_1km,
          y_mp = y_mp_1km)
 
-haushaltsgröße_100m <- read_csv2("./Daten/Zensus/Durchschnittliche_Haushaltsgroesse_in_Gitterzellen/Zensus2022_Durchschn_Haushaltsgroesse_100m-Gitter.csv") %>%
+haushaltsgröße_100m <- read_csv2("./data/Zensus/Durchschnittliche_Haushaltsgroesse_in_Gitterzellen/Zensus2022_Durchschn_Haushaltsgroesse_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_100m,
@@ -127,21 +127,21 @@ haushaltsgröße_100m <- read_csv2("./Daten/Zensus/Durchschnittliche_Haushaltsgr
          y_mp = y_mp_100m)
 
 # Wohnfläche -----------------------------
-wohnfläche_10km <- read_csv2("./Daten/Zensus/Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen/Zensus2022_Durchschn_Flaeche_je_Bewohner_10km-Gitter.csv") %>%
+wohnfläche_10km <- read_csv2("./data/Zensus/Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen/Zensus2022_Durchschn_Flaeche_je_Bewohner_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_10km,
          x_mp = x_mp_10km,
          y_mp = y_mp_10km)
 
-wohnfläche_1km <- read_csv2("./Daten/Zensus/Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen/Zensus2022_Durchschn_Flaeche_je_Bewohner_1km-Gitter.csv") %>%
+wohnfläche_1km <- read_csv2("./data/Zensus/Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen/Zensus2022_Durchschn_Flaeche_je_Bewohner_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_1km,
          x_mp = x_mp_1km,
          y_mp = y_mp_1km)
 
-wohnfläche_100m <- read_csv2("./Daten/Zensus/Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen/Zensus2022_Durchschn_Flaeche_je_Bewohner_100m-Gitter.csv") %>%
+wohnfläche_100m <- read_csv2("./data/Zensus/Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen/Zensus2022_Durchschn_Flaeche_je_Bewohner_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_100m,
@@ -149,7 +149,7 @@ wohnfläche_100m <- read_csv2("./Daten/Zensus/Durchschnittliche_Wohnflaeche_je_B
          y_mp = y_mp_100m)
 
 # Eigentümerquote -----------------------------
-eigentümerquote_10km <- read_csv2("./Daten/Zensus/Eigentuemerquote_in_Gitterzellen/Zensus2022_Eigentuemerquote_10km-Gitter.csv") %>%
+eigentümerquote_10km <- read_csv2("./data/Zensus/Eigentuemerquote_in_Gitterzellen/Zensus2022_Eigentuemerquote_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_10km,
@@ -157,7 +157,7 @@ eigentümerquote_10km <- read_csv2("./Daten/Zensus/Eigentuemerquote_in_Gitterzel
          y_mp = y_mp_10km) %>%
   mutate(eigentuemerquote = parse_number(eigentuemerquote, locale = locale(decimal_mark = ",")))
 
-eigentümerquote_1km <- read_csv2("./Daten/Zensus/Eigentuemerquote_in_Gitterzellen/Zensus2022_Eigentuemerquote_1km-Gitter.csv") %>%
+eigentümerquote_1km <- read_csv2("./data/Zensus/Eigentuemerquote_in_Gitterzellen/Zensus2022_Eigentuemerquote_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_1km,
@@ -165,7 +165,7 @@ eigentümerquote_1km <- read_csv2("./Daten/Zensus/Eigentuemerquote_in_Gitterzell
          y_mp = y_mp_1km) %>%
   mutate(eigentuemerquote = parse_number(eigentuemerquote, locale = locale(decimal_mark = ",")))
 
-eigentümerquote_100m <- read_csv2("./Daten/Zensus/Eigentuemerquote_in_Gitterzellen/Zensus2022_Eigentuemerquote_100m-Gitter.csv") %>%
+eigentümerquote_100m <- read_csv2("./data/Zensus/Eigentuemerquote_in_Gitterzellen/Zensus2022_Eigentuemerquote_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_100m,
@@ -174,7 +174,7 @@ eigentümerquote_100m <- read_csv2("./Daten/Zensus/Eigentuemerquote_in_Gitterzel
   mutate(eigentuemerquote = parse_number(eigentuemerquote, locale = locale(decimal_mark = ",")))
 
 # Leerstand -----------------------------
-leerstand_10km <- read_csv2("./Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zensus2022_Leerstandsquote_10km-Gitter.csv") %>%
+leerstand_10km <- read_csv2("./data/Zensus/Leerstandsquote_in_Gitterzellen/Zensus2022_Leerstandsquote_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_10km,
@@ -182,7 +182,7 @@ leerstand_10km <- read_csv2("./Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zens
          y_mp = y_mp_10km) %>%
   mutate(leerstandsquote = parse_number(leerstandsquote, locale = locale(decimal_mark = ",")))
 
-leerstand_1km <- read_csv2("./Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zensus2022_Leerstandsquote_1km-Gitter.csv") %>%
+leerstand_1km <- read_csv2("./data/Zensus/Leerstandsquote_in_Gitterzellen/Zensus2022_Leerstandsquote_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_1km,
@@ -190,7 +190,7 @@ leerstand_1km <- read_csv2("./Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zensu
          y_mp = y_mp_1km) %>%
   mutate(leerstandsquote = parse_number(leerstandsquote, locale = locale(decimal_mark = ",")))
 
-leerstand_100m <- read_csv2("./Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zensus2022_Leerstandsquote_100m-Gitter.csv") %>%
+leerstand_100m <- read_csv2("./data/Zensus/Leerstandsquote_in_Gitterzellen/Zensus2022_Leerstandsquote_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_100m,
@@ -199,21 +199,21 @@ leerstand_100m <- read_csv2("./Daten/Zensus/Leerstandsquote_in_Gitterzellen/Zens
   mutate(leerstandsquote = parse_number(leerstandsquote, locale = locale(decimal_mark = ",")))
 
 # Miete -----------------------------
-nettokaltmiete_10km <- read_csv2("./Daten/Zensus/Zensus2022_Durchschn_Nettokaltmiete/Zensus2022_Durchschn_Nettokaltmiete_10km-Gitter.csv") %>%
+nettokaltmiete_10km <- read_csv2("./data/Zensus/Zensus2022_Durchschn_Nettokaltmiete/Zensus2022_Durchschn_Nettokaltmiete_10km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_10km,
          x_mp = x_mp_10km,
          y_mp = y_mp_10km)
 
-nettokaltmiete_1km <- read_csv2("./Daten/Zensus/Zensus2022_Durchschn_Nettokaltmiete/Zensus2022_Durchschn_Nettokaltmiete_1km-Gitter.csv") %>%
+nettokaltmiete_1km <- read_csv2("./data/Zensus/Zensus2022_Durchschn_Nettokaltmiete/Zensus2022_Durchschn_Nettokaltmiete_1km-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_1km,
          x_mp = x_mp_1km,
          y_mp = y_mp_1km)
 
-nettokaltmiete_100m <- read_csv2("./Daten/Zensus/Zensus2022_Durchschn_Nettokaltmiete/Zensus2022_Durchschn_Nettokaltmiete_100m-Gitter.csv") %>%
+nettokaltmiete_100m <- read_csv2("./data/Zensus/Zensus2022_Durchschn_Nettokaltmiete/Zensus2022_Durchschn_Nettokaltmiete_100m-Gitter.csv") %>%
   janitor::clean_names() %>%
   select(-werterlaeuternde_zeichen) %>%
   rename(gitter_id = gitter_id_100m,
@@ -260,5 +260,5 @@ Schreiben als Arrow Dataset
 ```{r}
 zensus_final %>%
   group_by(typ) %>%
-  write_dataset("./Daten/Zensus/Gesamt/")
+  write_dataset("./data/Zensus/Gesamt/")
 ```
