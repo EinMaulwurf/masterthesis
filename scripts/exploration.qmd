@@ -88,8 +88,8 @@ hamburg <- get_stadt("Hamburg")
 
 ```{r}
 # Laden der Arrow Datensätze
-breitband_100m_arrow <- open_dataset("./data/Breitbandatlas/Raster_100m/")
-breitband_1km_arrow <- open_dataset("./data/Breitbandatlas/Raster_1km/")
+breitband_100m_arrow <- open_dataset("./data/processed/Breitbandatlas/Raster_100m/")
+breitband_1km_arrow <- open_dataset("./data/processed/Breitbandatlas/Raster_1km/")
 
 # Funktion um automatisch Daten einer bestimmen Stadt zu laden
 get_breitband_stadt <- function(stadt_name, size = "100m", variables = everything()) {
@@ -116,10 +116,10 @@ breitband_glasfaser_berlin <- get_breitband_stadt("Berlin", size = "100m", varia
 
 ```{r}
 # Laden der Max-Speed Variablen
-breitband_1km_max_speed <- read_parquet("./data/Breitbandatlas/Raster_1km_max_speed.parquet")
+breitband_1km_max_speed <- read_parquet("./data/processed/Breitbandatlas/Raster_1km_max_speed.parquet")
 
 # Laden des fehlerhaften Koordinaten
-breitband_1km_problems <- read_parquet("./data/Breitbandatlas/Raster_1km_problems.parquet")
+breitband_1km_problems <- read_parquet("./data/processed/Breitbandatlas/Raster_1km_problems.parquet")
 ```
 
 ## Zensusdaten
@@ -381,7 +381,7 @@ rbind(
 Zuwächse an FTTHB über die Zeit
 
 ```{r}
-read_parquet("./data/Breitbandatlas/Raster_1km_got_fiber_date.parquet") %>%
+read_parquet("./data/processed/Breitbandatlas/Raster_1km_got_fiber_date.parquet") %>%
   count(got_fiber_date) %>%
   mutate(got_fiber_date = ym(got_fiber_date)) %>%
   ggplot(aes(x = got_fiber_date, y = n))+

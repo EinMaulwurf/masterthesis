@@ -944,7 +944,7 @@ did2s::plot_event_study(did2s_staggered)
 # Test: Nur Gebiete mit sonst schlechtem Internet
 
 ```{r}
-max_speed <- read_parquet("./data/Breitbandatlas/Raster_1km_max_speed.parquet")
+max_speed <- read_parquet("./data/processed/Breitbandatlas/Raster_1km_max_speed.parquet")
 
 coords_schlechtes_internet <- max_speed %>%
   filter(is.na(max_speed_no_fiber) | max_speed_no_fiber < 100) %>%
