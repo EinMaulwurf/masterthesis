@@ -1,5 +1,8 @@
 # Own Additions
 
+scripts/Daten
+scripts/Output
+scripts/src
 #Daten/*
 #Output/*
 Organisatorisches/*

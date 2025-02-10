@@ -199,7 +199,7 @@ for(d in dates %>% head(-6) %>% unname()) {
 }
 
 # Jahre vor 2022 mit 250m Raster, das aufgeteilt werden muss
-sourceCpp("get_coords.cpp")
+sourceCpp("./src/cpp/get_coords.cpp")
 
 data_202312 <- open_dataset("./Daten/Breitbandatlas/Raster_100m/") %>%
   filter(date == 202312) %>%
