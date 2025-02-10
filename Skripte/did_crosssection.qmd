@@ -24,15 +24,15 @@ library(broom)
 # Import & Verbinden
 
 ```{r}
-data_kauf <- read_parquet("../Daten/RWI_GEO_REDX/Daten_Kauf/data_kauf.parquet")
+data_kauf <- read_parquet("./Daten/RWI_GEO_REDX/Daten_Kauf/data_kauf.parquet")
 
-erklärende_imp <- read_parquet("../Daten/Sonstige/erklärende_imp.parquet")
+erklärende_imp <- read_parquet("./Daten/Sonstige/erklärende_imp.parquet")
 
-got_fiber_dates <- read_parquet("../Daten/Breitbandatlas//Raster_1km_got_fiber_date.parquet") %>%
+got_fiber_dates <- read_parquet("./Daten/Breitbandatlas//Raster_1km_got_fiber_date.parquet") %>%
   left_join(dates_pseudo_halbjahr, by = join_by(got_fiber_date == date)) %>%
   rename(got_fiber_date_pseudo_halbjahr = date_pseudo_halbjahr)
 
-cells_plz <- read_parquet("../Daten/Geodaten/Raster_1km_plz.parquet")
+cells_plz <- read_parquet("./Daten/Geodaten/Raster_1km_plz.parquet")
 
 # -----
 
@@ -56,8 +56,8 @@ data_kauf_crosssection <- data_kauf_imp %>%
 ```
 
 ```{r}
-#data_kauf_crosssection %>% write_parquet("../Daten/Sonstige/data_kauf_crosssection_test.parquet")
-#data_kauf_crosssection <- read_parquet("../Daten/Sonstige/data_kauf_crosssection_test.parquet")
+#data_kauf_crosssection %>% write_parquet("./Daten/Sonstige/data_kauf_crosssection_test.parquet")
+#data_kauf_crosssection <- read_parquet("./Daten/Sonstige/data_kauf_crosssection_test.parquet")
 ```
 
 Der Datensatz ist zu groß und die `att_gt()` Funktion braucht dadurch (viel) zu viel RAM. Daher verwende ich kleine Subsamples.

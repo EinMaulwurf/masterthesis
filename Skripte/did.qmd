@@ -23,10 +23,10 @@ source("honest_did_helper.R")
 # Import
 
 ```{r}
-dates_pseudo_halbjahr <- read_parquet("../Daten/dates_pseudo_halbjahr.parquet")
+dates_pseudo_halbjahr <- read_parquet("./Daten/dates_pseudo_halbjahr.parquet")
 
-data_miete_complete <- read_parquet("../Daten/RWI_GEO_REDX/Daten_Miete/data_miete_complete.parquet")
-data_kauf_complete <- read_parquet("../Daten/RWI_GEO_REDX/Daten_Kauf/data_kauf_complete.parquet")
+data_miete_complete <- read_parquet("./Daten/RWI_GEO_REDX/Daten_Miete/data_miete_complete.parquet")
+data_kauf_complete <- read_parquet("./Daten/RWI_GEO_REDX/Daten_Kauf/data_kauf_complete.parquet")
 ```
 
 # Bevorzugte Spezifikation
@@ -82,7 +82,7 @@ tidy(mod_miete) %>%
   theme(legend.position = "none")+
   labs(x = latex2exp::TeX("Halbjahr ($t$)"),
        y = latex2exp::TeX("$ATT(g,t)$: Miete (€/m²)"))
-ggsave("../Output/plots/did/plot_did_miete.pdf", width = 6, height = 4, device = cairo_pdf)
+ggsave("./Output/plots/did/plot_did_miete.pdf", width = 6, height = 4, device = cairo_pdf)
 
 mod_miete_agg_dyn <- did::aggte(mod_miete, type = "dynamic")
 tidy(mod_miete_agg_dyn) %>%
@@ -97,7 +97,7 @@ tidy(mod_miete_agg_dyn) %>%
   theme(legend.position = "none")+
   labs(x = latex2exp::TeX("Halbjahr rel. ($e$)"),
        y = latex2exp::TeX("$ATT_{dyn}(e)$: Miete (€/m²)"))
-ggsave("../Output/plots/did/plot_did_miete_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("./Output/plots/did/plot_did_miete_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
   
 mod_miete_agg_group <- did::aggte(mod_miete, type = "group", max_e = 4)
 tidy(mod_miete_agg_group) %>%
@@ -111,7 +111,7 @@ tidy(mod_miete_agg_group) %>%
   theme(legend.position = "none")+
   labs(x = latex2exp::TeX("Gruppe ($\\tilde{g}$)"),
        y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g}, e_{max})$: Miete (€/m²)"))
-ggsave("../Output/plots/did/plot_did_miete_agg_group.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("./Output/plots/did/plot_did_miete_agg_group.pdf", width = 3, height = 3, device = cairo_pdf)
 
 mod_miete_agg_calendar <- did::aggte(mod_miete, type = "calendar")
 tidy(mod_miete_agg_calendar) %>%
@@ -126,7 +126,7 @@ tidy(mod_miete_agg_calendar) %>%
   theme(legend.position = "none")+
   labs(x = latex2exp::TeX("Halbjahr ($\\tilde{t}$)"),
        y = latex2exp::TeX("$ATT_{cal}(\\tilde{t})$: Miete (€/m²)"))
-ggsave("../Output/plots/did/plot_did_miete_agg_calendar.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("./Output/plots/did/plot_did_miete_agg_calendar.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 ## Kauf
@@ -174,7 +174,7 @@ tidy(mod_kauf) %>%
   theme(legend.position = "none")+
   labs(x = latex2exp::TeX("Halbjahr ($t$)"),
        y = latex2exp::TeX("$ATT(g,t)$: Kaufpreis (1000€)"))
-ggsave("../Output/plots/did/plot_did_kauf.pdf", width = 6, height = 4, device = cairo_pdf)
+ggsave("./Output/plots/did/plot_did_kauf.pdf", width = 6, height = 4, device = cairo_pdf)
 
 mod_kauf_agg_dyn <- did::aggte(mod_kauf, type = "dynamic")
 tidy(mod_kauf_agg_dyn) %>%
@@ -190,7 +190,7 @@ tidy(mod_kauf_agg_dyn) %>%
   theme(legend.position = "none")+
   labs(x = latex2exp::TeX("Halbjahr rel. ($e$)"),
        y = latex2exp::TeX("$ATT_{dyn}(e)$: Kaufpreis (1000€)"))
-ggsave("../Output/plots/did/plot_did_kauf_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("./Output/plots/did/plot_did_kauf_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
   
 mod_kauf_agg_group <- did::aggte(mod_kauf, type = "group", max_e = 4)
 tidy(mod_kauf_agg_group) %>%
@@ -205,7 +205,7 @@ tidy(mod_kauf_agg_group) %>%
   theme(legend.position = "none")+
   labs(x = latex2exp::TeX("Gruppe ($\\tilde{g}$)"),
        y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g}, e_{max})$: Kaufpreis (1000€)"))
-ggsave("../Output/plots/did/plot_did_kauf_agg_group.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("./Output/plots/did/plot_did_kauf_agg_group.pdf", width = 3, height = 3, device = cairo_pdf)
 
 mod_kauf_agg_calendar <- did::aggte(mod_kauf, type = "calendar")
 tidy(mod_kauf_agg_calendar) %>%
@@ -221,7 +221,7 @@ tidy(mod_kauf_agg_calendar) %>%
   theme(legend.position = "none")+
   labs(x = latex2exp::TeX("Halbjahr ($\\tilde{t}$)"),
        y = latex2exp::TeX("$ATT_{cal}(\\tilde{t})$: Kaufpreis (1000€)"))
-ggsave("../Output/plots/did/plot_did_kauf_agg_calendar.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("./Output/plots/did/plot_did_kauf_agg_calendar.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 # Räumliche Subsets
@@ -288,8 +288,8 @@ models_räumlich_miete_agg_dyn_tidy <- models_räumlich_miete %>%
   bind_rows(.id = "model")
 
 # Save results
-write_parquet(models_räumlich_miete_agg_dyn_tidy, "../Daten/Sonstige/models_räumlich_miete_agg_dyn_tidy.parquet")
-#models_räumlich_miete_agg_dyn_tidy <- read_parquet("../Daten/Sonstige/models_räumlich_miete_agg_dyn_tidy.parquet")
+write_parquet(models_räumlich_miete_agg_dyn_tidy, "./Daten/Sonstige/models_räumlich_miete_agg_dyn_tidy.parquet")
+#models_räumlich_miete_agg_dyn_tidy <- read_parquet("./Daten/Sonstige/models_räumlich_miete_agg_dyn_tidy.parquet")
 ```
 
 ```{r}
@@ -307,7 +307,7 @@ models_räumlich_miete_agg_dyn_tidy %>%
   labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Miete (€/m²)"),
        y = "Modell")
 
-ggsave("../Output/plots/did/plot_did_raeumlich_miete.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("./Output/plots/did/plot_did_raeumlich_miete.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 ## Kauf
@@ -372,8 +372,8 @@ models_räumlich_kauf_agg_dyn_tidy <- models_räumlich_kauf %>%
   bind_rows(.id = "model")
 
 # Save results
-write_parquet(models_räumlich_kauf_agg_dyn_tidy, "../Daten/Sonstige/models_räumlich_kauf_agg_dyn_tidy.parquet")
-#models_räumlich_kauf_agg_dyn_tidy <- read_parquet("../Daten/Sonstige/models_räumlich_kauf_agg_dyn_tidy.parquet")
+write_parquet(models_räumlich_kauf_agg_dyn_tidy, "./Daten/Sonstige/models_räumlich_kauf_agg_dyn_tidy.parquet")
+#models_räumlich_kauf_agg_dyn_tidy <- read_parquet("./Daten/Sonstige/models_räumlich_kauf_agg_dyn_tidy.parquet")
 ```
 
 ```{r}
@@ -391,7 +391,7 @@ models_räumlich_kauf_agg_dyn_tidy %>%
   labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Kaufpreis (1000€)"),
        y = "Modell")
 
-ggsave("../Output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("./Output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 # Subset Gebäudetypen
@@ -443,8 +443,8 @@ models_gebäudetyp_miete_agg_dyn_tidy <- models_gebäudetyp_miete %>%
   bind_rows(.id = "model")
 
 # Save results
-write_parquet(models_gebäudetyp_miete_agg_dyn_tidy, "../Daten/Sonstige/models_gebäudetyp_miete_agg_dyn_tidy.parquet")
-#models_räumlich_miete_agg_dyn_tidy <- read_parquet("../Daten/Sonstige/models_räumlich_miete_agg_dyn_tidy.parquet")
+write_parquet(models_gebäudetyp_miete_agg_dyn_tidy, "./Daten/Sonstige/models_gebäudetyp_miete_agg_dyn_tidy.parquet")
+#models_räumlich_miete_agg_dyn_tidy <- read_parquet("./Daten/Sonstige/models_räumlich_miete_agg_dyn_tidy.parquet")
 ```
 
 ```{r}
@@ -462,7 +462,7 @@ models_gebäudetyp_miete_agg_dyn_tidy %>%
   labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Miete (€/m²)"),
        y = "Modell")
 
-#ggsave("../Output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
+#ggsave("./Output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 ## Kauf
@@ -512,8 +512,8 @@ models_gebäudetyp_kauf_agg_dyn_tidy <- models_gebäudetyp_kauf %>%
   bind_rows(.id = "model")
 
 # Save results
-write_parquet(models_gebäudetyp_kauf_agg_dyn_tidy, "../Daten/Sonstige/models_gebäudetyp_kauf_agg_dyn_tidy.parquet")
-#models_gebäudetyp_kauf_agg_dyn_tidy <- read_parquet("../Daten/Sonstige/models_gebäudetyp_kauf_agg_dyn_tidy.parquet")
+write_parquet(models_gebäudetyp_kauf_agg_dyn_tidy, "./Daten/Sonstige/models_gebäudetyp_kauf_agg_dyn_tidy.parquet")
+#models_gebäudetyp_kauf_agg_dyn_tidy <- read_parquet("./Daten/Sonstige/models_gebäudetyp_kauf_agg_dyn_tidy.parquet")
 ```
 
 ```{r}
@@ -531,7 +531,7 @@ models_gebäudetyp_kauf_agg_dyn_tidy %>%
   labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Kaufpreis (1000€)"),
        y = "Modell")
 
-#ggsave("../Output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
+#ggsave("./Output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 
@@ -603,8 +603,8 @@ models_miete_agg_dyn_tidy <- models_miete %>%
   bind_rows(.id = "model")
 
 # Save results
-write_parquet(models_miete_agg_dyn_tidy, "../Daten/Sonstige/models_miete_agg_dyn_tidy.parquet")
-#models_miete_agg_dyn_tidy <- read_parquet("../Daten/Sonstige/models_miete_agg_dyn_tidy.parquet")
+write_parquet(models_miete_agg_dyn_tidy, "./Daten/Sonstige/models_miete_agg_dyn_tidy.parquet")
+#models_miete_agg_dyn_tidy <- read_parquet("./Daten/Sonstige/models_miete_agg_dyn_tidy.parquet")
 ```
 
 ```{r}
@@ -622,7 +622,7 @@ models_miete_agg_dyn_tidy %>%
   labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Miete (€/m²)"),
        y = "Modell")
 
-ggsave("../Output/plots/did/plot_did_alternative_miete.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("./Output/plots/did/plot_did_alternative_miete.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 ## Kauf
@@ -691,8 +691,8 @@ models_kauf_agg_dyn_tidy <- models_kauf %>%
   bind_rows(.id = "model")
 
 # Save results
-write_parquet(models_kauf_agg_dyn_tidy, "../Daten/Sonstige/models_kauf_agg_dyn_tidy.parquet")
-#models_kauf_agg_dyn_tidy <- read_parquet("../Daten/Sonstige/models_kauf_agg_dyn_tidy.parquet")
+write_parquet(models_kauf_agg_dyn_tidy, "./Daten/Sonstige/models_kauf_agg_dyn_tidy.parquet")
+#models_kauf_agg_dyn_tidy <- read_parquet("./Daten/Sonstige/models_kauf_agg_dyn_tidy.parquet")
 ```
 
 ```{r}
@@ -710,7 +710,7 @@ models_kauf_agg_dyn_tidy %>%
   labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Kaufpreis (1000€)"),
        y = "Modell")
 
-ggsave("../Output/plots/did/plot_did_alternative_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
+ggsave("./Output/plots/did/plot_did_alternative_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
 # Sensitivitätsanalyse
@@ -797,7 +797,7 @@ createSensitivityPlot_relativeMagnitudes(mod_kauf_honest_did_agg_dyn_honest_rel$
 https://github.com/pedrohcgs/CS_RR?tab=readme-ov-file#effect-of-minimum-wage-on-teen-employment-replicating-callaway-and-santanna-2021
 
 ```{r}
-min_wage <- read_rds("../Daten/Sonstige/min_wage_CS.rds")
+min_wage <- read_rds("./Daten/Sonstige/min_wage_CS.rds")
 
 # Formula for covariates 
 xformla <- ~ region + (medinc + pop ) + I(pop^2) + I(medinc^2)  + white + hs  + pov
@@ -946,7 +946,7 @@ did2s::plot_event_study(did2s_staggered)
 # Test: Nur Gebiete mit sonst schlechtem Internet
 
 ```{r}
-max_speed <- read_parquet("../Daten/Breitbandatlas/Raster_1km_max_speed.parquet")
+max_speed <- read_parquet("./Daten/Breitbandatlas/Raster_1km_max_speed.parquet")
 
 coords_schlechtes_internet <- max_speed %>%
   filter(is.na(max_speed_no_fiber) | max_speed_no_fiber < 100) %>%

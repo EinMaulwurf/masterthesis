@@ -28,3 +28,8 @@ Die eigentlichen Daten und generierten Outputs (hauptsächlich Grafiken und Tabe
 - `arrow`
 - `duckdb`
 - `did`
+
+## Sonstige Hinweise:
+
+Damit die Pfade korrekt funktionieren, muss das root-directory als working-directory gesetzt sein. Das passiert automatisch, wenn die `Masterthesis.Rproj` Datei geöffnet wird.
+Außerdem muss in RStudio `Settings -> R Markdown -> Evaluate Chunks in Directory: Project` gesetzt sein. Nur so gilt auch das korrekte working-directory für interaktives Ausführen von Code in Chunks.
