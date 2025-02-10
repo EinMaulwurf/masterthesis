@@ -340,7 +340,7 @@ model_specs_subset_kauf <- list(
   ),
   model3 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name %in% c("Großstadt")),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + eigentuemerquote # + einkommen + einkommen_delta wegen Singularität
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter #+ anzahl_haushalte + eigentuemerquote # + einkommen + einkommen_delta wegen Singularität
   ),
   model4 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name %in% c("Mittelstadt")),
