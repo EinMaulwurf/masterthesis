@@ -132,36 +132,14 @@ zensus_arrow <- open_dataset("./data/Zensus/Gesamt/")
 
 Erstelle Grid zu sf Objekt
 ```{r}
-make_laea_grid <- function(obj, size = 100) {
-  obj_bbox <- st_bbox(obj)
-  obj_offset_x <- floor(obj_bbox["xmin"]/size)*size - (size/2)
-  obj_offset_y <- floor(obj_bbox["ymin"]/size)*size - (size/2)
-
-  st_make_grid(obj, cellsize = size, offset = c(obj_offset_x, obj_offset_y))
-}
-
-# Beispiel
-darmstadt %>%
-  make_laea_grid(size = 1000) %>%
-  ggplot()+
-  geom_sf()+
-  geom_sf(data = darmstadt, fill = NA)
+# moved to src/R/make_laea_grid.R
+source("./src/R/make_laea_grid.R")
 ```
 
 Füge Grid zu Daten hinzu
 ```{r}
-add_laea_grid <- function(obj, size = 100, x_mp = "x_mp", y_mp = "y_mp") {
-  obj %>%
-    st_as_sf(coords = c(x_mp, y_mp), crs = 3035) %>%
-    st_buffer(dist = size/2, endCapStyle = "SQUARE")
-}
-
-get_breitband_stadt("Darmstadt", size = "1km", variables = down_fn_hh_ftthb_1000) %>%
-  filter(date == 202312) %>%
-  add_laea_grid(size = 1000) %>%
-  ggplot()+
-  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
-  scale_fill_viridis_c()
+# moved to src/R/add_laea_grid.R
+source("./src/R/add_laea_grid.R")
 ```
 
 # Visualisierungen
