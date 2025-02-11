@@ -261,59 +261,49 @@ model_specs_subset_miete <- list(
     data = data_miete_complete %>% filter(n_cell_date > 0)
   ),
   model2 = list(
-    data = data_miete_complete,
-    allow_unbalanced_panel = FALSE
-  ),
-  model3 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Großstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model4 = list(
+  model3 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Mittelstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model5 = list(
+  model4 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Größere Kleinstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model6 = list(
+  model5 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Kleine Kleinstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model7 = list(
+  model6 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Landgemeinde"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model8 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Landgemeinde"),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
-    weightsname = NULL,
-    clustervars = "xy_mp"
-  ),
-  model9 = list(
+  model7 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>% 
       left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(is_osten),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model10 = list(
+  model8 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>% 
       left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(!is_osten),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model11 = list(
+  model9 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0, anteil_efh > 0.9),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model12 = list(
+  model10 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0, anteil_efh <= 0.9),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model13 = list(
+  model11 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>%
       anti_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model14 = list(
+  model12 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>%
       inner_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
@@ -386,59 +376,49 @@ model_specs_subset_kauf <- list(
     data = data_kauf_complete %>% filter(n_cell_date > 0)
   ),
   model2 = list(
-    data = data_kauf_complete,
-    allow_unbalanced_panel = FALSE
-  ),
-  model3 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Großstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter #+ anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote # Probleme mit Singularität
   ),
-  model4 = list(
+  model3 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Mittelstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model5 = list(
+  model4 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Größere Kleinstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model6 = list(
+  model5 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Kleine Kleinstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model7 = list(
+  model6 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Landgemeinde"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model8 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Landgemeinde"),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
-    weightsname = NULL,
-    clustervars = "xy_mp"
-  ),
-  model9 = list(
+  model7 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>% 
       left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(is_osten),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model10 = list(
+  model8 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>% 
       left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(!is_osten),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model11 = list(
+  model9 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0, anteil_efh > 0.9),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model12 = list(
+  model10 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0, anteil_efh <= 0.9),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model13 = list(
+  model11 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
       anti_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
-  model14 = list(
+  model12 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
       inner_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
