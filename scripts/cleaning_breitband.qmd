@@ -153,7 +153,7 @@ breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
   filter(!is.na(down_fn_hh_ftthb_1000)) %>%
   to_duckdb() %>%
-  arrange(x_mp, y_mp, date) %>%
+  #arrange(x_mp, y_mp, date) %>%
   mutate(has_fiber = if_else(down_fn_hh_ftthb_1000 > 50, 1, 0)) %>%
   group_by(x_mp, y_mp) %>%
   mutate(got_fiber = has_fiber - lag(has_fiber)) %>%
@@ -161,7 +161,7 @@ breitband_1km_arrow %>%
   filter(got_fiber == -1) %>%
   distinct(date, x_mp, y_mp) %>%
   collect() %>%
-  left_join(distinct_dates, by = character(), relationship = "many-to-many") %>%
+  cross_join(distinct_dates) %>%
   filter(date.y < date.x) %>%
   select(date = date.y, x_mp, y_mp) %>%
   arrange(x_mp, y_mp, date) %>%
