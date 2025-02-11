@@ -214,3 +214,26 @@ cells_plz %>%
   write_parquet("./data/processed/Geodaten/Raster_1km_plz.parquet")
 ```
 
+# Raster und Bundesländer
+
+```{r}
+all_distinct_cells <- st_read("./data/raw/Geodaten/DE_Grid_ETRS89-LAEA_1km.gpkg",
+                              query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
+                              as_tibble = TRUE, quiet = TRUE) %>%
+  st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
+
+bundesländer <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_lan", as_tibble = TRUE) %>%
+  st_transform(3035) %>%
+  janitor::clean_names() %>%
+  filter(geofaktor_gf == "mit Struktur Land") %>%
+  select(name = geografischer_name_gen) %>%
+  mutate(is_osten = name %in% c("Berlin", "Brandenburg", "Mecklenburg-Vorpommern", "Sachsen", "Sachsen-Anhalt", "Thüringen"))
+
+cells_bundesländer <- st_join(all_distinct_cells, bundesländer) %>%
+  st_drop_geometry() %>%
+  drop_na() %>%
+  select(x_mp, y_mp, name, is_osten)
+
+cells_bundesländer %>%
+  write_parquet("./data/processed/Geodaten/Raster_1km_bundesländer.parquet")
+```

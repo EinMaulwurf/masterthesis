@@ -226,6 +226,16 @@ ggsave("./output/plots/did/plot_did_kauf_agg_calendar.pdf", width = 3, height = 
 
 # Räumliche Subsets
 
+```{r}
+cells_bundesländer <- read_parquet("./data/processed/Geodaten/Raster_1km_bundesländer.parquet")
+
+max_speed <- read_parquet("./data/processed/Breitbandatlas/Raster_1km_max_speed.parquet")
+coords_schlechtes_internet <- max_speed %>%
+  filter(is.na(max_speed_no_fiber) | max_speed_no_fiber <= 30) %>%
+  filter(date > 202200) %>%
+  distinct(x_mp, y_mp)
+```
+
 ## Miete
 
 ```{r}
@@ -255,28 +265,66 @@ model_specs_subset_miete <- list(
     allow_unbalanced_panel = FALSE
   ),
   model3 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name %in% c("Großstadt")),
+    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Großstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
   model4 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name %in% c("Mittelstadt")),
+    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Mittelstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
   model5 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name %in% c("Landgemeinde")),
+    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Größere Kleinstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
   model6 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name %in% c("Landgemeinde")),
+    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Kleine Kleinstadt"),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+  ),
+  model7 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Landgemeinde"),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+  ),
+  model8 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Landgemeinde"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
     weightsname = NULL,
     clustervars = "xy_mp"
+  ),
+  model9 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0) %>% 
+      left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(is_osten),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+  ),
+  model10 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0) %>% 
+      left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(!is_osten),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+  ),
+  model11 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0, anteil_efh > 0.9),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+  ),
+  model12 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0, anteil_efh <= 0.9),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+  ),
+  model13 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0) %>%
+      anti_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+  ),
+  model14 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0) %>%
+      inner_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   )
 )
 
 models_räumlich_miete <- model_specs_subset_miete %>%
-  map(~ modifyList(base_params_subset_miete, .x)) %>%
+  map(~modifyList(base_params_subset_miete, .x)) %>%
   map(~do.call(att_gt, .x), .progress = TRUE)
+
+gc()
 
 # Calculate dynamig aggregation
 models_räumlich_miete_agg_dyn_tidy <- models_räumlich_miete %>%
@@ -293,6 +341,9 @@ write_parquet(models_räumlich_miete_agg_dyn_tidy, "./data/processed/Sonstige/mo
 ```
 
 ```{r}
+#| fig-width: 3
+#| fig-height: 3
+
 models_räumlich_miete_agg_dyn_tidy %>%
   mutate(number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
          name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)) %>%
@@ -302,7 +353,7 @@ models_räumlich_miete_agg_dyn_tidy %>%
   geom_point(size = 1.5)+
   geom_linerange()+
   geom_vline(xintercept = 0, linetype = "dashed")+
-  scale_x_continuous(breaks = seq(-2, 2, by = 0.5))+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 5))+
   theme_bw()+
   labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Miete (€/m²)"),
        y = "Modell")
@@ -339,28 +390,66 @@ model_specs_subset_kauf <- list(
     allow_unbalanced_panel = FALSE
   ),
   model3 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name %in% c("Großstadt")),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter #+ anzahl_haushalte + eigentuemerquote # + einkommen + einkommen_delta wegen Singularität
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Großstadt"),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter #+ anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote # Probleme mit Singularität
   ),
   model4 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name %in% c("Mittelstadt")),
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Mittelstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
   model5 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name %in% c("Landgemeinde")),
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Größere Kleinstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   ),
   model6 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name %in% c("Landgemeinde")),
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Kleine Kleinstadt"),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+  ),
+  model7 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Landgemeinde"),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+  ),
+  model8 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Landgemeinde"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
     weightsname = NULL,
     clustervars = "xy_mp"
+  ),
+  model9 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% 
+      left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(is_osten),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+  ),
+  model10 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% 
+      left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(!is_osten),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+  ),
+  model11 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0, anteil_efh > 0.9),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+  ),
+  model12 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0, anteil_efh <= 0.9),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+  ),
+  model13 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+      anti_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+  ),
+  model14 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+      inner_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
   )
 )
 
 models_räumlich_kauf <- model_specs_subset_kauf %>%
-  map(~ modifyList(base_params_subset_kauf, .x)) %>%
+  map(~modifyList(base_params_subset_kauf, .x)) %>%
   map(~do.call(att_gt, .x), .progress = TRUE)
+
+gc()
 
 # Calculate dynamig aggregation
 models_räumlich_kauf_agg_dyn_tidy <- models_räumlich_kauf %>%
@@ -377,6 +466,9 @@ write_parquet(models_räumlich_kauf_agg_dyn_tidy, "./data/processed/Sonstige/mod
 ```
 
 ```{r}
+#| fig-width: 3
+#| fig-height: 3
+
 models_räumlich_kauf_agg_dyn_tidy %>%
   mutate(number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
          name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)) %>%
@@ -386,154 +478,13 @@ models_räumlich_kauf_agg_dyn_tidy %>%
   geom_point(size = 1.5)+
   geom_linerange()+
   geom_vline(xintercept = 0, linetype = "dashed")+
-  scale_x_continuous(breaks = seq(-60000, 60000, by = 20000), labels = scales::label_number(scale = 1/1000))+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 7), labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
   labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Kaufpreis (1000€)"),
        y = "Modell")
 
 ggsave("./output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
-
-# Subset Gebäudetypen
-
-## Miete
-
-```{r}
-base_params_subset_gebäudetyp_miete <- list(
-  yname = "mean_mietekalt_m2",
-  tname = "date_pseudo_halbjahr",
-  idname = "xy_mp",
-  gname = "got_fiber_date_pseudo_halbjahr",
-  xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
-  weightsname = "anzahl_haushalte",
-  anticipation = 0,
-  control_group = "notyettreated",
-  est_method = "dr",
-  base_period = "varying",
-  clustervars = c("xy_mp", "plz"),
-  pl = TRUE,
-  cores = 6,
-  allow_unbalanced_panel = TRUE
-)
-
-model_specs_subset_gebäudetyp_miete <- list(
-  model1 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0)
-  ),
-  model2 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0, anteil_efh > 0.9)
-  ),
-  model3 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0, anteil_efh <= 0.9)
-  )
-)
-
-
-models_gebäudetyp_miete <- model_specs_subset_gebäudetyp_miete %>%
-  map(~ modifyList(base_params_subset_gebäudetyp_miete, .x)) %>%
-  map(~do.call(att_gt, .x), .progress = TRUE)
-
-# Calculate dynamig aggregation
-models_gebäudetyp_miete_agg_dyn_tidy <- models_gebäudetyp_miete %>%
-  purrr::map(
-    ~did::aggte(.x, type = "dynamic"),
-    .progress = TRUE
-  ) %>%
-  map(tidy) %>%
-  bind_rows(.id = "model")
-
-# Save results
-write_parquet(models_gebäudetyp_miete_agg_dyn_tidy, "./data/processed/Sonstige/models_gebäudetyp_miete_agg_dyn_tidy.parquet")
-#models_räumlich_miete_agg_dyn_tidy <- read_parquet("./data/processed/Sonstige/models_räumlich_miete_agg_dyn_tidy.parquet")
-```
-
-```{r}
-models_gebäudetyp_miete_agg_dyn_tidy %>%
-  mutate(number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
-         name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)) %>%
-  filter(event.time == 2) %>%
-  select(model, name_clean, estimate, conf.low, conf.high) %>%
-  ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
-  geom_point(size = 1.5)+
-  geom_linerange()+
-  geom_vline(xintercept = 0, linetype = "dashed")+
-  scale_x_continuous(breaks = seq(-60000, 60000, by = 20000), labels = scales::label_number(scale = 1/1000))+
-  theme_bw()+
-  labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Miete (€/m²)"),
-       y = "Modell")
-
-#ggsave("./output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
-```
-
-## Kauf
-
-```{r}
-base_params_subset_gebäudetyp_kauf <- list(
-  yname = "mean_kaufpreis",
-  tname = "date_pseudo_halbjahr",
-  idname = "xy_mp",
-  gname = "got_fiber_date_pseudo_halbjahr",
-  xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
-  weightsname = "anzahl_haushalte",
-  anticipation = 0,
-  control_group = "notyettreated",
-  est_method = "dr",
-  base_period = "varying",
-  clustervars = c("xy_mp", "plz"),
-  pl = TRUE,
-  cores = 6,
-  allow_unbalanced_panel = TRUE
-)
-
-model_specs_subset_gebäudetyp_kauf <- list(
-  model1 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0)
-  ),
-  model2 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0, anteil_efh > 0.9)
-  ),
-  model3 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0, anteil_efh <= 0.9)
-  )
-)
-
-
-models_gebäudetyp_kauf <- model_specs_subset_gebäudetyp_kauf %>%
-  map(~ modifyList(base_params_subset_gebäudetyp_kauf, .x)) %>%
-  map(~do.call(att_gt, .x), .progress = TRUE)
-
-# Calculate dynamig aggregation
-models_gebäudetyp_kauf_agg_dyn_tidy <- models_gebäudetyp_kauf %>%
-  purrr::map(
-    ~did::aggte(.x, type = "dynamic"),
-    .progress = TRUE
-  ) %>%
-  map(tidy) %>%
-  bind_rows(.id = "model")
-
-# Save results
-write_parquet(models_gebäudetyp_kauf_agg_dyn_tidy, "./data/processed/Sonstige/models_gebäudetyp_kauf_agg_dyn_tidy.parquet")
-#models_gebäudetyp_kauf_agg_dyn_tidy <- read_parquet("./data/processed/Sonstige/models_gebäudetyp_kauf_agg_dyn_tidy.parquet")
-```
-
-```{r}
-models_gebäudetyp_kauf_agg_dyn_tidy %>%
-  mutate(number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
-         name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)) %>%
-  filter(event.time == 2) %>%
-  select(model, name_clean, estimate, conf.low, conf.high) %>%
-  ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
-  geom_point(size = 1.5)+
-  geom_linerange()+
-  geom_vline(xintercept = 0, linetype = "dashed")+
-  scale_x_continuous(breaks = seq(-60000, 60000, by = 20000), labels = scales::label_number(scale = 1/1000))+
-  theme_bw()+
-  labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Kaufpreis (1000€)"),
-       y = "Modell")
-
-#ggsave("./output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
-```
-
 
 # Alternativ Modellspezifikationen
 
@@ -947,7 +898,7 @@ did2s::plot_event_study(did2s_staggered)
 max_speed <- read_parquet("./data/processed/Breitbandatlas/Raster_1km_max_speed.parquet")
 
 coords_schlechtes_internet <- max_speed %>%
-  filter(is.na(max_speed_no_fiber) | max_speed_no_fiber < 100) %>%
+  filter(is.na(max_speed_no_fiber) | max_speed_no_fiber <= 30) %>%
   filter(date > 202100) %>%
   distinct(x_mp, y_mp)
 
