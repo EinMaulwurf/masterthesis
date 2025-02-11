@@ -501,13 +501,16 @@ Karte
 
 ```{r}
 options(scipen = 999)
+pretty_no_decimal <- function (x) prettyNum(x, big.mark = ".", digits = 1, decimal.mark = ",")
+pretty_with_decimal <- function (x) prettyNum(x, big.mark = ".", digits = 3, decimal.mark = ",")
 
 einkommen <- read_parquet("./data/processed/Geodaten/Raster_1km_kreise_einkommen.parquet") %>%
   distinct(ars, einkommen, einkommen_delta)
 
 kreise %>%
   left_join(einkommen, by = "ars") %>%
-  mutate(einkommen_cut = cut_number(einkommen, n = 4, dig.lab = 10)) %>%
+  mutate(einkommen_cut = santoku::chop_equally(einkommen, groups = 4,
+                                               labels = santoku::lbl_dash(" – ", fmt = pretty_no_decimal))) %>%
   st_simplify(dTolerance = 200) %>%
   ggplot()+
   geom_sf(aes(fill = einkommen_cut), color = NA)+
@@ -521,7 +524,8 @@ ggsave("./output/plots/karten/plot_deutschland_einkommen_2024.pdf", width = 3, h
 
 kreise %>%
   left_join(einkommen, by = "ars") %>%
-  mutate(einkommen_delta_cut = cut_number(einkommen_delta, n = 4)) %>%
+  mutate(einkommen_delta_cut = santoku::chop_equally(einkommen_delta, groups = 4,
+                                                     labels = santoku::lbl_dash(" – ", fmt = pretty_with_decimal))) %>%
   st_simplify(dTolerance = 200) %>%
   ggplot()+
   geom_sf(aes(fill = einkommen_delta_cut), color = NA)+
