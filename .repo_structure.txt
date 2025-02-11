@@ -1,80 +1,23 @@
 .
-├── Daten -> /Users/sebastiangeis/OneDrive/Dokumente/01_Uni/92_Masterthesis/Daten/
-│   ├── Berlin_Glasfaser
-│   │   ├── Berlin_Bezirke_Versorgungsdaten_Stand_022024.xlsx
-│   │   ├── Berlin_Bezirke_Versorgungsdaten_Stand_042023.xlsx
-│   │   ├── Berlin_LOR_Versorgungsdaten_Stand_022024.xlsx
-│   │   ├── Berlin_LOR_Versorgungsdaten_Stand_042023.xlsx
-│   │   ├── Berlin_Ortsteile_Versorgungsdaten_Stand_022024.xlsx
-│   │   ├── Berlin_Ortsteile_Versorgungsdaten_Stand_042023.xlsx
-│   │   └── links.txt
-│   ├── Breitbandatlas
-│   │   ├── Raster_100m
-│   │   ├── Raster_1km
-│   │   ├── Raster_1km_Alt
-│   │   ├── Raster_1km_got_fiber_date.parquet
-│   │   ├── Raster_1km_long
-│   │   ├── Raster_1km_long_Alt
-│   │   ├── Raster_1km_max_speed.parquet
-│   │   ├── Raster_1km_problems.parquet
-│   │   ├── Rohdaten
-│   │   ├── Rohdaten_Alt
-│   │   ├── bba_06_2022.xlsx
-│   │   ├── bba_06_2023.xlsx
-│   │   ├── bba_06_2024.xlsx
-│   │   ├── bba_12_2022.xlsx
-│   │   ├── bba_12_2023.xlsx
-│   │   └── links.txt
-│   ├── Geodaten
-│   │   ├── DE_VG250.gpkg
-│   │   ├── PLZ_Gebiete_9143106783908117499.gpkg
-│   │   ├── Raster_1km_kreise_einkommen.parquet
-│   │   ├── Raster_1km_plz.parquet
-│   │   ├── gemeinden.gpkg
-│   │   ├── links.txt
-│   │   ├── vg250.pdf
-│   │   └── vgrdl_r2b3_bs2023.xlsx
-│   ├── Immo
-│   │   ├── Kauf
-│   │   ├── Miete
-│   │   ├── Rohdaten
-│   │   └── rwi_geo_red_description.pdf
-│   ├── LAEA_Grid
-│   │   ├── DE_Grid_ETRS89-LAEA_1km.gpkg
-│   │   ├── geogitter.pdf
-│   │   └── links.txt
-│   ├── RWI_GEO_REDX_PUF
-│   │   ├── Datenbeschreibung-REDX-v13.pdf
-│   │   ├── RWIGEOREDX_ApPurc_v13_PUF.xlsx
-│   │   ├── RWIGEOREDX_ApRent_v13_PUF.xlsx
-│   │   ├── RWIGEOREDX_CombInd_v13_PUF.xlsx
-│   │   ├── RWIGEOREDX_GRIDS_v13_PUF.xlsx
-│   │   ├── RWIGEOREDX_HouPurc_v13_PUF.xlsx
-│   │   └── rwi_geo_redx_puf.parquet
-│   ├── Raumgliederung_BBSR
-│   │   ├── Raster_1km_gemeinden_bbsr.parquet
-│   │   ├── gemeinden_bbsr.parquet
-│   │   ├── links.txt
-│   │   ├── raumgliederungen-referenzen-2021.xlsx
-│   │   └── raumgliederungen-referenzen-2022.xlsx
-│   ├── Sonstige
-│   │   └── beispiele.xlsx
-│   ├── Zensus
-│   │   ├── Alter_in_10er-Jahresgruppen
-│   │   ├── Durchschnittliche_Haushaltsgroesse_in_Gitterzellen
-│   │   ├── Durchschnittliche_Wohnflaeche_je_Bewohner_in_Gitterzellen
-│   │   ├── Durchschnittsalter_in_Gitterzellen
-│   │   ├── Eigentuemerquote_in_Gitterzellen
-│   │   ├── Gebaeude_nach_Baujahr_in_Mikrozensus_Klassen
-│   │   ├── Gesamt
-│   │   ├── Leerstandsquote_in_Gitterzellen
-│   │   ├── Zensus2022_Bevoelkerungszahl
-│   │   ├── Zensus2022_Durchschn_Nettokaltmiete
-│   │   └── links.txt
-│   ├── data_kauf_complete.parquet
-│   ├── data_miete_complete.parquet
-│   └── dates_pseudo_halbjahr.parquet
-├── Literatur -> /Users/sebastiangeis/OneDrive/Dokumente/01_Uni/92_Masterthesis/Literatur/
+├── Masterthesis.Rproj
+├── README.md
+├── data -> /Users/sebastiangeis/onedrive/Dokumente/01_Uni/92_Masterthesis/data
+│   ├── processed
+│   │   ├── Breitbandatlas
+│   │   ├── Geodaten
+│   │   ├── RWI_GEO_RED
+│   │   ├── Raumgliederung_BBSR
+│   │   ├── Sonstige
+│   │   └── Zensus
+│   └── raw
+│       ├── Breitbandatlas
+│       ├── Geodaten
+│       ├── RWI_GEO_RED
+│       ├── RWI_GEO_REDX_PUF
+│       ├── Raumgliederung_BBSR
+│       ├── Sonstige
+│       └── Zensus
+├── literatur -> /Users/sebastiangeis/onedrive/Dokumente/01_Uni/92_Masterthesis/literatur
 │   ├── Internet
 │   │   ├── ahlfeldt_et_al_2017.pdf
 │   │   ├── ahlfeldt_et_al_2017.txt
@@ -92,6 +35,7 @@
 │   │   ├── fackler_et_al_2022.pdf
 │   │   ├── fackler_et_al_2022.txt
 │   │   ├── fackler_et_al_2022_summary.txt
+│   │   ├── fackler_et_al_2024.pdf
 │   │   ├── guiffard_2024.pdf
 │   │   ├── guiffard_2024.txt
 │   │   ├── guiffard_2024_summary.txt
@@ -117,9 +61,12 @@
 │   │   ├── Rbloggers 2022 - Propensity Score.pdf
 │   │   └── Stuart 2014 - PSM DID.pdf
 │   ├── Methodik
+│   │   ├── CS21_Source
 │   │   ├── borusyak_et_al_2021.pdf
 │   │   ├── butts_gardner_2022.pdf
 │   │   ├── callaway_santanna_2021.pdf
+│   │   ├── callaway_santanna_2021.txt
+│   │   ├── frumento_2023.pdf
 │   │   ├── gardner_2021.pdf
 │   │   ├── little_2019.pdf
 │   │   ├── rambach_roth_2023.pdf
@@ -132,8 +79,7 @@
 │       ├── include
 │       ├── lib
 │       └── pyvenv.cfg
-├── Masterthesis.Rproj
-├── Output -> /Users/sebastiangeis/OneDrive/Dokumente/01_Uni/92_Masterthesis/Output/
+├── output -> /Users/sebastiangeis/onedrive/Dokumente/01_Uni/92_Masterthesis/output
 │   ├── berlin_animation
 │   │   ├── berlin_glasfaser_100m_201812.jpg
 │   │   ├── berlin_glasfaser_100m_201907.jpg
@@ -220,6 +166,7 @@
 │   ├── plot_de_glasfaser_1km.pdf
 │   ├── plot_de_glasfaser_202406_1km.pdf
 │   └── plots
+│       ├── did
 │       ├── karten
 │       ├── plot_berlin_100m.pdf
 │       ├── plot_berlin_1km.pdf
@@ -227,18 +174,6 @@
 │       ├── plot_boxplot_variablen_miete.pdf
 │       ├── plot_verteilung_glasfaser_2018_2023.pdf
 │       └── plot_verteilung_glasfaser_2018_2024.pdf
-├── README.md
-├── Skripte
-│   ├── cleaning_breitband.qmd
-│   ├── cleaning_immo.qmd
-│   ├── cleaning_sonstige.qmd
-│   ├── cleaning_zensus.qmd
-│   ├── did.qmd
-│   ├── exploration.qmd
-│   ├── gemeinden_test.qmd
-│   ├── get_coords.cpp
-│   ├── honest_did_helper.R
-│   └── scraping.qmd
 ├── overleaf
 │   ├── abbildungen
 │   │   ├── Unterschrift_Sebastian_Geis.jpeg
@@ -247,17 +182,39 @@
 │   │   ├── plot_berlin_1km.pdf
 │   │   ├── plot_darmstadt_zensus_missing.pdf
 │   │   ├── plot_de_glasfaser_202406_1km.pdf
+│   │   ├── plot_deutschland_einkommen_2024.pdf
+│   │   ├── plot_deutschland_einkommen_delta.pdf
+│   │   ├── plot_did_alternative_kauf.pdf
+│   │   ├── plot_did_alternative_miete.pdf
+│   │   ├── plot_did_example_agg_calendar.pdf
+│   │   ├── plot_did_example_agg_dyn.pdf
+│   │   ├── plot_did_example_agg_group.pdf
+│   │   ├── plot_did_example_att.pdf
+│   │   ├── plot_did_example_data.pdf
+│   │   ├── plot_did_kauf.pdf
+│   │   ├── plot_did_kauf_agg_calendar.pdf
+│   │   ├── plot_did_kauf_agg_dyn.pdf
+│   │   ├── plot_did_kauf_agg_dyn_cluster_comparison.pdf
+│   │   ├── plot_did_kauf_agg_group.pdf
+│   │   ├── plot_did_miete.pdf
+│   │   ├── plot_did_miete_agg_calendar.pdf
+│   │   ├── plot_did_miete_agg_dyn.pdf
+│   │   ├── plot_did_miete_agg_dyn_cluster_comparison.pdf
+│   │   ├── plot_did_miete_agg_group.pdf
+│   │   ├── plot_did_raeumlich_kauf.pdf
+│   │   ├── plot_did_raeumlich_miete.pdf
+│   │   ├── plot_did_simulation.pdf
+│   │   ├── plot_did_simulation_agg_dyn.pdf
+│   │   ├── plot_did_simulation_agg_dyn_honest.pdf
+│   │   ├── plot_did_simulation_small_agg_dyn.pdf
+│   │   ├── plot_did_simulation_small_agg_dyn_honest.pdf
 │   │   ├── plot_runkel_zensus_missing.pdf
 │   │   ├── plot_verteilung_glasfaser_2018_2023.pdf
 │   │   └── plot_verteilung_glasfaser_2018_2024.pdf
 │   ├── bibliography.bib
 │   ├── bibliography_r.bib
 │   ├── latexmkrc
-│   ├── main.pdf
 │   ├── main.tex
-│   ├── main.xmpdata
-│   ├── pdfa.xmpi
-│   ├── preamble.log
 │   ├── preamble.tex
 │   ├── text
 │   │   ├── 00_abkürzungen.tex
@@ -270,11 +227,37 @@
 │   │   ├── 60_diskussion.tex
 │   │   ├── 70_zusammenfassung.tex
 │   │   ├── 91_daten_appendix.tex
-│   │   └── 92_methodik_appendix.tex
-│   ├── tikz
-│   │   ├── did_schema_multiple_tikz.tex
-│   │   └── did_schema_tikz.tex
-│   └── tuda_logo.pdf
-└── r-references.bib
+│   │   ├── 92_methodik_appendix.tex
+│   │   └── 93_ergebnisse_appendix.tex
+│   └── tikz
+│       ├── did_schema_multiple_tikz.tex
+│       └── did_schema_tikz.tex
+├── r-references.bib
+├── scripts
+│   ├── cleaning_breitband.qmd
+│   ├── cleaning_immo.qmd
+│   ├── cleaning_sonstige.qmd
+│   ├── cleaning_zensus.qmd
+│   ├── data -> ../data  [recursive, not followed]
+│   ├── did.qmd
+│   ├── did_crosssection.qmd
+│   ├── exploration.qmd
+│   ├── gemeinden_test.qmd
+│   ├── output -> ../output  [recursive, not followed]
+│   ├── scraping.qmd
+│   ├── simulations.qmd
+│   └── src -> ../src
+│       ├── R
+│       └── cpp
+└── src
+    ├── R
+    │   ├── add_laea_grid.R
+    │   ├── clean_panel.R
+    │   ├── create_balanced_panel.R
+    │   ├── honest_did_helper.R
+    │   ├── make_laea_grid.R
+    │   └── simulate_panel.R
+    └── cpp
+        └── get_coords.cpp
 
-52 directories, 226 files
+48 directories, 213 files
