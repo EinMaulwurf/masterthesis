@@ -19,12 +19,14 @@ library(sf)
 
 Die Daten des Breitbandatlas sind auf dem 100m Raster gegeben, für die Auswertungen in Verbindung mit den Sozio- bzw. Immodaten benötige ich aber das 1km Raster. Hier führe ich die Aggregation durch.
 
-Für die Aggregation der Breitband Daten verwende ich später einen gewichteten Mittelwert mit der Anzahl der Haushalte als Gewicht. Dafür lade ich hier die Zensus Daten und berechne die Anzahl der Haushalte für jedes 100m Quadrat. Da öfter die `durchschn_hh_groesse` fehlt, verwende ich das mice Package um die Werte zu imputieren
+Für die Aggregation der Breitband Daten verwende ich später einen gewichteten Mittelwert mit der Anzahl der Haushalte als Gewicht. Dafür lade ich hier die Zensus Daten und berechne die Anzahl der Haushalte für jedes 100m Quadrat. Da öfter die `durchschn_hh_groesse` fehlt, verwende ich das mice Package um die Werte zu imputieren.
+
+Um im nächsten Schritt alles im Arrow-Framework bearbeiten zu können, wandle ich die Zensus-Daten nach der Imputation wieder in einen Arrow-Table (diesmal in-memory) um.
 
 ```{r}
 zensus_arrow <- open_dataset("./data/processed/Zensus/Gesamt/")
 
-zensus_haushalte_100m <- zensus_arrow %>%
+zensus_haushalte_100m_arrow <- zensus_arrow %>%
   filter(typ == "100m") %>%
   select(x_mp, y_mp, insgesamt_bevoelkerung, durchschn_hh_groesse) %>%
   mutate(has_na = is.na(insgesamt_bevoelkerung) | is.na(durchschn_hh_groesse)) %>%
@@ -33,81 +35,39 @@ zensus_haushalte_100m <- zensus_arrow %>%
   mice::mice(m = 1, maxit = 1, pred = mice::quickpred(., exclude = c("x_mp", "y_mp", "has_na")), seed = 1) %>%
   mice::complete() %>%
   as_tibble() %>%
-  select(x_mp, y_mp, anzahl_haushalte)
+  select(x_mp, y_mp, anzahl_haushalte) %>%
+  arrow_table()
 ```
 
-Jetzt loope ich über alle Zeitpunkte und Variablen. Das ist nötig, weil die Operation sonst zu viel RAM benötigt. Ich lade die Daten des jeweiligen Zeitpunktes und Variable und joine die Anzahl der Haushalte. Ich entferne alle Beobachtungen, bei denen entweder die Anzahl der Haushalte oder der Wert der jeweiligen Variable fehlt. Anschließend wird alles im Long Format in einen Arrow Datensatz geschrieben. Im nächsten Schritt werde ich diesen dann ins Wide Format überführen, dafür müssen aber erst alle Variablen eines Jahres aggregiert worden sein.
+Jetzt wird aggregiert. Zuerst werden noch die präparierten Haushalts-Zahlen aus dem Zensus gejoint. Das geht, weil sowohl die Breitband als auch die Haushaltsdaten im Arrow-Format vorliegen. Die `weighted.mean()` Funktion ist in Arrow nicht implementiert, daher verwende ich die primitivere Version. Durch fehlende Werte oder nullen entstehen `NaN`s, die ich im nächsten Schritt in "normale" `NA`s umwandle.
 
 ```{r}
 breitband_100m_arrow <- open_dataset("./data/processed/Breitbandatlas/Raster_100m/")
 
-arrow_dates <- breitband_100m_arrow %>%
-  distinct(date) %>%
-  arrange(date) %>%
-  collect() %>%
-  pull(date)
-
-arrow_variables <- breitband_100m_arrow %>%
-  filter(date == 202312) %>%
-  slice_sample(n = 1) %>%
-  collect() %>%
-  select(starts_with("down_")) %>%
-  colnames()
-
-total <- length(arrow_dates) * length(arrow_variables)
-counter <- 1
-
-for(d in arrow_dates) {
-
-  gc()
-
-  for(v in arrow_variables) {
-    if(counter %% 10 == 0) str_glue("{counter} of {total}") %>% print()
-
-    breitband_100m_arrow %>%
-      filter(date == d) %>%
-      select(date, x_mp, y_mp, !!sym(v)) %>%
-      collect() %>%
-      left_join(zensus_haushalte_100m, by = join_by(x_mp, y_mp)) %>%
-      mutate(x_mp_1km = floor(x_mp/1000)*1000 + 500,
-             y_mp_1km = floor(y_mp/1000)*1000 + 500) %>%
-      drop_na(anzahl_haushalte) %>%
-      group_by(date, x_mp_1km, y_mp_1km) %>%
-      summarise(!!v := weighted.mean(!!sym(v), anzahl_haushalte, na.rm = TRUE),
-                .groups = "drop") %>%
-      rename(x_mp = x_mp_1km, y_mp = y_mp_1km) %>%
-      pivot_longer(cols = all_of(v)) %>%
-      mutate(value = round(value, 2)) %>%
-      group_by(date, name) %>%
-      write_dataset("./data/processed/Breitbandatlas/Raster_1km_long/")
-
-    counter <- counter + 1
-  }
-}
-```
-
-Und jetzt wieder zusammenfügen im Wide Format.
-
-```{r}
-breitband_1km_long_arrow <- open_dataset("./data/processed/Breitbandatlas/Raster_1km_long/")
-
-arrow_names_sorted <- breitband_1km_long_arrow %>%
-  distinct(name) %>%
-  collect() %>%
-  pull(name) %>%
-  gtools::mixedsort()
-
-for(d in arrow_dates) {
-  print(d)
-
-  breitband_1km_long_arrow %>%
-    filter(date == d) %>%
-    collect() %>%
-    pivot_wider(names_from = name, values_from = value) %>%
-    select(date, x_mp, y_mp, all_of(arrow_names_sorted)) %>%
-    group_by(date) %>%
-    write_dataset("./data/processed/Breitbandatlas/Raster_1km/")
-}
+breitband_100m_arrow %>%
+  left_join(
+    zensus_haushalte_100m_arrow, by = c("x_mp", "y_mp")
+  ) %>%
+  filter(!is.na(anzahl_haushalte)) %>%
+  mutate(
+    x_mp_1km = floor(x_mp/1000)*1000 + 500,
+    y_mp_1km = floor(y_mp/1000)*1000 + 500
+  ) %>%
+  group_by(date, x_mp_1km, y_mp_1km) %>%
+  summarise(
+    across(
+      starts_with("down_"),
+      ~ sum(.x * anzahl_haushalte, na.rm = TRUE) / sum(anzahl_haushalte, na.rm = TRUE)
+    ),
+    .groups = "drop"
+  ) %>%
+  mutate(across(
+    starts_with("down_"),
+    ~ if_else(is.nan(.x), NA_real_, .x)
+  )) %>%
+  select(date, x_mp = x_mp_1km, y_mp = y_mp_1km, everything()) %>%
+  group_by(date) %>%
+  write_dataset("./data/processed/Breitbandatlas/Raster_1km/")
 ```
 
 Hier noch ein Vergleich der 100m Daten vs den aggregierten 1km Daten anhand Berlin.
