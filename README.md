@@ -32,6 +32,18 @@ git clone git@github.com:EinMaulwurf/masterthesis.git
 - `scraping.qmd`: Skript zum Extrahieren von Daten aus dem Breitbandatlas und Speichern im `.parquet` Format.
 - `simulations.qmd`: Erstellen und Auswerten verschiedener synthetischer Datensätze.
 
+Da die Skripte teilweise auf dem Output anderer Skripte aufbauen, sollte die folgende Reihenfolge für einen ersten Durchlauf eingehalten werden:
+
+1. `cleaning_zensus.qmd`
+2. `scraping.qmd`
+3. `cleaning_breitband.qmd`
+4. `cleaning_sonstige.qmd`
+5. `cleaning_immo.qmd`
+6. `exploration.qmd`
+7. `simulations.qmd`
+8. `did.qmd`
+9. `did_crosssection.qmd`
+
 ## Reproduzierbarkeit mit `renv`
 
 Dieses Projekt verwendet `renv` zur Verwaltung der R-Dependencies, um eine gute Reproduzierbarkeit der Ergebnisse zu gewährleisten.
