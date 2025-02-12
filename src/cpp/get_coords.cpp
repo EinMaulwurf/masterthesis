@@ -3,10 +3,41 @@
 #include <cmath>
 #include <algorithm>
 
+//' Generate Grid Cell Centers Around Input Coordinates
+//' 
+//' For each input coordinate pair, generates all grid cell centers within a 250x250 unit square 
+//' centered at the input point, using a specified grid cell size.
+//'
+//' @param x_mp_vec Numeric vector of x-coordinates for input points
+//' @param y_mp_vec Numeric vector of y-coordinates for input points (must match length of x_mp_vec)
+//' @param size Grid cell size (width and height) in units. Default = 100.0
+//'
+//' @return A DataFrame with four columns:
+//' \describe{
+//'   \item{x_mp_raw}{Original x-coordinates from input}
+//'   \item{y_mp_raw}{Original y-coordinates from input}
+//'   \item{x_mp}{Generated grid cell center x-coordinates}
+//'   \item{y_mp}{Generated grid cell center y-coordinates}
+//' }
+//' Each row represents a grid cell center generated within 125 units (half of 250) in all directions
+//' from the original coordinates, using the specified grid size.
+//'
+//' @details For each input coordinate (x,y), calculates grid cell centers within a square from 
+//' (x-125, y-125) to (x+125, y+125). Grid cells are spaced at intervals of `size` units, offset 
+//' by half-size to create center points. The function returns all valid grid cell centers within 
+//' this area for all input points.
+//'
+//' @examples
+//' # Generate grid points around a single coordinate
+//' get_coords_rcpp(c(500), c(500), size = 100)
+//'
+//' # Generate grid points for multiple coordinates
+//' get_coords_rcpp(c(100, 200), c(300, 400), size = 50)
 // [[Rcpp::export]]
-Rcpp::DataFrame get_coords_rcpp(Rcpp::NumericVector x_mp_vec, 
-                                        Rcpp::NumericVector y_mp_vec, 
-                                        double size = 100.0) {
+
+Rcpp::DataFrame get_coords_rcpp(Rcpp::NumericVector x_mp_vec,
+                                Rcpp::NumericVector y_mp_vec,
+                                double size = 100.0) {
   // Check that the input vectors have the same length
   if (x_mp_vec.size() != y_mp_vec.size()) {
     Rcpp::stop("Vectors must have the same length.");
@@ -22,7 +53,7 @@ Rcpp::DataFrame get_coords_rcpp(Rcpp::NumericVector x_mp_vec,
   std::vector<double> y_mp_new_res;
   
   // Estimate initial capacity (adjust as needed)
-  size_t initial_capacity = x_mp_vec.size() * 10; // Adjust multiplier based on expected expansion
+  size_t initial_capacity = x_mp_vec.size() * 10;
   x_mp_res.reserve(initial_capacity);
   y_mp_res.reserve(initial_capacity);
   x_mp_new_res.reserve(initial_capacity);
