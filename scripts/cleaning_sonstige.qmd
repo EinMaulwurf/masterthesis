@@ -126,28 +126,6 @@ cells_kreise_einkommen %>%
   write_parquet("./data/processed/Geodaten/Raster_1km_kreise_einkommen.parquet")
 ```
 
-# PLZ Gebiete
-
-```{r}
-all_distinct_cells <- st_read("./data/raw/Geodaten/DE_Grid_ETRS89-LAEA_1km.gpkg",
-                              query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
-                              as_tibble = TRUE, quiet = TRUE) %>%
-  st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
-
-plz <- st_read("./data/raw/Geodaten/PLZ_Gebiete_9143106783908117499.gpkg",
-                    as_tibble = TRUE, quiet = TRUE) %>%
-  st_transform(3035) %>%
-  janitor::clean_names() %>%
-  select(plz)
-
-cells_plz <- st_join(all_distinct_cells, plz) %>%
-  st_drop_geometry() %>%
-  drop_na()
-
-cells_plz %>%
-  write_parquet("./data/processed/Geodaten/Raster_1km_plz.parquet")
-```
-
 # Zensus Gebäudetyp
 
 ```{r}
