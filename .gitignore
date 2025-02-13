@@ -1,7 +1,7 @@
 # Own Additions
 
-scripts/Daten
-scripts/Output
+scripts/data
+scripts/output
 scripts/src
 #Daten/*
 #Output/*
