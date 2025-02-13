@@ -1,8 +1,6 @@
 ---
 title: "did_crosssection"
 format: html
-editor_options: 
-  chunk_output_type: inline
 ---
 
 [link](https://bcallaway11.github.io/did/articles/did-basics.html#repeated-cross-sections)

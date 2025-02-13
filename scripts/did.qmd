@@ -1,8 +1,6 @@
 ---
 title: "did"
 format: html
-editor_options: 
-  chunk_output_type: inline
 ---
 
 # Setup
