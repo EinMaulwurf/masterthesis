@@ -538,6 +538,45 @@ kreise %>%
 ggsave("./output/plots/karten/plot_deutschland_einkommen_delta.pdf", width = 3, height = 3)
 ```
 
+## Erklärende Variablen
+
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+
+set.seed(1)
+
+data_kauf_complete <- read_parquet("./data/processed/RWI_GEO_RED/data_kauf_complete.parquet")
+
+data_kauf_complete %>% 
+  filter(date_pseudo_halbjahr == 1) %>%
+  mutate(einkommen = einkommen / 1000,
+         anzahl_haushalte = anzahl_haushalte / 1000) %>%
+  filter(median_baujahr > quantile(.$median_baujahr, 0.05),
+         median_wohnflaeche < quantile(.$median_wohnflaeche, 0.95)) %>%
+  select(
+    "Baujahr" = median_baujahr,
+    "Wohnfläche" = median_wohnflaeche,
+    "Zimmer-\nanzahl" = median_zimmeranzahl,
+    "Alter" = durchschnittsalter,
+    "Anteil\nEFH" = anteil_efh,
+    "Einkommen" = einkommen,
+    "Einkommen\nDelta" = einkommen_delta,
+    "Anzahl\nHaushalte" = anzahl_haushalte,
+    "Eigentümer-\nquote" = eigentuemerquote
+  ) %>%
+  slice_sample(n = 1000) %>%
+  GGally::ggpairs(
+    progress = FALSE,
+    lower = list(continuous = GGally::wrap("points", alpha = 0.2, size = 0.2)),
+    columns = c("Baujahr", "Wohnfläche", "Zimmer-\nanzahl", "Alter", "Anteil\nEFH", "Einkommen", "Einkommen\nDelta", "Anzahl\nHaushalte", "Eigentümer-\nquote")
+  )+
+  theme_bw()
+
+ggsave("./output/plots/plot_erklärende_variablen.pdf", width = 8, height = 8)
+```
+
+
 # Summary Statistics
 
 ## Breitbanddaten
