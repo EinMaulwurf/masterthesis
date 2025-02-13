@@ -27,6 +27,8 @@ dates_pseudo_halbjahr <- read_parquet("./data/processed/Sonstige/dates_pseudo_ha
 
 data_miete_complete <- read_parquet("./data/processed/RWI_GEO_RED/data_miete_complete.parquet")
 data_kauf_complete <- read_parquet("./data/processed/RWI_GEO_RED/data_kauf_complete.parquet")
+
+base_formula <- ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
 ```
 
 # Bevorzugte Spezifikation
@@ -50,7 +52,7 @@ mod_miete <- data_miete_complete %>%
     tname = "date_pseudo_halbjahr",
     idname = "xy_mp",
     gname = "got_fiber_date_pseudo_halbjahr",
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
+    xformla = base_formula,
     weightsname = "anzahl_haushalte",
     anticipation = 0,
     alp = 0.05,
@@ -110,7 +112,7 @@ tidy(mod_miete_agg_group) %>%
   theme_bw()+
   theme(legend.position = "none")+
   labs(x = latex2exp::TeX("Gruppe ($\\tilde{g}$)"),
-       y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g}, e_{max})$: Miete (€/m²)"))
+       y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g}, e_{max}=4)$: Miete (€/m²)"))
 ggsave("./output/plots/did/plot_did_miete_agg_group.pdf", width = 3, height = 3, device = cairo_pdf)
 
 mod_miete_agg_calendar <- did::aggte(mod_miete, type = "calendar")
@@ -142,7 +144,7 @@ mod_kauf <- data_kauf_complete %>%
     tname = "date_pseudo_halbjahr",
     idname = "xy_mp",
     gname = "got_fiber_date_pseudo_halbjahr",
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
+    xformla = base_formula,
     weightsname = "anzahl_haushalte",
     anticipation = 0,
     alp = 0.05,
@@ -204,7 +206,7 @@ tidy(mod_kauf_agg_group) %>%
   theme_bw()+
   theme(legend.position = "none")+
   labs(x = latex2exp::TeX("Gruppe ($\\tilde{g}$)"),
-       y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g}, e_{max})$: Kaufpreis (1000€)"))
+       y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g}, e_{max}=4)$: Kaufpreis (1000€)     "))
 ggsave("./output/plots/did/plot_did_kauf_agg_group.pdf", width = 3, height = 3, device = cairo_pdf)
 
 mod_kauf_agg_calendar <- did::aggte(mod_kauf, type = "calendar")
@@ -227,6 +229,8 @@ ggsave("./output/plots/did/plot_did_kauf_agg_calendar.pdf", width = 3, height = 
 # Räumliche Subsets
 
 ```{r}
+gc()
+
 cells_bundesländer <- read_parquet("./data/processed/Geodaten/Raster_1km_bundesländer.parquet")
 
 max_speed <- read_parquet("./data/processed/Breitbandatlas/Raster_1km_max_speed.parquet")
@@ -244,7 +248,7 @@ base_params_subset_miete <- list(
   tname = "date_pseudo_halbjahr",
   idname = "xy_mp",
   gname = "got_fiber_date_pseudo_halbjahr",
-  xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
+  xformla = base_formula,
   weightsname = "anzahl_haushalte",
   anticipation = 0,
   control_group = "notyettreated",
@@ -262,51 +266,46 @@ model_specs_subset_miete <- list(
   ),
   model2 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Großstadt"),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model3 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Mittelstadt"),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model4 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Größere Kleinstadt"),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model5 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Kleine Kleinstadt"),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model6 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Landgemeinde"),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model7 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>% 
-      left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(is_osten),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    data = data_miete_complete %>% filter(n_cell_date > 0) %>%
+      left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(is_osten)
   ),
   model8 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>% 
-      left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(!is_osten),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    data = data_miete_complete %>% filter(n_cell_date > 0) %>%
+      left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(!is_osten)
   ),
   model9 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0, anteil_efh > 0.9),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    data = data_miete_complete %>% filter(n_cell_date > 0, anteil_efh > 0.9)
   ),
   model10 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0, anteil_efh <= 0.9),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    data = data_miete_complete %>% filter(n_cell_date > 0, anteil_efh <= 0.9)
   ),
   model11 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>%
-      anti_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+      anti_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp))
   ),
   model12 = list(
     data = data_miete_complete %>% filter(n_cell_date > 0) %>%
       inner_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   )
 )
 
@@ -359,7 +358,7 @@ base_params_subset_kauf <- list(
   tname = "date_pseudo_halbjahr",
   idname = "xy_mp",
   gname = "got_fiber_date_pseudo_halbjahr",
-  xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
+  xformla = base_formula,
   weightsname = "anzahl_haushalte",
   anticipation = 0,
   control_group = "notyettreated",
@@ -376,52 +375,54 @@ model_specs_subset_kauf <- list(
     data = data_kauf_complete %>% filter(n_cell_date > 0)
   ),
   model2 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Großstadt"),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter #+ anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote # Probleme mit Singularität
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+      filter(gemeindetyp_name == "Großstadt"),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + anteil_efh # Probleme mit Singularität, deswegen eigentümerquote, einkommen und einkommen_delta raus
   ),
   model3 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Mittelstadt"),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+      filter(gemeindetyp_name == "Mittelstadt"),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model4 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Größere Kleinstadt"),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+      filter(gemeindetyp_name == "Größere Kleinstadt"),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model5 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Kleine Kleinstadt"),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+      filter(gemeindetyp_name == "Kleine Kleinstadt"),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model6 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Landgemeinde"),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+      filter(gemeindetyp_name == "Landgemeinde"),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model7 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% 
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
       left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(is_osten),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + anteil_efh
   ),
   model8 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>% 
-      left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(!is_osten),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+      left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(!is_osten)
   ),
   model9 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0, anteil_efh > 0.9),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    data = data_kauf_complete %>% filter(n_cell_date > 0, anteil_efh > 0.9)
   ),
   model10 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0, anteil_efh <= 0.9),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    data = data_kauf_complete %>% filter(n_cell_date > 0, anteil_efh <= 0.9)
   ),
   model11 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
       anti_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model12 = list(
     data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
       inner_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   )
 )
 
@@ -468,6 +469,10 @@ ggsave("./output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, 
 
 # Alternativ Modellspezifikationen
 
+```{r}
+gc()
+```
+
 ## Miete
 
 ```{r}
@@ -478,7 +483,7 @@ base_params_miete <- list(
   tname = "date_pseudo_halbjahr",
   idname = "xy_mp",
   gname = "got_fiber_date_pseudo_halbjahr",
-  xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
+  xformla = base_formula,
   weightsname = "anzahl_haushalte",
   anticipation = 0,
   control_group = "notyettreated",
@@ -566,7 +571,7 @@ base_params_kauf <- list(
   tname = "date_pseudo_halbjahr",
   idname = "xy_mp",
   gname = "got_fiber_date_pseudo_halbjahr",
-  xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
+  xformla = base_formula,
   weightsname = "anzahl_haushalte",
   anticipation = 0,
   control_group = "notyettreated",
@@ -669,7 +674,7 @@ mod_kauf_honest_did <- data_kauf_complete %>%
     tname = "date_pseudo_halbjahr",
     idname = "xy_mp",
     gname = "got_fiber_date_pseudo_halbjahr",
-    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote,
+    xformla = base_formula,
     weightsname = "anzahl_haushalte",
     anticipation = 0,
     alp = 0.05,
