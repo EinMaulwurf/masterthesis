@@ -136,7 +136,7 @@ deutschland <- giscoR::gisco_get_countries(country = "DE") %>% st_transform(3035
 deutschland_grid_cells <- deutschland %>%
   st_make_grid(n = c(96, 96), square = TRUE, what = "polygons") %>%
   st_as_sf() %>%
-  filter(st_intersects(., deutschland, sparse = FALSE)[,1]) %>%
+  st_filter(deutschland)
   st_geometry() %>%
   map(~ as.list(st_bbox(.)))
 
