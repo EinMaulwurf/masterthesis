@@ -2,7 +2,7 @@
 clean_panel <- function(data, id_var, time_var, keep_ties = c("all", "first", "last")) {
   # Match the keep_ties argument
   keep_ties <- match.arg(keep_ties)
-  
+
   data %>%
     arrange({{ id_var }}, {{ time_var }}) %>%
     group_by({{ id_var }}) %>%
@@ -26,7 +26,7 @@ clean_panel <- function(data, id_var, time_var, keep_ties = c("all", "first", "l
     ) %>%
     filter(
       group_length == max_group_length,
-      if(keep_ties != "all") group_rank == 1 else TRUE
+      if (keep_ties != "all") group_rank == 1 else TRUE
     ) %>%
     ungroup() %>%
     select(-consec_group, -group_length, -max_group_length, -group_start, -group_rank)

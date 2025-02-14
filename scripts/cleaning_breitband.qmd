@@ -46,12 +46,13 @@ breitband_100m_arrow <- open_dataset("./data/processed/Breitbandatlas/Raster_100
 
 breitband_100m_arrow %>%
   left_join(
-    zensus_haushalte_100m_arrow, by = c("x_mp", "y_mp")
+    zensus_haushalte_100m_arrow,
+    by = c("x_mp", "y_mp")
   ) %>%
   filter(!is.na(anzahl_haushalte)) %>%
   mutate(
-    x_mp_1km = floor(x_mp/1000)*1000 + 500,
-    y_mp_1km = floor(y_mp/1000)*1000 + 500
+    x_mp_1km = floor(x_mp / 1000) * 1000 + 500,
+    y_mp_1km = floor(y_mp / 1000) * 1000 + 500
   ) %>%
   group_by(date, x_mp_1km, y_mp_1km) %>%
   summarise(
@@ -79,15 +80,17 @@ breitband_1km_arrow <- open_dataset("./data/processed/Breitbandatlas/Raster_1km/
 breitband_100m_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
   filter(date == 202312) %>%
-  filter(x_mp %>% between(4531081, 4576579),
-         y_mp %>% between(3254012, 3290626)) %>%
+  filter(
+    x_mp %>% between(4531081, 4576579),
+    y_mp %>% between(3254012, 3290626)
+  ) %>%
   collect() %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035) %>%
   st_buffer(dist = 50, endCapStyle = "SQUARE") %>%
-  ggplot()+
-  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
-  scale_fill_viridis_c()+
-  theme_void()+
+  ggplot() +
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA) +
+  scale_fill_viridis_c() +
+  theme_void() +
   theme(legend.position = "none")
 
 ggsave("./output/plots/plot_berlin_100m.pdf", width = 3, height = 2.5)
@@ -95,15 +98,17 @@ ggsave("./output/plots/plot_berlin_100m.pdf", width = 3, height = 2.5)
 breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
   filter(date == 202312) %>%
-  filter(x_mp %>% between(4531081, 4576579),
-         y_mp %>% between(3254012, 3290626)) %>%
+  filter(
+    x_mp %>% between(4531081, 4576579),
+    y_mp %>% between(3254012, 3290626)
+  ) %>%
   collect() %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035) %>%
   st_buffer(dist = 500, endCapStyle = "SQUARE") %>%
-  ggplot()+
-  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
-  scale_fill_viridis_c()+
-  theme_void()+
+  ggplot() +
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA) +
+  scale_fill_viridis_c() +
+  theme_void() +
   theme(legend.position = "none")
 
 ggsave("./output/plots/plot_berlin_1km.pdf", width = 3, height = 2.5)
@@ -117,7 +122,7 @@ Ich extrahiere für jede Zelle und Jahr die maximal verfügbare Internetgeschwin
 breitband_1km_arrow <- open_dataset("./data/processed/Breitbandatlas/Raster_1km/")
 
 breitband_1km_arrow %>%
-  select(date, x_mp, y_mp, contains("ftthb"), contains("hfc"), contains("fttc") ,contains("sonst")) %>%
+  select(date, x_mp, y_mp, contains("ftthb"), contains("hfc"), contains("fttc"), contains("sonst")) %>%
   collect() %>%
   pivot_longer(cols = starts_with("down"), names_to = "speed_name", values_to = "anteil") %>%
   filter(anteil > 50) %>%
@@ -125,7 +130,7 @@ breitband_1km_arrow %>%
     speed_name %>% str_detect("(hfc|fttc|sonst)") ~ "no_fiber",
     speed_name %>% str_detect("ftthb") ~ "fiber",
     TRUE ~ NA
-    )) %>%
+  )) %>%
   drop_na(type) %>%
   mutate(speed = speed_name %>% str_extract("\\d+$") %>% as.numeric()) %>%
   group_by(date, x_mp, y_mp, type) %>%
@@ -153,7 +158,7 @@ breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
   filter(!is.na(down_fn_hh_ftthb_1000)) %>%
   to_duckdb() %>%
-  #arrange(x_mp, y_mp, date) %>%
+  # arrange(x_mp, y_mp, date) %>%
   mutate(has_fiber = if_else(down_fn_hh_ftthb_1000 > 50, 1, 0)) %>%
   group_by(x_mp, y_mp) %>%
   mutate(got_fiber = has_fiber - lag(has_fiber)) %>%

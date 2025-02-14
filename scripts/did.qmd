@@ -60,66 +60,75 @@ mod_miete <- data_miete_final %>%
   )
 mod_miete
 
-#ggdid(mod_miete)
+# ggdid(mod_miete)
 
 tidy(mod_miete) %>%
   left_join(dates_pseudo_halbjahr %>% filter(date %% 100 %in% c(6, 12)),
-            by = join_by(group == date_pseudo_halbjahr)) %>%
+    by = join_by(group == date_pseudo_halbjahr)
+  ) %>%
   mutate(is_treated = time >= group) %>%
-  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
-  geom_linerange()+
-  geom_point()+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  facet_wrap(~date, nrow = 2, scales = "free")+
-  #scale_x_continuous(breaks = 1:20)+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = latex2exp::TeX("Halbjahr ($t$)"),
-       y = latex2exp::TeX("$ATT(g,t)$: Miete (€/m²)"))
+  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated)) +
+  geom_linerange() +
+  geom_point() +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  facet_wrap(~date, nrow = 2, scales = "free") +
+  # scale_x_continuous(breaks = 1:20)+
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = latex2exp::TeX("Halbjahr ($t$)"),
+    y = latex2exp::TeX("$ATT(g,t)$: Miete (€/m²)")
+  )
 ggsave("./output/plots/did/plot_did_miete.pdf", width = 6, height = 4, device = cairo_pdf)
 
 mod_miete_agg_dyn <- did::aggte(mod_miete, type = "dynamic")
 tidy(mod_miete_agg_dyn) %>%
   mutate(is_treated = event.time >= 0) %>%
-  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
-  geom_linerange()+
-  geom_point(size = 1.5)+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  coord_cartesian(xlim = c(-6, 10))+
-  scale_x_continuous(breaks = seq(-6, 10, 2))+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = latex2exp::TeX("Halbjahr rel. ($e$)"),
-       y = latex2exp::TeX("$ATT_{dyn}(e)$: Miete (€/m²)"))
+  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated)) +
+  geom_linerange() +
+  geom_point(size = 1.5) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  coord_cartesian(xlim = c(-6, 10)) +
+  scale_x_continuous(breaks = seq(-6, 10, 2)) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = latex2exp::TeX("Halbjahr rel. ($e$)"),
+    y = latex2exp::TeX("$ATT_{dyn}(e)$: Miete (€/m²)")
+  )
 ggsave("./output/plots/did/plot_did_miete_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
-  
+
 mod_miete_agg_group <- did::aggte(mod_miete, type = "group", max_e = 4)
 tidy(mod_miete_agg_group) %>%
   filter(group != "Average") %>%
   mutate(group = factor(group, levels = as.character(sort(as.numeric(group))))) %>%
-  ggplot(aes(y = estimate, x = group, ymin = conf.low, ymax = conf.high))+
-  geom_linerange()+
-  geom_point(size = 1.5)+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = latex2exp::TeX("Gruppe ($\\tilde{g}$)"),
-       y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g}, e_{max}=4)$: Miete (€/m²)"))
+  ggplot(aes(y = estimate, x = group, ymin = conf.low, ymax = conf.high)) +
+  geom_linerange() +
+  geom_point(size = 1.5) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = latex2exp::TeX("Gruppe ($\\tilde{g}$)"),
+    y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g}, e_{max}=4)$: Miete (€/m²)")
+  )
 ggsave("./output/plots/did/plot_did_miete_agg_group.pdf", width = 3, height = 3, device = cairo_pdf)
 
 mod_miete_agg_calendar <- did::aggte(mod_miete, type = "calendar")
 tidy(mod_miete_agg_calendar) %>%
-  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high))+
-  geom_linerange()+
-  geom_point(size = 1.5)+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  #coord_cartesian(xlim = c(-6, 10))+
-  scale_x_continuous(breaks = seq(8, 17, 2))+
-  scale_y_continuous(breaks = seq(-1, 1, by = 0.5))+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = latex2exp::TeX("Halbjahr ($\\tilde{t}$)"),
-       y = latex2exp::TeX("$ATT_{cal}(\\tilde{t})$: Miete (€/m²)"))
+  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high)) +
+  geom_linerange() +
+  geom_point(size = 1.5) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  # coord_cartesian(xlim = c(-6, 10))+
+  scale_x_continuous(breaks = seq(8, 17, 2)) +
+  scale_y_continuous(breaks = seq(-1, 1, by = 0.5)) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = latex2exp::TeX("Halbjahr ($\\tilde{t}$)"),
+    y = latex2exp::TeX("$ATT_{cal}(\\tilde{t})$: Miete (€/m²)")
+  )
 ggsave("./output/plots/did/plot_did_miete_agg_calendar.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
@@ -147,69 +156,80 @@ mod_kauf <- data_kauf_final %>%
   )
 mod_kauf
 
-#ggdid(mod_kauf)
+# ggdid(mod_kauf)
 
 tidy(mod_kauf) %>%
   left_join(dates_pseudo_halbjahr %>% filter(date %% 100 %in% c(6, 12)),
-            by = join_by(group == date_pseudo_halbjahr)) %>%
+    by = join_by(group == date_pseudo_halbjahr)
+  ) %>%
   mutate(is_treated = time >= group) %>%
-  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
-  geom_linerange()+
-  geom_point()+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  facet_wrap(~date, nrow = 2, scales = "free")+
-  scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = latex2exp::TeX("Halbjahr ($t$)"),
-       y = latex2exp::TeX("$ATT(g,t)$: Kaufpreis (1000€)"))
+  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated)) +
+  geom_linerange() +
+  geom_point() +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  facet_wrap(~date, nrow = 2, scales = "free") +
+  scale_y_continuous(labels = scales::label_number(scale = 1 / 1000)) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = latex2exp::TeX("Halbjahr ($t$)"),
+    y = latex2exp::TeX("$ATT(g,t)$: Kaufpreis (1000€)")
+  )
 ggsave("./output/plots/did/plot_did_kauf.pdf", width = 6, height = 4, device = cairo_pdf)
 
 mod_kauf_agg_dyn <- did::aggte(mod_kauf, type = "dynamic")
 tidy(mod_kauf_agg_dyn) %>%
   mutate(is_treated = event.time >= 0) %>%
-  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
-  geom_linerange()+
-  geom_point(size = 1.5)+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  coord_cartesian(xlim = c(-6, 10))+
-  scale_x_continuous(breaks = seq(-6, 10, 2))+
-  scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = latex2exp::TeX("Halbjahr rel. ($e$)"),
-       y = latex2exp::TeX("$ATT_{dyn}(e)$: Kaufpreis (1000€)"))
+  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated)) +
+  geom_linerange() +
+  geom_point(size = 1.5) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  coord_cartesian(xlim = c(-6, 10)) +
+  scale_x_continuous(breaks = seq(-6, 10, 2)) +
+  scale_y_continuous(labels = scales::label_number(scale = 1 / 1000)) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = latex2exp::TeX("Halbjahr rel. ($e$)"),
+    y = latex2exp::TeX("$ATT_{dyn}(e)$: Kaufpreis (1000€)")
+  )
 ggsave("./output/plots/did/plot_did_kauf_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
-  
+
 mod_kauf_agg_group <- did::aggte(mod_kauf, type = "group", max_e = 4)
 tidy(mod_kauf_agg_group) %>%
   filter(group != "Average") %>%
   mutate(group = factor(group, levels = as.character(sort(as.numeric(group))))) %>%
-  ggplot(aes(y = estimate, x = group, ymin = conf.low, ymax = conf.high))+
-  geom_linerange()+
-  geom_point(size = 1.5)+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = latex2exp::TeX("Gruppe ($\\tilde{g}$)"),
-       y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g}, e_{max}=4)$: Kaufpreis (1000€)     "))
+  ggplot(aes(y = estimate, x = group, ymin = conf.low, ymax = conf.high)) +
+  geom_linerange() +
+  geom_point(size = 1.5) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  scale_y_continuous(labels = scales::label_number(scale = 1 / 1000)) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = latex2exp::TeX("Gruppe ($\\tilde{g}$)"),
+    y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g}, e_{max}=4)$: Kaufpreis (1000€)     ")
+  )
 ggsave("./output/plots/did/plot_did_kauf_agg_group.pdf", width = 3, height = 3, device = cairo_pdf)
 
 mod_kauf_agg_calendar <- did::aggte(mod_kauf, type = "calendar")
 tidy(mod_kauf_agg_calendar) %>%
-  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high))+
-  geom_linerange()+
-  geom_point(size = 1.5)+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  #coord_cartesian(xlim = c(-6, 10))+
-  scale_x_continuous(breaks = seq(8, 17, 2))+
-  scale_y_continuous(breaks = seq(-150000, 150000, by = 75000),
-                     labels = scales::label_number(scale = 1/1000))+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = latex2exp::TeX("Halbjahr ($\\tilde{t}$)"),
-       y = latex2exp::TeX("$ATT_{cal}(\\tilde{t})$: Kaufpreis (1000€)"))
+  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high)) +
+  geom_linerange() +
+  geom_point(size = 1.5) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  # coord_cartesian(xlim = c(-6, 10))+
+  scale_x_continuous(breaks = seq(8, 17, 2)) +
+  scale_y_continuous(
+    breaks = seq(-150000, 150000, by = 75000),
+    labels = scales::label_number(scale = 1 / 1000)
+  ) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = latex2exp::TeX("Halbjahr ($\\tilde{t}$)"),
+    y = latex2exp::TeX("$ATT_{cal}(\\tilde{t})$: Kaufpreis (1000€)")
+  )
 ggsave("./output/plots/did/plot_did_kauf_agg_calendar.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
@@ -296,15 +316,15 @@ model_specs_subset_miete <- list(
 
 mirai::daemons(4)
 models_räumlich_miete <- model_specs_subset_miete %>%
-  map(~modifyList(base_params_subset_miete, .x)) %>%
-  map(~do.call(did::att_gt, .x), .progress = TRUE, .parallel = TRUE)
+  map(~ modifyList(base_params_subset_miete, .x)) %>%
+  map(~ do.call(did::att_gt, .x), .progress = TRUE, .parallel = TRUE)
 
 gc()
 
 # Calculate dynamig aggregation
 models_räumlich_miete_agg_dyn_tidy <- models_räumlich_miete %>%
   purrr::map(
-    ~did::aggte(.x, type = "dynamic"),
+    ~ did::aggte(.x, type = "dynamic"),
     .progress = TRUE,
     .parallel = TRUE
   ) %>%
@@ -334,18 +354,22 @@ write_rds(
 #| fig-height: 3
 
 models_räumlich_miete_agg_dyn_tidy %>%
-  mutate(number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
-         name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)) %>%
+  mutate(
+    number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
+    name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)
+  ) %>%
   filter(event.time == 2) %>%
   select(model, name_clean, estimate, conf.low, conf.high) %>%
-  ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
-  geom_point(size = 1.5)+
-  geom_linerange()+
-  geom_vline(xintercept = 0, linetype = "dashed")+
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 5))+
-  theme_bw()+
-  labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Miete (€/m²)"),
-       y = "Modell")
+  ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high)) +
+  geom_point(size = 1.5) +
+  geom_linerange() +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 5)) +
+  theme_bw() +
+  labs(
+    x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Miete (€/m²)"),
+    y = "Modell"
+  )
 
 ggsave("./output/plots/did/plot_did_raeumlich_miete.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
@@ -426,15 +450,15 @@ model_specs_subset_kauf <- list(
 
 mirai::daemons(4)
 models_räumlich_kauf <- model_specs_subset_kauf %>%
-  map(~modifyList(base_params_subset_kauf, .x)) %>%
-  map(~do.call(did::att_gt, .x), .progress = TRUE, .parallel = TRUE)
+  map(~ modifyList(base_params_subset_kauf, .x)) %>%
+  map(~ do.call(did::att_gt, .x), .progress = TRUE, .parallel = TRUE)
 
 gc()
 
 # Calculate dynamig aggregation
 models_räumlich_kauf_agg_dyn_tidy <- models_räumlich_kauf %>%
   purrr::map(
-    ~did::aggte(.x, type = "dynamic"),
+    ~ did::aggte(.x, type = "dynamic"),
     .progress = TRUE,
     .parallel = TRUE
   ) %>%
@@ -464,18 +488,22 @@ write_rds(
 #| fig-height: 3
 
 models_räumlich_kauf_agg_dyn_tidy %>%
-  mutate(number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
-         name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)) %>%
+  mutate(
+    number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
+    name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)
+  ) %>%
   filter(event.time == 2) %>%
   select(model, name_clean, estimate, conf.low, conf.high) %>%
-  ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
-  geom_point(size = 1.5)+
-  geom_linerange()+
-  geom_vline(xintercept = 0, linetype = "dashed")+
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 7), labels = scales::label_number(scale = 1/1000))+
-  theme_bw()+
-  labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Kaufpreis (1000€)"),
-       y = "Modell")
+  ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high)) +
+  geom_point(size = 1.5) +
+  geom_linerange() +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 7), labels = scales::label_number(scale = 1 / 1000)) +
+  theme_bw() +
+  labs(
+    x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Kaufpreis (1000€)"),
+    y = "Modell"
+  )
 
 ggsave("./output/plots/did/plot_did_raeumlich_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
@@ -560,13 +588,13 @@ model_specs_alternative_miete <- list(
 # Run all models
 mirai::daemons(4)
 models_alternative_miete <- model_specs_alternative_miete %>%
-  map(~modifyList(base_params_alternative_miete, .x)) %>%
-  map(~do.call(did::att_gt, .x), .progress = TRUE, .parallel = TRUE)
+  map(~ modifyList(base_params_alternative_miete, .x)) %>%
+  map(~ do.call(did::att_gt, .x), .progress = TRUE, .parallel = TRUE)
 
 # Calculate dynamig aggregation
 models_alternative_miete_agg_dyn_tidy <- models_alternative_miete %>%
   purrr::map(
-    ~did::aggte(.x, type = "dynamic"),
+    ~ did::aggte(.x, type = "dynamic"),
     .progress = TRUE,
     .parallel = TRUE
   ) %>%
@@ -593,18 +621,22 @@ write_rds(
 
 ```{r}
 models_alternative_miete_agg_dyn_tidy %>%
-  mutate(number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
-         name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)) %>%
+  mutate(
+    number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
+    name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)
+  ) %>%
   filter(event.time == 2) %>%
   select(model, name_clean, estimate, conf.low, conf.high) %>%
-  ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
-  geom_point(size = 1.5)+
-  geom_linerange()+
-  geom_vline(xintercept = 0, linetype = "dashed")+
-  scale_x_continuous(breaks = seq(-2, 2, by = 0.25))+
-  theme_bw()+
-  labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Miete (€/m²)"),
-       y = "Modell")
+  ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high)) +
+  geom_point(size = 1.5) +
+  geom_linerange() +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  scale_x_continuous(breaks = seq(-2, 2, by = 0.25)) +
+  theme_bw() +
+  labs(
+    x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Miete (€/m²)"),
+    y = "Modell"
+  )
 
 ggsave("./output/plots/did/plot_did_alternative_miete.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
@@ -683,13 +715,13 @@ model_specs_alternative_kauf <- list(
 # Run all models
 mirai::daemons(4)
 models_alternative_kauf <- model_specs_alternative_kauf %>%
-  map(~modifyList(base_params_alternative_kauf, .x)) %>%
-  map(~do.call(did::att_gt, .x), .progress = TRUE, .parallel = TRUE)
+  map(~ modifyList(base_params_alternative_kauf, .x)) %>%
+  map(~ do.call(did::att_gt, .x), .progress = TRUE, .parallel = TRUE)
 
 # Calculate dynamig aggregation
 models_alternative_kauf_agg_dyn_tidy <- models_alternative_kauf %>%
   purrr::map(
-    ~did::aggte(.x, type = "dynamic"),
+    ~ did::aggte(.x, type = "dynamic"),
     .progress = TRUE,
     .parallel = TRUE
   ) %>%
@@ -716,18 +748,22 @@ write_rds(
 
 ```{r}
 models_alternative_kauf_agg_dyn_tidy %>%
-  mutate(number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
-         name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)) %>%
+  mutate(
+    number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
+    name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)
+  ) %>%
   filter(event.time == 2) %>%
   select(model, name_clean, estimate, conf.low, conf.high) %>%
-  ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high))+
-  geom_point(size = 1.5)+
-  geom_linerange()+
-  geom_vline(xintercept = 0, linetype = "dashed")+
-  scale_x_continuous(breaks = seq(-100000, 100000, by = 25000), labels = scales::label_number(scale = 1/1000))+
-  theme_bw()+
-  labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Kaufpreis (1000€)"),
-       y = "Modell")
+  ggplot(aes(x = estimate, y = name_clean, xmin = conf.low, xmax = conf.high)) +
+  geom_point(size = 1.5) +
+  geom_linerange() +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  scale_x_continuous(breaks = seq(-100000, 100000, by = 25000), labels = scales::label_number(scale = 1 / 1000)) +
+  theme_bw() +
+  labs(
+    x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Kaufpreis (1000€)"),
+    y = "Modell"
+  )
 
 ggsave("./output/plots/did/plot_did_alternative_kauf.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
@@ -739,7 +775,7 @@ ggsave("./output/plots/did/plot_did_alternative_kauf.pdf", width = 3, height = 3
 `HosestDiD` von [Rambach & Roth 2023](https://academic.oup.com/restud/article-abstract/90/5/2555/7039335). Das Helper-Skript ist von [hier](https://github.com/pedrohcgs/CS_RR).
 
 ```{r}
-#set.seed(1)
+# set.seed(1)
 sample_cells <- data_kauf_final %>%
   filter(n_cell > 100) %>%
   distinct(xy_mp) %>%
@@ -769,8 +805,10 @@ mod_kauf_honest_did <- data_kauf_final %>%
 
 mod_kauf_honest_did$Wpval
 
-mod_kauf_honest_did_agg_dyn <- did::aggte(mod_kauf_honest_did, type = "dynamic",
-                                          min_e = -6, max_e = 4)
+mod_kauf_honest_did_agg_dyn <- did::aggte(mod_kauf_honest_did,
+  type = "dynamic",
+  min_e = -6, max_e = 4
+)
 ggdid(mod_kauf_honest_did_agg_dyn)
 ```
 
@@ -794,15 +832,17 @@ mod_kauf_honest_did_agg_dyn_honest_rel <- honest_did(
 )
 mod_kauf_honest_did_agg_dyn_honest_rel
 # Drop 0 as that is not really allowed.
-mod_kauf_honest_did_agg_dyn_honest_rel$robust_ci <- mod_kauf_honest_did_agg_dyn_honest_rel$robust_ci[-1,]
+mod_kauf_honest_did_agg_dyn_honest_rel$robust_ci <- mod_kauf_honest_did_agg_dyn_honest_rel$robust_ci[-1, ]
 
 ## -----------------------------------------------------------------------------
 # make sensitivity analysis plots
 # createSensitivityPlot(mod_kauf_honest_did_agg_dyn_honest_smooth$robust_ci,
 #                       mod_kauf_honest_did_agg_dyn_honest_smooth$orig_ci)
 
-createSensitivityPlot_relativeMagnitudes(mod_kauf_honest_did_agg_dyn_honest_rel$robust_ci,
-                                         mod_kauf_honest_did_agg_dyn_honest_rel$orig_ci)
+createSensitivityPlot_relativeMagnitudes(
+  mod_kauf_honest_did_agg_dyn_honest_rel$robust_ci,
+  mod_kauf_honest_did_agg_dyn_honest_rel$orig_ci
+)
 ```
 
 ## Beispiel
@@ -812,54 +852,66 @@ https://github.com/pedrohcgs/CS_RR?tab=readme-ov-file#effect-of-minimum-wage-on-
 ```{r}
 min_wage <- read_rds("./data/processed/Sonstige/min_wage_CS.rds")
 
-# Formula for covariates 
-xformla <- ~ region + (medinc + pop ) + I(pop^2) + I(medinc^2)  + white + hs  + pov
+# Formula for covariates
+xformla <- ~ region + (medinc + pop) + I(pop^2) + I(medinc^2) + white + hs + pov
 #---------------------------------------------------------------------------
 # Using covariates and DR DiD with never-treated as comparison group
 # Fix the reference time periods
-CS_never_cond <- did::att_gt(yname="lemp",
-                             tname="year",
-                             idname="countyreal",
-                             gname="first.treat",
-                             #xformla=~1,
-                             xformla = xformla,
-                             control_group="nevertreated",
-                             data = min_wage,
-                             panel = TRUE,
-                             base_period="universal",
-                             bstrap = TRUE,
-                             cband = TRUE)
+CS_never_cond <- did::att_gt(
+  yname = "lemp",
+  tname = "year",
+  idname = "countyreal",
+  gname = "first.treat",
+  # xformla=~1,
+  xformla = xformla,
+  control_group = "nevertreated",
+  data = min_wage,
+  panel = TRUE,
+  base_period = "universal",
+  bstrap = TRUE,
+  cband = TRUE
+)
 # Now, compute event study
-CS_es_never_cond <- aggte(CS_never_cond, type = "dynamic",
-                          min_e = -5, max_e = 5)
-#summary(CS_es_never_cond)
+CS_es_never_cond <- aggte(CS_never_cond,
+  type = "dynamic",
+  min_e = -5, max_e = 5
+)
+# summary(CS_es_never_cond)
 # Plot event study
 ggdid(CS_es_never_cond)
 ```
 
 ```{r}
 # code for running honest_did
-hd_cs_smooth_never <- honest_did(es = CS_es_never_cond,
-                           e = 0,
-                           type="smoothness")
+hd_cs_smooth_never <- honest_did(
+  es = CS_es_never_cond,
+  e = 0,
+  type = "smoothness"
+)
 hd_cs_smooth_never
 
 
-hd_cs_rm_never <- honest_did(es = CS_es_never_cond,
-                          e = 0,
-                          type="relative_magnitude")
+hd_cs_rm_never <- honest_did(
+  es = CS_es_never_cond,
+  e = 0,
+  type = "relative_magnitude"
+)
 hd_cs_rm_never
 # Drop 0 as that is not really allowed.
-hd_cs_rm_never$robust_ci <- hd_cs_rm_never$robust_ci[-1,]
+hd_cs_rm_never$robust_ci <- hd_cs_rm_never$robust_ci[-1, ]
 
 ## -----------------------------------------------------------------------------
 # make sensitivity analysis plots
-cs_HDiD_smooth <- createSensitivityPlot(hd_cs_smooth_never$robust_ci,
-                      hd_cs_smooth_never$orig_ci)
+cs_HDiD_smooth <- createSensitivityPlot(
+  hd_cs_smooth_never$robust_ci,
+  hd_cs_smooth_never$orig_ci
+)
 cs_HDiD_smooth
 
-cs_HDiD_relmag <- createSensitivityPlot_relativeMagnitudes(hd_cs_rm_never$robust_ci,
-                                         hd_cs_rm_never$orig_ci)
+cs_HDiD_relmag <- createSensitivityPlot_relativeMagnitudes(
+  hd_cs_rm_never$robust_ci,
+  hd_cs_rm_never$orig_ci
+)
 
 cs_HDiD_relmag
 ```
@@ -876,75 +928,91 @@ Einzelne Werte, demnach wäre beim Kauf ein Preiszuwachs statistisch signifikant
 
 ```{r}
 data_miete_final %>%
-  staggered(df = .,
-            i = "xy_mp",
-            t = "date_pseudo_halbjahr",
-            g = "got_fiber_date_pseudo_halbjahr",
-            y = "mean_mietekalt_m2",
-            estimand = "cohort") %>% # simple cohort calendar eventstudy
-  mutate(conf.low = estimate-1.96*se,
-         conf.high = estimate+1.96*se,
-         is_significant = sign(conf.low) == sign(conf.high))
+  staggered(
+    df = .,
+    i = "xy_mp",
+    t = "date_pseudo_halbjahr",
+    g = "got_fiber_date_pseudo_halbjahr",
+    y = "mean_mietekalt_m2",
+    estimand = "cohort"
+  ) %>% # simple cohort calendar eventstudy
+  mutate(
+    conf.low = estimate - 1.96 * se,
+    conf.high = estimate + 1.96 * se,
+    is_significant = sign(conf.low) == sign(conf.high)
+  )
 
 data_kauf_final %>%
-  staggered(df = .,
-            i = "xy_mp",
-            t = "date_pseudo_halbjahr",
-            g = "got_fiber_date_pseudo_halbjahr",
-            y = "mean_kaufpreis",
-            estimand = "cohort") %>%
-  mutate(conf.low = estimate-1.96*se,
-         conf.high = estimate+1.96*se,
-         is_significant = sign(conf.low) == sign(conf.high))
+  staggered(
+    df = .,
+    i = "xy_mp",
+    t = "date_pseudo_halbjahr",
+    g = "got_fiber_date_pseudo_halbjahr",
+    y = "mean_kaufpreis",
+    estimand = "cohort"
+  ) %>%
+  mutate(
+    conf.low = estimate - 1.96 * se,
+    conf.high = estimate + 1.96 * se,
+    is_significant = sign(conf.low) == sign(conf.high)
+  )
 ```
 
 ```{r}
 data_kauf_final %>%
-  staggered(df = .,
-            i = "xy_mp",
-            t = "date_pseudo_halbjahr",
-            g = "got_fiber_date_pseudo_halbjahr",
-            y = "mean_kaufpreis",
-            estimand = "eventstudy",
-            eventTime = -6:8) %>%
-  ggplot(aes(x = eventTime, y = estimate, ymin = estimate-1.96*se, ymax = estimate+1.96*se))+
-  geom_linerange()+
-  geom_point(size = 1.5)+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = "Zeit",
-       y = "ATT",
-       title = element_blank())
+  staggered(
+    df = .,
+    i = "xy_mp",
+    t = "date_pseudo_halbjahr",
+    g = "got_fiber_date_pseudo_halbjahr",
+    y = "mean_kaufpreis",
+    estimand = "eventstudy",
+    eventTime = -6:8
+  ) %>%
+  ggplot(aes(x = eventTime, y = estimate, ymin = estimate - 1.96 * se, ymax = estimate + 1.96 * se)) +
+  geom_linerange() +
+  geom_point(size = 1.5) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = "Zeit",
+    y = "ATT",
+    title = element_blank()
+  )
 
 data_miete_final %>%
-  staggered(df = .,
-            i = "xy_mp",
-            t = "date_pseudo_halbjahr",
-            g = "got_fiber_date_pseudo_halbjahr",
-            y = "mean_mietekalt_m2",
-            estimand = "eventstudy",
-            eventTime = -6:6) %>%
-  ggplot(aes(x = eventTime, y = estimate, ymin = estimate-1.96*se, ymax = estimate+1.96*se))+
-  geom_linerange()+
-  geom_point(size = 1.5)+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = "Zeit",
-       y = "ATT",
-       title = element_blank())
+  staggered(
+    df = .,
+    i = "xy_mp",
+    t = "date_pseudo_halbjahr",
+    g = "got_fiber_date_pseudo_halbjahr",
+    y = "mean_mietekalt_m2",
+    estimand = "eventstudy",
+    eventTime = -6:6
+  ) %>%
+  ggplot(aes(x = eventTime, y = estimate, ymin = estimate - 1.96 * se, ymax = estimate + 1.96 * se)) +
+  geom_linerange() +
+  geom_point(size = 1.5) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = "Zeit",
+    y = "ATT",
+    title = element_blank()
+  )
 ```
 
 Nochmal das gleiche, aber über das `did2s` Package
 
 ```{r}
 did2s_staggered <- did2s::event_study(
-  yname         = "mean_kaufpreis",
-  tname         = "date_pseudo_halbjahr",
-  idname        = "xy_mp",
-  gname         = "got_fiber_date_pseudo_halbjahr",
-  data          = data_kauf_final,
+  yname = "mean_kaufpreis",
+  tname = "date_pseudo_halbjahr",
+  idname = "xy_mp",
+  gname = "got_fiber_date_pseudo_halbjahr",
+  data = data_kauf_final,
   estimator = c("staggered") # TWFE
 )
 

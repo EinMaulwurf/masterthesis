@@ -29,27 +29,34 @@ Außerdem behalte ich den Amtlichen Gemeindeschlüssel sowie den Regionalschlüs
 
 ```{r}
 gemeinden_bbsr <- readxl::read_xlsx("./data/raw/Raumgliederung_BBSR/raumgliederungen-referenzen-2022.xlsx",
-                               sheet = "Gemeindereferenz (inkl. Kreise)",
-                               skip = 1,
-                               col_types = "text") %>%
+  sheet = "Gemeindereferenz (inkl. Kreise)",
+  skip = 1,
+  col_types = "text"
+) %>%
   janitor::clean_names() %>%
-  select(gem_name = gemeinden_2022_name,
-         gem_kennziffer = gemeinden_2022_kennziffer,
-         gem_regionalschlussel = gemeinden_2022_regionalschlussel,
-         dgurb_kennziffer = degree_of_urbanisation_gemeinden_2022_kennziffer,
-         dgurb_name = degree_of_urbanisation_gemeinden_2022_name,
-         raumtyp_lage_kennziffer = raumtyp_bezug_lage_gemeinden_2022_kennziffer,
-         raumtyp_lage_name = raumtyp_bezug_lage_gemeinden_2022_name,
-         gemeindetyp_kennziffer = stadt_und_gemeindetyp_2022_kennziffer,
-         gemeindetyp_name = stadt_und_gemeindetyp_2022_name,
-         gemeindetyp_differenziert_kennziffer = stadt_und_gemeindetyp_differenziert_2022_kennziffer,
-         gemeindetyp_differenziert_name = stadt_und_gemeindetyp_differenziert_2022_name) %>%
-  mutate(gem_kennziffer = str_pad(gem_kennziffer, 8, side = "left", pad = "0"),
-         gem_regionalschlussel = str_pad(gem_regionalschlussel, 12, side = "left", pad = "0")) %>%
-  mutate(dgurb_name = fct_reorder(dgurb_name, as.numeric(dgurb_kennziffer)),
-         raumtyp_lage_name = fct_reorder(raumtyp_lage_name, as.numeric(raumtyp_lage_kennziffer)),
-         gemeindetyp_name = fct_reorder(gemeindetyp_name, as.numeric(gemeindetyp_kennziffer)),
-         gemeindetyp_differenziert_name = fct_reorder(gemeindetyp_differenziert_name, as.numeric(gemeindetyp_differenziert_kennziffer)))
+  select(
+    gem_name = gemeinden_2022_name,
+    gem_kennziffer = gemeinden_2022_kennziffer,
+    gem_regionalschlussel = gemeinden_2022_regionalschlussel,
+    dgurb_kennziffer = degree_of_urbanisation_gemeinden_2022_kennziffer,
+    dgurb_name = degree_of_urbanisation_gemeinden_2022_name,
+    raumtyp_lage_kennziffer = raumtyp_bezug_lage_gemeinden_2022_kennziffer,
+    raumtyp_lage_name = raumtyp_bezug_lage_gemeinden_2022_name,
+    gemeindetyp_kennziffer = stadt_und_gemeindetyp_2022_kennziffer,
+    gemeindetyp_name = stadt_und_gemeindetyp_2022_name,
+    gemeindetyp_differenziert_kennziffer = stadt_und_gemeindetyp_differenziert_2022_kennziffer,
+    gemeindetyp_differenziert_name = stadt_und_gemeindetyp_differenziert_2022_name
+  ) %>%
+  mutate(
+    gem_kennziffer = str_pad(gem_kennziffer, 8, side = "left", pad = "0"),
+    gem_regionalschlussel = str_pad(gem_regionalschlussel, 12, side = "left", pad = "0")
+  ) %>%
+  mutate(
+    dgurb_name = fct_reorder(dgurb_name, as.numeric(dgurb_kennziffer)),
+    raumtyp_lage_name = fct_reorder(raumtyp_lage_name, as.numeric(raumtyp_lage_kennziffer)),
+    gemeindetyp_name = fct_reorder(gemeindetyp_name, as.numeric(gemeindetyp_kennziffer)),
+    gemeindetyp_differenziert_name = fct_reorder(gemeindetyp_differenziert_name, as.numeric(gemeindetyp_differenziert_kennziffer))
+  )
 
 gemeinden_bbsr %>%
   write_parquet("./data/processed/Raumgliederung_BBSR/gemeinden_bbsr.parquet")
@@ -57,8 +64,9 @@ gemeinden_bbsr %>%
 
 ```{r}
 all_distinct_cells <- st_read("./data/raw/Geodaten/DE_Grid_ETRS89-LAEA_1km.gpkg",
-                              query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
-                              as_tibble = TRUE, quiet = TRUE) %>%
+  query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
+  as_tibble = TRUE, quiet = TRUE
+) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
 
 gemeinden <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
@@ -96,8 +104,9 @@ Ich verwende Zahlen zum verfügbaren Einkommen auf Kreisebene. Stärker disaggre
 
 ```{r}
 all_distinct_cells <- st_read("./data/raw/Geodaten/DE_Grid_ETRS89-LAEA_1km.gpkg",
-                              query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
-                              as_tibble = TRUE, quiet = TRUE) %>%
+  query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
+  as_tibble = TRUE, quiet = TRUE
+) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
 
 kreise <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_krs", as_tibble = TRUE) %>%
@@ -130,8 +139,9 @@ cells_kreise_einkommen %>%
 
 ```{r}
 all_distinct_cells <- st_read("./data/raw/Geodaten/DE_Grid_ETRS89-LAEA_1km.gpkg",
-                              query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
-                              as_tibble = TRUE, quiet = TRUE) %>%
+  query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
+  as_tibble = TRUE, quiet = TRUE
+) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
 
 gemeinden <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem", as_tibble = TRUE) %>%
@@ -140,13 +150,16 @@ gemeinden <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_gem",
   filter(geofaktor_gf == "mit Struktur Land") %>%
   select(ars = regionalschlussel_ars, ags = gemeindeschlussel_ags, name = geografischer_name_gen, bezeichnung, einwohner = einwohnerzahl_ewz, flaeche = katasterflache_kfl)
 
-zensus_gebäudetyp <- readxl::read_xlsx("./data/raw/Zensus/Regionaltabelle_Gebaeude_Wohnungen.xlsx", 
-                          sheet = "CSV-Gebäude", col_types = "text") %>%
+zensus_gebäudetyp <- readxl::read_xlsx("./data/raw/Zensus/Regionaltabelle_Gebaeude_Wohnungen.xlsx",
+  sheet = "CSV-Gebäude", col_types = "text"
+) %>%
   janitor::clean_names() %>%
   filter(regionalebene == "Gemeinde") %>%
   select(ars = rs, name, gebäude_ges = gebaeudeart_sys_1, efh = gebtypbauweise_1, dhh = gebtypbauweise_2) %>%
-  mutate(across(gebäude_ges:dhh, as.numeric),
-         across(gebäude_ges:dhh, ~replace_na(.x, 0))) %>%
+  mutate(
+    across(gebäude_ges:dhh, as.numeric),
+    across(gebäude_ges:dhh, ~ replace_na(.x, 0))
+  ) %>%
   mutate(anteil_efh = (efh + dhh) / gebäude_ges) %>%
   mutate(anteil_efh = pmin(anteil_efh, 1))
 
@@ -173,12 +186,14 @@ Zum Bereinigen der Immo-Datensatzes werden fehlende PLZ basierend auf der Raster
 
 ```{r}
 all_distinct_cells <- st_read("./data/raw/Geodaten/DE_Grid_ETRS89-LAEA_1km.gpkg",
-                              query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
-                              as_tibble = TRUE, quiet = TRUE) %>%
+  query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
+  as_tibble = TRUE, quiet = TRUE
+) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
 
 plz <- st_read("./data/raw/Geodaten/PLZ_Gebiete_9143106783908117499.gpkg",
-                    as_tibble = TRUE, quiet = TRUE) %>%
+  as_tibble = TRUE, quiet = TRUE
+) %>%
   st_transform(3035) %>%
   janitor::clean_names() %>%
   select(plz)
@@ -196,8 +211,9 @@ cells_plz %>%
 
 ```{r}
 all_distinct_cells <- st_read("./data/raw/Geodaten/DE_Grid_ETRS89-LAEA_1km.gpkg",
-                              query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
-                              as_tibble = TRUE, quiet = TRUE) %>%
+  query = "SELECT x_mp, y_mp FROM de_grid_laea_1km",
+  as_tibble = TRUE, quiet = TRUE
+) %>%
   st_as_sf(coords = c("x_mp", "y_mp"), crs = 3035, remove = FALSE)
 
 bundesländer <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_lan", as_tibble = TRUE) %>%

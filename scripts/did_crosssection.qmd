@@ -35,12 +35,14 @@ cells_plz <- read_parquet("./data/processed/Geodaten/Raster_1km_plz.parquet")
 # -----
 
 data_kauf_imp <- data_kauf %>%
-  mutate(date = ejahr*100 + emonat) %>%
+  mutate(date = ejahr * 100 + emonat) %>%
   left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
   select(date_pseudo_halbjahr, x_mp, y_mp, kaufpreis, baujahr, wohnflaeche, zimmeranzahl) %>%
-  mice::mice(m = 1, maxit = 1,
-             pred = mice::quickpred(., exclude = c("x_mp", "y_mp")), 
-             seed = 1) %>%
+  mice::mice(
+    m = 1, maxit = 1,
+    pred = mice::quickpred(., exclude = c("x_mp", "y_mp")),
+    seed = 1
+  ) %>%
   mice::complete() %>%
   as_tibble()
 
@@ -48,14 +50,16 @@ data_kauf_crosssection <- data_kauf_imp %>%
   inner_join(erklärende_imp, by = join_by(x_mp, y_mp)) %>%
   inner_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
-  mutate(got_fiber_date = replace_na(got_fiber_date, 0),
-         got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)) %>%
-  mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000)
+  mutate(
+    got_fiber_date = replace_na(got_fiber_date, 0),
+    got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)
+  ) %>%
+  mutate(xy_mp = (x_mp - 500) * 10 + (y_mp - 500) / 1000)
 ```
 
 ```{r}
-#data_kauf_crosssection %>% write_parquet("./data/processed/Sonstige/data_kauf_crosssection_test.parquet")
-#data_kauf_crosssection <- read_parquet("./data/processed/Sonstige/data_kauf_crosssection_test.parquet")
+# data_kauf_crosssection %>% write_parquet("./data/processed/Sonstige/data_kauf_crosssection_test.parquet")
+# data_kauf_crosssection <- read_parquet("./data/processed/Sonstige/data_kauf_crosssection_test.parquet")
 ```
 
 Der Datensatz ist zu groß und die `att_gt()` Funktion braucht dadurch (viel) zu viel RAM. Daher verwende ich kleine Subsamples.
@@ -75,7 +79,7 @@ mod_kauf_crosssection <- data_kauf_crosssection_hessen %>%
     data = .,
     yname = "kaufpreis",
     tname = "date_pseudo_halbjahr",
-    #idname = "xy_mp",
+    # idname = "xy_mp",
     gname = "got_fiber_date_pseudo_halbjahr",
     xformla = ~ durchschnittsalter + anzahl_haushalte + eigentuemerquote,
     weightsname = "anzahl_haushalte",
@@ -84,7 +88,7 @@ mod_kauf_crosssection <- data_kauf_crosssection_hessen %>%
     control_group = "notyettreated",
     est_method = "reg",
     base_period = "varying",
-    #clustervars = c("xy_mp", "plz"),
+    # clustervars = c("xy_mp", "plz"),
     biter = 1000,
     pl = TRUE,
     cores = 6,
@@ -96,35 +100,40 @@ mod_kauf_crosssection
 
 gc()
 
-#ggdid(mod_kauf_crosssection)
+# ggdid(mod_kauf_crosssection)
 
 tidy(mod_kauf_crosssection) %>%
   left_join(dates_pseudo_halbjahr %>% filter(date %% 100 %in% c(6, 12)),
-            by = join_by(group == date_pseudo_halbjahr)) %>%
+    by = join_by(group == date_pseudo_halbjahr)
+  ) %>%
   mutate(is_treated = time >= group) %>%
-  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
-  geom_linerange()+
-  geom_point()+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  facet_wrap(~date, nrow = 2, scales = "free")+
-  scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = latex2exp::TeX("Halbjahr ($t$)"),
-       y = latex2exp::TeX("$ATT(g,t)$: Kaufpreis (1000€)"))
+  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated)) +
+  geom_linerange() +
+  geom_point() +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  facet_wrap(~date, nrow = 2, scales = "free") +
+  scale_y_continuous(labels = scales::label_number(scale = 1 / 1000)) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = latex2exp::TeX("Halbjahr ($t$)"),
+    y = latex2exp::TeX("$ATT(g,t)$: Kaufpreis (1000€)")
+  )
 
 mod_kauf_crosssection_agg_dyn <- did::aggte(mod_kauf_test_crosssection, type = "dynamic", na.rm = TRUE)
 tidy(mod_kauf_crosssection_agg_dyn) %>%
   mutate(is_treated = event.time >= 0) %>%
-  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
-  geom_linerange()+
-  geom_point(size = 1.5)+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  coord_cartesian(xlim = c(-6, 10))+
-  scale_x_continuous(breaks = seq(-6, 10, 2))+
-  scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = latex2exp::TeX("Halbjahr rel. ($e$)"),
-       y = latex2exp::TeX("$ATT_{dyn}(e)$: Kaufpreis (1000€)"))
+  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated)) +
+  geom_linerange() +
+  geom_point(size = 1.5) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  coord_cartesian(xlim = c(-6, 10)) +
+  scale_x_continuous(breaks = seq(-6, 10, 2)) +
+  scale_y_continuous(labels = scales::label_number(scale = 1 / 1000)) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = latex2exp::TeX("Halbjahr rel. ($e$)"),
+    y = latex2exp::TeX("$ATT_{dyn}(e)$: Kaufpreis (1000€)")
+  )
 ```

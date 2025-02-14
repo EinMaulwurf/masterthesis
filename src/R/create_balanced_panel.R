@@ -1,7 +1,7 @@
 # create a balanced panel by trimming observations to a specified length and direction
 create_balanced_panel <- function(data, id_var, time_var, length, trim_from = c("end", "start")) {
   trim_from <- match.arg(trim_from)
-  
+
   data %>%
     # First identify valid sequences
     arrange({{ id_var }}, {{ time_var }}) %>%
@@ -20,7 +20,7 @@ create_balanced_panel <- function(data, id_var, time_var, length, trim_from = c(
     # Find best candidate group for trimming
     mutate(
       valid_groups = group_length >= length,
-      candidate = if(trim_from == "end") {
+      candidate = if (trim_from == "end") {
         # Prefer later groups with sufficient length
         group_start == max(group_start[valid_groups])
       } else {
@@ -32,7 +32,7 @@ create_balanced_panel <- function(data, id_var, time_var, length, trim_from = c(
     # Trim to desired length
     group_by({{ id_var }}, consec_group) %>%
     {
-      if(trim_from == "end") {
+      if (trim_from == "end") {
         slice_tail(., n = length)
       } else {
         slice_head(., n = length)

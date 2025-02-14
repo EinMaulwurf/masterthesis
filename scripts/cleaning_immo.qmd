@@ -9,7 +9,7 @@ format: html
 #| message: false
 #| warning: false
 
-#library(mice) # Gibt Probleme mit tidyr::complete() vs mice::complete()
+# library(mice) # Gibt Probleme mit tidyr::complete() vs mice::complete()
 library(tidyverse)
 library(vroom)
 library(arrow)
@@ -38,7 +38,8 @@ cells_plz <- read_parquet("./data/processed/Geodaten/Raster_1km_plz.parquet")
 
 ```{r}
 import_hk <- read_parquet("./data/raw/RWI_GEO_RED/Daten_Kauf/HK_SUF_ohneText.parquet",
-                          col_select = all_of(col_kauf)) %>%
+  col_select = all_of(col_kauf)
+) %>%
   haven::zap_labels() %>%
   haven::zap_formats() %>%
   haven::zap_label() %>%
@@ -47,7 +48,8 @@ import_hk <- read_parquet("./data/raw/RWI_GEO_RED/Daten_Kauf/HK_SUF_ohneText.par
   mutate(typ = "Haus")
 
 import_wk <- read_parquet("./data/raw/RWI_GEO_RED/Daten_Kauf/WK_SUF_ohneText.parquet",
-                          col_select = all_of(col_kauf)) %>%
+  col_select = all_of(col_kauf)
+) %>%
   haven::zap_labels() %>%
   haven::zap_formats() %>%
   haven::zap_label() %>%
@@ -70,18 +72,24 @@ data_kauf <- bind_rows(import_hk, import_wk) %>%
   distinct(kaufpreis, plz, baujahr, wohnflaeche, zimmeranzahl, ajahr, ejahr, ergg_1km, .keep_all = TRUE) %>%
   # Abändern
   mutate(across(c("plz"), as.character)) %>%
-  mutate(baujahr = if_else(baujahr > 1000, baujahr, NA),
-         plz = if_else(nchar(plz) == 5, plz, NA)) %>%
-  mutate(x_mp = ergg_1km %>% str_extract("^\\d{4}") %>% as.numeric(),
-         y_mp = ergg_1km %>% str_extract("\\d{4}$") %>% as.numeric(),
-         x_mp = x_mp * 1000 + 500,
-         y_mp = y_mp * 1000 + 500,
-         .keep = "unused") %>%
+  mutate(
+    baujahr = if_else(baujahr > 1000, baujahr, NA),
+    plz = if_else(nchar(plz) == 5, plz, NA)
+  ) %>%
+  mutate(
+    x_mp = ergg_1km %>% str_extract("^\\d{4}") %>% as.numeric(),
+    y_mp = ergg_1km %>% str_extract("\\d{4}$") %>% as.numeric(),
+    x_mp = x_mp * 1000 + 500,
+    y_mp = y_mp * 1000 + 500,
+    .keep = "unused"
+  ) %>%
   # fehlende PLZ hinzufügen
   left_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
-  mutate(plz = coalesce(plz.x, plz.y),
-         .keep = "unused",
-         .before = baujahr)
+  mutate(
+    plz = coalesce(plz.x, plz.y),
+    .keep = "unused",
+    .before = baujahr
+  )
 
 data_kauf %>%
   write_parquet("./data/processed/RWI_GEO_RED/data_kauf.parquet")
@@ -98,7 +106,8 @@ col_miete <- c(
 
 ```{r}
 import_hm <- read_parquet("./data/raw/RWI_GEO_RED/Daten_Miete/HM_SUF_ohneText.parquet",
-                          col_select = all_of(col_miete)) %>%
+  col_select = all_of(col_miete)
+) %>%
   haven::zap_labels() %>%
   haven::zap_formats() %>%
   haven::zap_label() %>%
@@ -107,7 +116,8 @@ import_hm <- read_parquet("./data/raw/RWI_GEO_RED/Daten_Miete/HM_SUF_ohneText.pa
   mutate(typ = "Haus")
 
 import_wm <- read_parquet("./data/raw/RWI_GEO_RED/Daten_Miete/WM_SUF_ohneText.parquet",
-                          col_select = all_of(col_miete)) %>%
+  col_select = all_of(col_miete)
+) %>%
   haven::zap_labels() %>%
   haven::zap_formats() %>%
   haven::zap_label() %>%
@@ -131,19 +141,25 @@ data_miete <- bind_rows(import_hm, import_wm) %>%
   distinct(mietekalt, wohnflaeche, plz, baujahr, wohnflaeche, zimmeranzahl, ajahr, ejahr, ergg_1km, .keep_all = TRUE) %>%
   # Abändern
   mutate(across(c("plz"), as.character)) %>%
-  mutate(baujahr = if_else(baujahr > 1000, baujahr, NA),
-         plz = if_else(nchar(plz) == 5, plz, NA)) %>%
+  mutate(
+    baujahr = if_else(baujahr > 1000, baujahr, NA),
+    plz = if_else(nchar(plz) == 5, plz, NA)
+  ) %>%
   mutate(mietekalt_m2 = mietekalt / wohnflaeche, .before = 1) %>%
   select(-mietekalt) %>%
-  mutate(x_mp = ergg_1km %>% str_extract("^\\d{4}") %>% as.numeric(),
-         y_mp = ergg_1km %>% str_extract("\\d{4}$") %>% as.numeric(),
-         x_mp = x_mp * 1000 + 500,
-         y_mp = y_mp * 1000 + 500) %>%
+  mutate(
+    x_mp = ergg_1km %>% str_extract("^\\d{4}") %>% as.numeric(),
+    y_mp = ergg_1km %>% str_extract("\\d{4}$") %>% as.numeric(),
+    x_mp = x_mp * 1000 + 500,
+    y_mp = y_mp * 1000 + 500
+  ) %>%
   # fehlende PLZ hinzufügen
   left_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
-  mutate(plz = coalesce(plz.x, plz.y),
-         .keep = "unused",
-         .before = baujahr)
+  mutate(
+    plz = coalesce(plz.x, plz.y),
+    .keep = "unused",
+    .before = baujahr
+  )
 
 data_miete %>%
   write_parquet("./data/processed/RWI_GEO_RED/data_miete.parquet")
@@ -172,11 +188,13 @@ dates_pseudo_halbjahr <- tibble(date = seq(
       from = ym(min_date),
       to = ym(max_date),
       by = "6 months"
-      )) %>%
-      mutate(date = as.numeric(format(date, "%Y%m")),
-             date_pseudo_halbjahr = seq_along(date)),
+    )) %>%
+      mutate(
+        date = as.numeric(format(date, "%Y%m")),
+        date_pseudo_halbjahr = seq_along(date)
+      ),
     by = join_by(date)
-    ) %>%
+  ) %>%
   fill(date_pseudo_halbjahr, .direction = "down")
 
 dates_pseudo_halbjahr %>%
@@ -230,10 +248,12 @@ erklärende_imp <- cells_zensus_sonst %>%
   full_join(cells_gemeinden_gebäudetypen, by = join_by(x_mp, y_mp)) %>%
   select(x_mp, y_mp, durchschnittsalter, anzahl_haushalte, insgesamt_gebaeude, anteil_efh, eigentuemerquote, mode_baujahr, einkommen, einkommen_delta, gemeindetyp_name, gemeindetyp_differenziert_name) %>%
   mutate(imputed = if_else(!complete.cases(.), TRUE, FALSE)) %>%
-  #filter(!complete.cases(.)) %>%
-  mice::mice(m = 1, maxit = 1,
-             pred = mice::quickpred(., exclude = c("x_mp", "y_mp", "imputed", "gemeindetyp_differenziert_name")), 
-             seed = 1) %>%
+  # filter(!complete.cases(.)) %>%
+  mice::mice(
+    m = 1, maxit = 1,
+    pred = mice::quickpred(., exclude = c("x_mp", "y_mp", "imputed", "gemeindetyp_differenziert_name")),
+    seed = 1
+  ) %>%
   mice::complete() %>%
   as_tibble()
 
@@ -251,12 +271,14 @@ data_kauf <- read_parquet("./data/processed/RWI_GEO_RED/data_kauf.parquet")
 
 # Imputieren, insb. das Baujahr
 data_kauf_imp <- data_kauf %>%
-  mutate(date = ejahr*100 + emonat) %>%
+  mutate(date = ejahr * 100 + emonat) %>%
   left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
   select(date_pseudo_halbjahr, x_mp, y_mp, kaufpreis, baujahr, wohnflaeche, zimmeranzahl) %>%
-  mice::mice(m = 1, maxit = 1,
-             pred = mice::quickpred(., exclude = c("x_mp", "y_mp")), 
-             seed = 1) %>%
+  mice::mice(
+    m = 1, maxit = 1,
+    pred = mice::quickpred(., exclude = c("x_mp", "y_mp")),
+    seed = 1
+  ) %>%
   mice::complete() %>%
   as_tibble()
 
@@ -269,12 +291,12 @@ data_kauf_zeitabhängig <- data_kauf_imp %>%
     n_cell_date = n(),
     .groups = "drop"
   ) %>%
-  mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
+  mutate(xy_mp = (x_mp - 500) * 10 + (y_mp - 500) / 1000) %>%
   collect()
 
 # Zeitunabhängig
 data_kauf_zeitunabhängig <- data_kauf_imp %>%
-  #arrow_table() %>%
+  # arrow_table() %>%
   group_by(x_mp, y_mp) %>%
   summarise(
     median_baujahr = median(baujahr),
@@ -290,8 +312,10 @@ data_kauf_final <- data_kauf_zeitabhängig %>%
   inner_join(erklärende_imp, by = join_by(x_mp, y_mp)) %>%
   inner_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
-  mutate(got_fiber_date = replace_na(got_fiber_date, 0),
-         got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)) %>%
+  mutate(
+    got_fiber_date = replace_na(got_fiber_date, 0),
+    got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)
+  ) %>%
   arrange(x_mp, y_mp, date_pseudo_halbjahr)
 
 data_kauf_final %>% write_parquet("./data/processed/RWI_GEO_RED/data_kauf_final.parquet")
@@ -307,12 +331,14 @@ data_miete <- read_parquet("./data/processed/RWI_GEO_RED/data_miete.parquet")
 
 # Imputieren, insb. das Baujahr
 data_miete_imp <- data_miete %>%
-  mutate(date = ejahr*100 + emonat) %>%
+  mutate(date = ejahr * 100 + emonat) %>%
   left_join(dates_pseudo_halbjahr, by = join_by(date)) %>%
   select(date_pseudo_halbjahr, x_mp, y_mp, mietekalt_m2, baujahr, wohnflaeche, zimmeranzahl) %>%
-  mice::mice(m = 1, maxit = 1,
-             pred = mice::quickpred(., exclude = c("x_mp", "y_mp")), 
-             seed = 1) %>%
+  mice::mice(
+    m = 1, maxit = 1,
+    pred = mice::quickpred(., exclude = c("x_mp", "y_mp")),
+    seed = 1
+  ) %>%
   mice::complete() %>%
   as_tibble()
 
@@ -325,12 +351,12 @@ data_miete_zeitabhängig <- data_miete_imp %>%
     n_cell_date = n(),
     .groups = "drop"
   ) %>%
-  mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
+  mutate(xy_mp = (x_mp - 500) * 10 + (y_mp - 500) / 1000) %>%
   collect()
 
 # Zeitunabhängig
 data_miete_zeitunabhängig <- data_miete_imp %>%
-  #arrow_table() %>%
+  # arrow_table() %>%
   group_by(x_mp, y_mp) %>%
   summarise(
     median_baujahr = median(baujahr),
@@ -346,8 +372,10 @@ data_miete_final <- data_miete_zeitabhängig %>%
   inner_join(erklärende_imp, by = join_by(x_mp, y_mp)) %>%
   inner_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
-  mutate(got_fiber_date = replace_na(got_fiber_date, 0),
-         got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)) %>%
+  mutate(
+    got_fiber_date = replace_na(got_fiber_date, 0),
+    got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)
+  ) %>%
   arrange(x_mp, y_mp, date_pseudo_halbjahr)
 
 data_miete_final %>% write_parquet("./data/processed/RWI_GEO_RED/data_miete_final.parquet")

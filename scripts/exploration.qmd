@@ -11,7 +11,7 @@ format: "html"
 
 library(tidyverse)
 library(sf)
-#library(sfheaders)
+# library(sfheaders)
 library(arrow)
 library(duckdb)
 library(leaflet)
@@ -22,10 +22,10 @@ library(did)
 
 Optionen für KableExtra (für's Exportieren von Latex Tabellen)
 ```{r}
-options(modelsummary_factory_latex = 'kableExtra')
+options(modelsummary_factory_latex = "kableExtra")
 options(modelsummary_format_numeric_latex = "plain")
 options(modelsummary_factory_default = "latex")
-#options("modelsummary_factory_default" = "latex")
+# options("modelsummary_factory_default" = "latex")
 ```
 
 Alle verwendeten packages mit Zitationen in separate bib-Datei exportieren
@@ -95,17 +95,21 @@ breitband_1km_arrow <- open_dataset("./data/processed/Breitbandatlas/Raster_1km/
 get_breitband_stadt <- function(stadt_name, size = "100m", variables = everything()) {
   stadt <- get_stadt(stadt_name)
 
-  if(size == "100m") {
+  if (size == "100m") {
     breitband_100m_arrow %>%
-      select(date, x_mp, y_mp, {{variables}}) %>%
-      filter(x_mp %>% between(st_bbox(stadt)["xmin"], st_bbox(stadt)["xmax"]),
-             y_mp %>% between(st_bbox(stadt)["ymin"], st_bbox(stadt)["ymax"])) %>%
+      select(date, x_mp, y_mp, {{ variables }}) %>%
+      filter(
+        x_mp %>% between(st_bbox(stadt)["xmin"], st_bbox(stadt)["xmax"]),
+        y_mp %>% between(st_bbox(stadt)["ymin"], st_bbox(stadt)["ymax"])
+      ) %>%
       collect()
-  } else if(size == "1km") {
+  } else if (size == "1km") {
     breitband_1km_arrow %>%
-      select(date, x_mp, y_mp, {{variables}}) %>%
-      filter(x_mp %>% between(st_bbox(stadt)["xmin"], st_bbox(stadt)["xmax"]),
-           y_mp %>% between(st_bbox(stadt)["ymin"], st_bbox(stadt)["ymax"])) %>%
+      select(date, x_mp, y_mp, {{ variables }}) %>%
+      filter(
+        x_mp %>% between(st_bbox(stadt)["xmin"], st_bbox(stadt)["xmax"]),
+        y_mp %>% between(st_bbox(stadt)["ymin"], st_bbox(stadt)["ymax"])
+      ) %>%
       collect()
   }
 }
@@ -150,8 +154,8 @@ source("./src/R/add_laea_grid.R")
 get_breitband_stadt("Darmstadt", size = "1km", variables = down_fn_hh_ftthb_1000) %>%
   filter(date == 202312) %>%
   add_laea_grid(size = "1km") %>%
-  ggplot()+
-  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
+  ggplot() +
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA) +
   scale_fill_viridis_c()
 ```
 
@@ -163,9 +167,9 @@ get_breitband_stadt("Darmstadt", size = "1km", variables = down_fn_hh_ftthb_1000
 get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000) %>%
   filter(date == 202312) %>%
   add_laea_grid() %>%
-  ggplot()+
-  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
-  scale_fill_viridis_c()+
+  ggplot() +
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA) +
+  scale_fill_viridis_c() +
   theme_void()
 
 get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000) %>%
@@ -176,9 +180,9 @@ get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000) %>%
   ungroup() %>%
   filter(date == 202312) %>%
   add_laea_grid() %>%
-  ggplot()+
-  geom_sf(aes(fill = delta), color = NA)+
-  scale_fill_viridis_c()+
+  ggplot() +
+  geom_sf(aes(fill = delta), color = NA) +
+  scale_fill_viridis_c() +
   theme_void()
 ```
 
@@ -193,23 +197,25 @@ p <- breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
   collect() %>%
   add_laea_grid(size = 1000) %>%
-  ggplot()+
-  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
-  geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5)+
-  geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2)+
-  scale_fill_viridis_c()+
-  theme_void()+
-  theme(legend.position = "top",
-        legend.margin = margin(0,0,-20,0),
-        legend.title = element_blank())+
+  ggplot() +
+  geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA) +
+  geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5) +
+  geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2) +
+  scale_fill_viridis_c() +
+  theme_void() +
+  theme(
+    legend.position = "top",
+    legend.margin = margin(0, 0, -20, 0),
+    legend.title = element_blank()
+  ) +
   guides(fill = guide_colorbar(
-    #title = "Anteil Haushalte mit FTTB/H",  # Add a title
-    #title.position = "top",        # Put the title on top
-    #title.hjust = 0.5,             # Center the title
-    barwidth = unit(15, "lines"),  # Adjust bar width
+    # title = "Anteil Haushalte mit FTTB/H",  # Add a title
+    # title.position = "top",        # Put the title on top
+    # title.hjust = 0.5,             # Center the title
+    barwidth = unit(15, "lines"), # Adjust bar width
     barheight = unit(0.5, "lines"), # Adjust bar height
-    frame.colour = "black",        # Add a black frame around the legend
-    ticks.colour = "black"         # Make tick marks black
+    frame.colour = "black", # Add a black frame around the legend
+    ticks.colour = "black" # Make tick marks black
   ))
 
 ggsave("./output/plot_de_glasfaser_202406_1km.pdf", plot = p, width = 5, height = 7)
@@ -225,24 +231,26 @@ breitband_dates <- get_breitband_stadt(stadt, size = "100m", variables = down_fn
   arrange(date) %>%
   pull()
 
-for(d in breitband_dates) {
+for (d in breitband_dates) {
   print(d)
 
   p <- get_breitband_stadt(stadt, size = "100m", variables = down_fn_hh_ftthb_1000) %>%
     filter(date == d) %>%
     add_laea_grid(size = 100) %>%
-    ggplot()+
-    geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
-    geom_sf(data = get_stadt(stadt), fill = NA, color = "grey30", linewidth = .5)+
+    ggplot() +
+    geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA) +
+    geom_sf(data = get_stadt(stadt), fill = NA, color = "grey30", linewidth = .5) +
     # geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .8)+
     # geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .5)+
-    scale_fill_viridis_c(option = "magma", limits = c(0, 100))+
-    labs(title = ym(d))+
-    theme_void()+
-    theme(legend.position = "none",
-          plot.title = element_text(hjust = 0.5, color = "grey90"),
-          plot.title.position = "plot",
-          plot.background = element_rect(fill = "grey10"))
+    scale_fill_viridis_c(option = "magma", limits = c(0, 100)) +
+    labs(title = ym(d)) +
+    theme_void() +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(hjust = 0.5, color = "grey90"),
+      plot.title.position = "plot",
+      plot.background = element_rect(fill = "grey10")
+    )
 
   ggsave(str_glue("./output/{str_to_lower(stadt)}_animation/{str_to_lower(stadt)}_glasfaser_100m_{d}.jpg"), plot = p, width = 5, height = 5, create.dir = TRUE)
 }
@@ -257,7 +265,7 @@ breitband_dates <- breitband_1km_arrow %>%
   collect() %>%
   pull()
 
-for(d in breitband_dates) {
+for (d in breitband_dates) {
   print(d)
 
   p <- breitband_1km_arrow %>%
@@ -265,20 +273,23 @@ for(d in breitband_dates) {
     select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
     collect() %>%
     add_laea_grid(size = 1000) %>%
-    ggplot()+
-    geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA)+
-    geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .8)+
-    geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .5)+
-    scale_fill_viridis_c(option = "magma", limits = c(0, 100))+
-    labs(title = ym(d))+
-    theme_void()+
-    theme(legend.position = "none",
-          plot.title = element_text(hjust = 0.5, color = "grey90"),
-          plot.title.position = "plot",
-          plot.background = element_rect(fill = "grey10"))
+    ggplot() +
+    geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA) +
+    geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .8) +
+    geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .5) +
+    scale_fill_viridis_c(option = "magma", limits = c(0, 100)) +
+    labs(title = ym(d)) +
+    theme_void() +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(hjust = 0.5, color = "grey90"),
+      plot.title.position = "plot",
+      plot.background = element_rect(fill = "grey10")
+    )
 
   ggsave(str_glue("./output/deutschland_animation/deutschland_glasfaser_1km_{d}.jpg"),
-         plot = p, width = 5, height = 7, create.dir = TRUE)
+    plot = p, width = 5, height = 7, create.dir = TRUE
+  )
 }
 ```
 
@@ -291,29 +302,34 @@ breitband_dates <- breitband_1km_arrow %>%
   collect() %>%
   pull()
 
-for(d in breitband_dates) {
+for (d in breitband_dates) {
   print(d)
 
   p <- breitband_1km_max_speed %>%
     filter(date == d) %>%
     add_laea_grid(size = 1000) %>%
-    ggplot()+
-    geom_sf(aes(fill = max_speed_all), color = NA)+
-    geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .8)+
-    geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .5)+
-    scale_fill_viridis_c(option = "magma", limits = c(16, 1000), trans = "log", breaks = c(16, 30, 50, 100, 200, 400, 1000))+
-    labs(title = ym(d),
-         fill = element_blank())+
-    theme_void()+
-    theme(legend.position = "top",
-          legend.key.width = unit(1, "cm"),
-          legend.text = element_text(color = "grey70"),
-          plot.title = element_text(hjust = 0.5, color = "grey90"),
-          plot.title.position = "plot",
-          plot.background = element_rect(fill = "grey10"))
+    ggplot() +
+    geom_sf(aes(fill = max_speed_all), color = NA) +
+    geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .8) +
+    geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .5) +
+    scale_fill_viridis_c(option = "magma", limits = c(16, 1000), trans = "log", breaks = c(16, 30, 50, 100, 200, 400, 1000)) +
+    labs(
+      title = ym(d),
+      fill = element_blank()
+    ) +
+    theme_void() +
+    theme(
+      legend.position = "top",
+      legend.key.width = unit(1, "cm"),
+      legend.text = element_text(color = "grey70"),
+      plot.title = element_text(hjust = 0.5, color = "grey90"),
+      plot.title.position = "plot",
+      plot.background = element_rect(fill = "grey10")
+    )
 
   ggsave(str_glue("./output/deutschland_max_speed_animation/deutschland_max_speed_1km_{d}.jpg"),
-         plot = p, width = 5, height = 7, create.dir = TRUE)
+    plot = p, width = 5, height = 7, create.dir = TRUE
+  )
 }
 ```
 
@@ -336,10 +352,10 @@ breitband_1km_haushalte_aggregiert <- breitband_1km_arrow %>%
   summarise(haushalte_fiber = sum(has_fiber * anzahl_haushalte, na.rm = TRUE))
 
 breitband_1km_haushalte_aggregiert %>%
-  ggplot(aes(x = ym(date), y = haushalte_fiber))+
-  geom_line()+
-  geom_point()+
-  scale_x_date()+
+  ggplot(aes(x = ym(date), y = haushalte_fiber)) +
+  geom_line() +
+  geom_point() +
+  scale_x_date() +
   scale_y_continuous(labels = scales::label_number())
 
 # Nochmal mit 100m Raster
@@ -359,10 +375,10 @@ breitband_100m_haushalte_aggregiert <- breitband_100m_arrow %>%
   summarise(haushalte_fiber = sum(has_fiber * anzahl_haushalte, na.rm = TRUE))
 
 breitband_100m_haushalte_aggregiert %>%
-  ggplot(aes(x = ym(date), y = haushalte_fiber))+
-  geom_line()+
-  geom_point()+
-  scale_x_date()+
+  ggplot(aes(x = ym(date), y = haushalte_fiber)) +
+  geom_line() +
+  geom_point() +
+  scale_x_date() +
   scale_y_continuous(labels = scales::label_number())
 
 # Gesamt
@@ -371,10 +387,10 @@ rbind(
   breitband_1km_haushalte_aggregiert %>% mutate(size = "1km")
 ) %>%
   mutate(Stichtag = ceiling_date(ym(date), unit = "month") - days(1)) %>%
-  ggplot(aes(x = Stichtag, y = haushalte_fiber, color = size))+
-  geom_line()+
-  geom_point()+
-  scale_y_continuous(labels = scales::label_number(scale = 1/1e6))+
+  ggplot(aes(x = Stichtag, y = haushalte_fiber, color = size)) +
+  geom_line() +
+  geom_point() +
+  scale_y_continuous(labels = scales::label_number(scale = 1 / 1e6)) +
   scale_x_date(breaks = "1 year")
 ```
 
@@ -384,9 +400,9 @@ Zuwächse an FTTHB über die Zeit
 read_parquet("./data/processed/Breitbandatlas/Raster_1km_got_fiber_date.parquet") %>%
   count(got_fiber_date) %>%
   mutate(got_fiber_date = ym(got_fiber_date)) %>%
-  ggplot(aes(x = got_fiber_date, y = n))+
-  geom_point()+
-  geom_line(aes(y = cumsum(n)))+
+  ggplot(aes(x = got_fiber_date, y = n)) +
+  geom_point() +
+  geom_line(aes(y = cumsum(n))) +
   theme_bw()
 ```
 
@@ -400,38 +416,42 @@ stadt_beispiel_2_bbox <- get_stadt("Darmstadt") %>% st_bbox()
 
 zensus_arrow %>%
   filter(typ == "100m") %>%
-  filter(x_mp %>% between(stadt_beispiel_1_bbox["xmin"], stadt_beispiel_1_bbox["xmax"]),
-         y_mp %>% between(stadt_beispiel_1_bbox["ymin"], stadt_beispiel_1_bbox["ymax"])) %>%
+  filter(
+    x_mp %>% between(stadt_beispiel_1_bbox["xmin"], stadt_beispiel_1_bbox["xmax"]),
+    y_mp %>% between(stadt_beispiel_1_bbox["ymin"], stadt_beispiel_1_bbox["ymax"])
+  ) %>%
   select(x_mp, y_mp, insgesamt_bevoelkerung, durchschn_hh_groesse) %>%
   mutate(anzahl_haushalte = insgesamt_bevoelkerung / durchschn_hh_groesse) %>%
   collect() %>%
   mutate(zensus_na = is.na(durchschn_hh_groesse)) %>%
   add_laea_grid() %>%
-  ggplot()+
-  ggspatial::annotation_map_tile(zoomin = 0, type = "osm")+
-  geom_sf(aes(fill = zensus_na, alpha = zensus_na), color = NA)+
-  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple"))+
-  scale_alpha_manual(values = c(0.8, 1))+
-  theme_void()+
+  ggplot() +
+  ggspatial::annotation_map_tile(zoomin = 0, type = "osm") +
+  geom_sf(aes(fill = zensus_na, alpha = zensus_na), color = NA) +
+  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple")) +
+  scale_alpha_manual(values = c(0.8, 1)) +
+  theme_void() +
   theme(legend.position = "none")
 
 ggsave("./output/plots/karten/plot_runkel_zensus_missing.pdf", width = 3, height = 3)
 
 zensus_arrow %>%
   filter(typ == "100m") %>%
-  filter(x_mp %>% between(stadt_beispiel_2_bbox["xmin"], stadt_beispiel_2_bbox["xmax"]),
-         y_mp %>% between(stadt_beispiel_2_bbox["ymin"], stadt_beispiel_2_bbox["ymax"])) %>%
+  filter(
+    x_mp %>% between(stadt_beispiel_2_bbox["xmin"], stadt_beispiel_2_bbox["xmax"]),
+    y_mp %>% between(stadt_beispiel_2_bbox["ymin"], stadt_beispiel_2_bbox["ymax"])
+  ) %>%
   select(x_mp, y_mp, insgesamt_bevoelkerung, durchschn_hh_groesse) %>%
   mutate(anzahl_haushalte = insgesamt_bevoelkerung / durchschn_hh_groesse) %>%
   collect() %>%
   mutate(zensus_na = is.na(durchschn_hh_groesse)) %>%
   add_laea_grid() %>%
-  ggplot()+
-  ggspatial::annotation_map_tile(zoomin = 0, type = "osm")+
-  geom_sf(aes(fill = zensus_na, alpha = zensus_na), color = NA)+
-  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple"))+
-  scale_alpha_manual(values = c(0.8, 1))+
-  theme_void()+
+  ggplot() +
+  ggspatial::annotation_map_tile(zoomin = 0, type = "osm") +
+  geom_sf(aes(fill = zensus_na, alpha = zensus_na), color = NA) +
+  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple")) +
+  scale_alpha_manual(values = c(0.8, 1)) +
+  theme_void() +
   theme(legend.position = "none")
 
 ggsave("./output/plots/karten/plot_darmstadt_zensus_missing.pdf", width = 3, height = 3)
@@ -447,32 +467,40 @@ stadt_beispiel_2_bbox <- get_stadt("Darmstadt") %>% st_bbox()
 
 read_parquet("./data/processed/RWI_GEO_RED/data_miete_complete.parquet") %>%
   group_by(x_mp, y_mp) %>%
-  summarise(is_complete = sum(n_cell_date == 0) <= 0,
-            .groups = "drop") %>%
-  filter(x_mp %>% between(stadt_beispiel_1_bbox["xmin"], stadt_beispiel_1_bbox["xmax"]),
-         y_mp %>% between(stadt_beispiel_1_bbox["ymin"], stadt_beispiel_1_bbox["ymax"])) %>%
+  summarise(
+    is_complete = sum(n_cell_date == 0) <= 0,
+    .groups = "drop"
+  ) %>%
+  filter(
+    x_mp %>% between(stadt_beispiel_1_bbox["xmin"], stadt_beispiel_1_bbox["xmax"]),
+    y_mp %>% between(stadt_beispiel_1_bbox["ymin"], stadt_beispiel_1_bbox["ymax"])
+  ) %>%
   add_laea_grid(size = 1000) %>%
-  ggplot()+
-  ggspatial::annotation_map_tile(zoomin = 0, type = "osm", cachedir = "./.cache")+
-  geom_sf(aes(fill = is_complete), color = NA, alpha = .5)+
-  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple"))+
-  scale_alpha_manual(values = c(0.8, 1))+
-  theme_void()+
+  ggplot() +
+  ggspatial::annotation_map_tile(zoomin = 0, type = "osm", cachedir = "./.cache") +
+  geom_sf(aes(fill = is_complete), color = NA, alpha = .5) +
+  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple")) +
+  scale_alpha_manual(values = c(0.8, 1)) +
+  theme_void() +
   theme(legend.position = "right")
 
 read_parquet("./data/processed/RWI_GEO_RED/data_miete_complete.parquet") %>%
   group_by(x_mp, y_mp) %>%
-  summarise(is_complete = sum(n_cell_date == 0) <= 0,
-            .groups = "drop") %>%
-  filter(x_mp %>% between(stadt_beispiel_2_bbox["xmin"], stadt_beispiel_2_bbox["xmax"]),
-         y_mp %>% between(stadt_beispiel_2_bbox["ymin"], stadt_beispiel_2_bbox["ymax"])) %>%
+  summarise(
+    is_complete = sum(n_cell_date == 0) <= 0,
+    .groups = "drop"
+  ) %>%
+  filter(
+    x_mp %>% between(stadt_beispiel_2_bbox["xmin"], stadt_beispiel_2_bbox["xmax"]),
+    y_mp %>% between(stadt_beispiel_2_bbox["ymin"], stadt_beispiel_2_bbox["ymax"])
+  ) %>%
   add_laea_grid(size = 1000) %>%
-  ggplot()+
-  ggspatial::annotation_map_tile(zoomin = 0, type = "osm", cachedir = "./.cache")+
-  geom_sf(aes(fill = is_complete), color = NA, alpha = .5)+
-  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple"))+
-  scale_alpha_manual(values = c(0.8, 1))+
-  theme_void()+
+  ggplot() +
+  ggspatial::annotation_map_tile(zoomin = 0, type = "osm", cachedir = "./.cache") +
+  geom_sf(aes(fill = is_complete), color = NA, alpha = .5) +
+  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple")) +
+  scale_alpha_manual(values = c(0.8, 1)) +
+  theme_void() +
   theme(legend.position = "right")
 ```
 
@@ -487,7 +515,8 @@ data_leaflet <- get_breitband_stadt("Darmstadt", variables = down_fn_hh_ftthb_10
 # Create a continuous palette function
 pal <- colorNumeric(
   palette = "viridis",
-  domain = data_leaflet$down_fn_hh_ftthb_1000)
+  domain = data_leaflet$down_fn_hh_ftthb_1000
+)
 
 data_leaflet %>%
   leaflet() %>%
@@ -501,38 +530,42 @@ Karte
 
 ```{r}
 options(scipen = 999)
-pretty_no_decimal <- function (x) prettyNum(x, big.mark = ".", digits = 1, decimal.mark = ",")
-pretty_with_decimal <- function (x) prettyNum(x, big.mark = ".", digits = 3, decimal.mark = ",")
+pretty_no_decimal <- function(x) prettyNum(x, big.mark = ".", digits = 1, decimal.mark = ",")
+pretty_with_decimal <- function(x) prettyNum(x, big.mark = ".", digits = 3, decimal.mark = ",")
 
 einkommen <- read_parquet("./data/processed/Geodaten/Raster_1km_kreise_einkommen.parquet") %>%
   distinct(ars, einkommen, einkommen_delta)
 
 kreise %>%
   left_join(einkommen, by = "ars") %>%
-  mutate(einkommen_cut = santoku::chop_equally(einkommen, groups = 4,
-                                               labels = santoku::lbl_dash(" – ", fmt = pretty_no_decimal))) %>%
+  mutate(einkommen_cut = santoku::chop_equally(einkommen,
+    groups = 4,
+    labels = santoku::lbl_dash(" – ", fmt = pretty_no_decimal)
+  )) %>%
   st_simplify(dTolerance = 200) %>%
-  ggplot()+
-  geom_sf(aes(fill = einkommen_cut), color = NA)+
-  scale_fill_viridis_d()+
-  theme_void()+
-  theme(legend.position = "top")+
-  labs(fill = element_blank())+
+  ggplot() +
+  geom_sf(aes(fill = einkommen_cut), color = NA) +
+  scale_fill_viridis_d() +
+  theme_void() +
+  theme(legend.position = "top") +
+  labs(fill = element_blank()) +
   guides(fill = guide_legend(nrow = 2))
 
 ggsave("./output/plots/karten/plot_deutschland_einkommen_2024.pdf", width = 3, height = 3)
 
 kreise %>%
   left_join(einkommen, by = "ars") %>%
-  mutate(einkommen_delta_cut = santoku::chop_equally(einkommen_delta, groups = 4,
-                                                     labels = santoku::lbl_dash(" – ", fmt = pretty_with_decimal))) %>%
+  mutate(einkommen_delta_cut = santoku::chop_equally(einkommen_delta,
+    groups = 4,
+    labels = santoku::lbl_dash(" – ", fmt = pretty_with_decimal)
+  )) %>%
   st_simplify(dTolerance = 200) %>%
-  ggplot()+
-  geom_sf(aes(fill = einkommen_delta_cut), color = NA)+
-  scale_fill_viridis_d()+
-  theme_void()+
-  theme(legend.position = "top")+
-  labs(fill = element_blank())+
+  ggplot() +
+  geom_sf(aes(fill = einkommen_delta_cut), color = NA) +
+  scale_fill_viridis_d() +
+  theme_void() +
+  theme(legend.position = "top") +
+  labs(fill = element_blank()) +
   guides(fill = guide_legend(nrow = 2))
 
 ggsave("./output/plots/karten/plot_deutschland_einkommen_delta.pdf", width = 3, height = 3)
@@ -548,12 +581,16 @@ set.seed(1)
 
 data_kauf_complete <- read_parquet("./data/processed/RWI_GEO_RED/data_kauf_complete.parquet")
 
-data_kauf_complete %>% 
+data_kauf_complete %>%
   filter(date_pseudo_halbjahr == 1) %>%
-  mutate(einkommen = einkommen / 1000,
-         anzahl_haushalte = anzahl_haushalte / 1000) %>%
-  filter(median_baujahr > quantile(.$median_baujahr, 0.05),
-         median_wohnflaeche < quantile(.$median_wohnflaeche, 0.95)) %>%
+  mutate(
+    einkommen = einkommen / 1000,
+    anzahl_haushalte = anzahl_haushalte / 1000
+  ) %>%
+  filter(
+    median_baujahr > quantile(.$median_baujahr, 0.05),
+    median_wohnflaeche < quantile(.$median_wohnflaeche, 0.95)
+  ) %>%
   select(
     "Baujahr" = median_baujahr,
     "Wohnfläche" = median_wohnflaeche,
@@ -570,7 +607,7 @@ data_kauf_complete %>%
     progress = FALSE,
     lower = list(continuous = GGally::wrap("points", alpha = 0.2, size = 0.2)),
     columns = c("Baujahr", "Wohnfläche", "Zimmer-\nanzahl", "Alter", "Anteil\nEFH", "Einkommen", "Einkommen\nDelta", "Anzahl\nHaushalte", "Eigentümer-\nquote")
-  )+
+  ) +
   theme_bw()
 
 ggsave("./output/plots/plot_erklärende_variablen.pdf", width = 8, height = 8)
@@ -589,22 +626,25 @@ breitband_100m_arrow %>%
   collect() %>%
   group_by(Stichtag = ceiling_date(ym(date), unit = "month") - days(1)) %>%
   arrange(Stichtag) %>%
-  summarise(n = n(),
-            "Anteil 0" = mean(down_fn_hh_ftthb_1000 == 0, na.rm = TRUE)*100,
-            "Anteil 100" = mean(down_fn_hh_ftthb_1000 == 100, na.rm = TRUE)*100,
-            # share_0 = mean(down_fn_hh_ftthb_1000 <= 5, na.rm = TRUE),
-            # share_100 = mean(down_fn_hh_ftthb_1000 >= 95, na.rm = TRUE),
-            "Mittelwert" = mean(down_fn_hh_ftthb_1000, na.rm = TRUE),
-            # pct_25 = quantile(down_fn_hh_ftthb_1000, 0.25, na.rm = TRUE),
-            # pct_50 = quantile(down_fn_hh_ftthb_1000, 0.50, na.rm = TRUE),
-            # pct_75 = quantile(down_fn_hh_ftthb_1000, 0.75, na.rm = TRUE)
-            ) %>%
-  kbl(format = "latex",
-      digits = 0,
-      booktabs = TRUE,
-      position = "h",
-      linesep = "",
-      format.args	= list(big.mark = " ")) %>%
+  summarise(
+    n = n(),
+    "Anteil 0" = mean(down_fn_hh_ftthb_1000 == 0, na.rm = TRUE) * 100,
+    "Anteil 100" = mean(down_fn_hh_ftthb_1000 == 100, na.rm = TRUE) * 100,
+    # share_0 = mean(down_fn_hh_ftthb_1000 <= 5, na.rm = TRUE),
+    # share_100 = mean(down_fn_hh_ftthb_1000 >= 95, na.rm = TRUE),
+    "Mittelwert" = mean(down_fn_hh_ftthb_1000, na.rm = TRUE),
+    # pct_25 = quantile(down_fn_hh_ftthb_1000, 0.25, na.rm = TRUE),
+    # pct_50 = quantile(down_fn_hh_ftthb_1000, 0.50, na.rm = TRUE),
+    # pct_75 = quantile(down_fn_hh_ftthb_1000, 0.75, na.rm = TRUE)
+  ) %>%
+  kbl(
+    format = "latex",
+    digits = 0,
+    booktabs = TRUE,
+    position = "h",
+    linesep = "",
+    format.args = list(big.mark = " ")
+  ) %>%
   cat()
 
 # 1km
@@ -614,23 +654,26 @@ breitband_1km_arrow %>%
   collect() %>%
   group_by(Stichtag = ceiling_date(ym(date), unit = "month") - days(1)) %>%
   arrange(Stichtag) %>%
-  summarise(n = n(),
-            "Anteil 0" = mean(down_fn_hh_ftthb_1000 == 0, na.rm = TRUE)*100,
-            "Anteil 100" = mean(down_fn_hh_ftthb_1000 == 100, na.rm = TRUE)*100,
-            "Anteil >50" = mean(down_fn_hh_ftthb_1000 > 50, na.rm = TRUE)*100,
-            # share_0 = mean(down_fn_hh_ftthb_1000 <= 5, na.rm = TRUE),
-            # share_100 = mean(down_fn_hh_ftthb_1000 >= 95, na.rm = TRUE),
-            #"Mittelwert" = mean(down_fn_hh_ftthb_1000, na.rm = TRUE),
-            # pct_25 = quantile(down_fn_hh_ftthb_1000, 0.25, na.rm = TRUE),
-            # pct_50 = quantile(down_fn_hh_ftthb_1000, 0.50, na.rm = TRUE),
-            # pct_75 = quantile(down_fn_hh_ftthb_1000, 0.75, na.rm = TRUE)
-            ) %>%
-  kbl(format = "latex",
-      digits = 0,
-      booktabs = TRUE,
-      position = "h",
-      linesep = "",
-      format.args	= list(big.mark = " ")) %>%
+  summarise(
+    n = n(),
+    "Anteil 0" = mean(down_fn_hh_ftthb_1000 == 0, na.rm = TRUE) * 100,
+    "Anteil 100" = mean(down_fn_hh_ftthb_1000 == 100, na.rm = TRUE) * 100,
+    "Anteil >50" = mean(down_fn_hh_ftthb_1000 > 50, na.rm = TRUE) * 100,
+    # share_0 = mean(down_fn_hh_ftthb_1000 <= 5, na.rm = TRUE),
+    # share_100 = mean(down_fn_hh_ftthb_1000 >= 95, na.rm = TRUE),
+    # "Mittelwert" = mean(down_fn_hh_ftthb_1000, na.rm = TRUE),
+    # pct_25 = quantile(down_fn_hh_ftthb_1000, 0.25, na.rm = TRUE),
+    # pct_50 = quantile(down_fn_hh_ftthb_1000, 0.50, na.rm = TRUE),
+    # pct_75 = quantile(down_fn_hh_ftthb_1000, 0.75, na.rm = TRUE)
+  ) %>%
+  kbl(
+    format = "latex",
+    digits = 0,
+    booktabs = TRUE,
+    position = "h",
+    linesep = "",
+    format.args = list(big.mark = " ")
+  ) %>%
   cat()
 ```
 
@@ -646,13 +689,15 @@ breitband_1km_arrow %>%
   filter(!is.na(down_fn_hh_ftthb_1000)) %>%
   collect() %>%
   mutate(Stichtag = ceiling_date(ym(date), unit = "month") - days(1)) %>%
-  ggplot(aes(x = down_fn_hh_ftthb_1000))+
-  geom_histogram(bins = 20)+
-  facet_wrap(~Stichtag)+
-  scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
-  theme_bw()+
-  labs(x = "Anteil Glasfaseranschluss (1000 Mbit/s FTTHB) je Rasterzelle (%)",
-       y = "Anzahl Rasterzellen (1000)")
+  ggplot(aes(x = down_fn_hh_ftthb_1000)) +
+  geom_histogram(bins = 20) +
+  facet_wrap(~Stichtag) +
+  scale_y_continuous(labels = scales::label_number(scale = 1 / 1000)) +
+  theme_bw() +
+  labs(
+    x = "Anteil Glasfaseranschluss (1000 Mbit/s FTTHB) je Rasterzelle (%)",
+    y = "Anzahl Rasterzellen (1000)"
+  )
 
 ggsave("./output/plots/plot_verteilung_glasfaser_2018_2024.pdf", width = 5, height = 3)
 ```
@@ -683,23 +728,25 @@ breitband_1km_arrow_summarised %>%
   pivot_wider(names_from = statistik, values_from = value) %>%
   mutate(Stichtag = ceiling_date(ym(date), unit = "month") - days(1)) %>%
   select(Stichtag, "Variable" = variable, n, "Anteil 0" = anteil_0, "Anteil 100" = anteil_100, "Mittelwert" = mittelwert) %>%
-  kbl(format = "latex",
-      digits = 0,
-      booktabs = TRUE,
-      position = "h",
-      linesep = c("", "", "", "", "", "", "", " "),
-      format.args	= list(big.mark = " "),
-      longtable = TRUE) %>%
+  kbl(
+    format = "latex",
+    digits = 0,
+    booktabs = TRUE,
+    position = "h",
+    linesep = c("", "", "", "", "", "", "", " "),
+    format.args = list(big.mark = " "),
+    longtable = TRUE
+  ) %>%
   cat()
 
-options(knitr.kable.NA = '-')
+options(knitr.kable.NA = "-")
 
 breitband_1km_arrow_summarised %>%
   pivot_longer(cols = -date) %>%
   mutate(value = replace_na(value, NA)) %>%
   separate_wider_delim(cols = name, delim = "|", names = c("variable", "statistik")) %>%
   filter(statistik == "mittelwert") %>%
-  mutate(value = if_else(statistik == "n", value/1000, value)) %>%
+  mutate(value = if_else(statistik == "n", value / 1000, value)) %>%
   mutate(variable = str_remove(variable, "down_fn_hh_")) %>%
   separate_wider_delim(cols = variable, delim = "_", names = c("variable", "geschwindigkeit")) %>%
   pivot_wider(names_from = c(geschwindigkeit, statistik), values_from = value) %>%
@@ -707,16 +754,20 @@ breitband_1km_arrow_summarised %>%
   #        Stichtag = paste0(str_sub(Stichtag, 1, 4), "-", str_sub(Stichtag, 5, 6)),
   #        .before = 1, .keep = "unused") %>%
   mutate(variable = str_to_upper(variable)) %>%
-  mutate(Stichtag = ceiling_date(ym(date), unit = "month") - days(1),
-         .before = 1, .keep = "unused") %>%
-  kbl(format = "latex",
-      digits = 0,
-      booktabs = TRUE,
-      position = "h",
-      linesep = c("", "", "", "", "", "", "\\addlinespace"),
-      format.args	= list(big.mark = " "),
-      longtable = TRUE,
-      na = '-') %>%
+  mutate(
+    Stichtag = ceiling_date(ym(date), unit = "month") - days(1),
+    .before = 1, .keep = "unused"
+  ) %>%
+  kbl(
+    format = "latex",
+    digits = 0,
+    booktabs = TRUE,
+    position = "h",
+    linesep = c("", "", "", "", "", "", "\\addlinespace"),
+    format.args = list(big.mark = " "),
+    longtable = TRUE,
+    na = "-"
+  ) %>%
   cat()
 ```
 
@@ -751,28 +802,32 @@ breitband_1km_arrow %>%
   left_join(zensus_haushalte_1km, by = join_by(x_mp, y_mp)) %>%
   drop_na(anzahl_haushalte, gemeindetyp_name) %>%
   group_by("BBSR Gemeindetyp" = gemeindetyp_name) %>%
-  summarise(n = n(),
-            "Anteil %" = weighted.mean(down_fn_hh_ftthb_1000, anzahl_haushalte, na.rm = TRUE)) %>%
-  kbl(format = "latex",
-      digits = 0,
-      booktabs = TRUE,
-      position = "h",
-      linesep = c("", "", "", "", "", "", "\\addlinespace"),
-      format.args	= list(big.mark = " "),
-      longtable = FALSE,
-      na = '-') %>%
+  summarise(
+    n = n(),
+    "Anteil %" = weighted.mean(down_fn_hh_ftthb_1000, anzahl_haushalte, na.rm = TRUE)
+  ) %>%
+  kbl(
+    format = "latex",
+    digits = 0,
+    booktabs = TRUE,
+    position = "h",
+    linesep = c("", "", "", "", "", "", "\\addlinespace"),
+    format.args = list(big.mark = " "),
+    longtable = FALSE,
+    na = "-"
+  ) %>%
   cat()
 
 gemeinden %>%
   left_join(gemeinden_bbsr, by = join_by(ags == gem_kennziffer)) %>%
   st_simplify(dTolerance = 100) %>%
-  ggplot()+
-  geom_sf(aes(fill = gemeindetyp_name), color = NA)+
-  geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5)+
-  geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2)+
-  scale_fill_viridis_d()+
-  theme_void()+
-  theme(legend.position = "right")+
+  ggplot() +
+  geom_sf(aes(fill = gemeindetyp_name), color = NA) +
+  geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5) +
+  geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2) +
+  scale_fill_viridis_d() +
+  theme_void() +
+  theme(legend.position = "right") +
   labs(fill = element_blank())
 
 ggsave("./output/plots/karten/plot_bbsr_gemeindetypen.pdf", width = 5, height = 4)
@@ -790,12 +845,14 @@ open_dataset("./data/Immo/Kauf/") %>%
   collect() %>%
   pivot_longer(cols = -ejahr) %>%
   mutate(name = fct_relevel(name, "Kaufpreis (1000€)", "Wohnfläche (m²)", "Zimmeranzahl", "Baujahr")) %>%
-  ggplot(aes(x = ejahr, y = value, group = ejahr))+
-  geom_boxplot(outliers = FALSE)+
-  facet_wrap(~ name, scales = "free")+
-  scale_x_continuous(breaks = seq(2016, 2024, 1))+
-  labs(y = element_blank(),
-       x = "Jahr")
+  ggplot(aes(x = ejahr, y = value, group = ejahr)) +
+  geom_boxplot(outliers = FALSE) +
+  facet_wrap(~name, scales = "free") +
+  scale_x_continuous(breaks = seq(2016, 2024, 1)) +
+  labs(
+    y = element_blank(),
+    x = "Jahr"
+  )
 
 # `cairo_pdf` wird benötigt, um das € im PDF korrekt darzustellen
 ggsave("./output/plots/plot_boxplot_variablen_kauf.pdf", width = 5, height = 4, device = cairo_pdf)
@@ -807,12 +864,14 @@ open_dataset("./data/Immo/Miete/") %>%
   collect() %>%
   pivot_longer(cols = -ejahr) %>%
   mutate(name = fct_relevel(name, "Mietekalt (€/m²)", "Wohnfläche (m²)", "Zimmeranzahl", "Baujahr")) %>%
-  ggplot(aes(x = ejahr, y = value, group = ejahr))+
-  geom_boxplot(outliers = FALSE)+
-  facet_wrap(~ name, scales = "free")+
-  scale_x_continuous(breaks = seq(2016, 2024, 1))+
-  labs(y = element_blank(),
-       x = "Jahr")
+  ggplot(aes(x = ejahr, y = value, group = ejahr)) +
+  geom_boxplot(outliers = FALSE) +
+  facet_wrap(~name, scales = "free") +
+  scale_x_continuous(breaks = seq(2016, 2024, 1)) +
+  labs(
+    y = element_blank(),
+    x = "Jahr"
+  )
 
 # `cairo_pdf` wird benötigt, um das € im PDF korrekt darzustellen
 ggsave("./output/plots/plot_boxplot_variablen_miete.pdf", width = 5, height = 4, device = cairo_pdf)

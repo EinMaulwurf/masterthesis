@@ -21,24 +21,31 @@ Hier ein simulierter Datensatz um ein paar Beispielgrafiken zu machen um das did
 #| fig-width: 2
 #| fig-height: 3
 
-dat <- simulate_panel(n_ids = 15, n_time = 10, treatment_percentage = 0.5,
-                      treatment_groups = tibble(group = 1:3, 
-                                                treatment_time = c(3, 4, 7), 
-                                                treatment_multiplier = c(1.5, 2.0, 3),
-                                                treatment_jump = c(4, 0, 2)),
-                      seed = 1
-                      )
+dat <- simulate_panel(
+  n_ids = 15, n_time = 10, treatment_percentage = 0.5,
+  treatment_groups = tibble(
+    group = 1:3,
+    treatment_time = c(3, 4, 7),
+    treatment_multiplier = c(1.5, 2.0, 3),
+    treatment_jump = c(4, 0, 2)
+  ),
+  seed = 1
+)
 
 dat %>%
-  ggplot(aes(x = time, y = y, color = as.factor(first_treat), group = as.factor(id)))+
-  geom_vline(xintercept = dat %>% filter(first_treat != 0) %>% pull(first_treat), 
-             linetype = "dotted")+
-  geom_line(alpha = .8)+
-  scale_x_continuous(breaks = seq(0, 10, 2))+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(color = "Gruppe",
-       x = "Zeit", y = "Zielgröße")
+  ggplot(aes(x = time, y = y, color = as.factor(first_treat), group = as.factor(id))) +
+  geom_vline(
+    xintercept = dat %>% filter(first_treat != 0) %>% pull(first_treat),
+    linetype = "dotted"
+  ) +
+  geom_line(alpha = .8) +
+  scale_x_continuous(breaks = seq(0, 10, 2)) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    color = "Gruppe",
+    x = "Zeit", y = "Zielgröße"
+  )
 ggsave("./output/plots/did/plot_did_example_data.pdf", width = 2, height = 3, device = cairo_pdf)
 ```
 
@@ -51,25 +58,27 @@ dat_att <- att_gt(
   tname         = "time",
   idname        = "id",
   gname         = "first_treat",
-  #xformla       = NULL,            # No additional controls in this dataset 
+  # xformla       = NULL,            # No additional controls in this dataset
   control_group = "nevertreated", # Too few groups for "nevertreated" default
-  clustervars   = "id", 
+  clustervars   = "id",
   data          = dat,
-  )
+)
 
 tidy(dat_att) %>%
   mutate(is_treated = time >= group) %>%
-  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
-  geom_point()+
-  geom_linerange()+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  facet_wrap(~group, nrow = 1)+
-  scale_color_manual(values = c("#2E8B8B", "#E67E22"))+
-  scale_y_continuous(breaks = seq(0, 8, by = 2))+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = latex2exp::TeX("Zeit ($t$)"),
-       y = latex2exp::TeX("$ATT(g,t)$"))
+  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated)) +
+  geom_point() +
+  geom_linerange() +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  facet_wrap(~group, nrow = 1) +
+  scale_color_manual(values = c("#2E8B8B", "#E67E22")) +
+  scale_y_continuous(breaks = seq(0, 8, by = 2)) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = latex2exp::TeX("Zeit ($t$)"),
+    y = latex2exp::TeX("$ATT(g,t)$")
+  )
 ggsave("./output/plots/did/plot_did_example_att.pdf", width = 4, height = 3, device = cairo_pdf)
 ```
 
@@ -81,15 +90,17 @@ dat_att %>%
   aggte(type = "dynamic") %>%
   tidy() %>%
   mutate(is_treated = event.time >= 0) %>%
-  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
-  geom_linerange()+
-  geom_point(size = 1.5)+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  scale_color_manual(values = c("#2E8B8B", "#E67E22"))+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = latex2exp::TeX("Zeit relativ ($e$)"),
-       y = latex2exp::TeX("$ATT_{dyn}(e)$"))
+  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated)) +
+  geom_linerange() +
+  geom_point(size = 1.5) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  scale_color_manual(values = c("#2E8B8B", "#E67E22")) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = latex2exp::TeX("Zeit relativ ($e$)"),
+    y = latex2exp::TeX("$ATT_{dyn}(e)$")
+  )
 ggsave("./output/plots/did/plot_did_example_agg_dyn.pdf", width = 2, height = 3, device = cairo_pdf)
 
 dat_att %>%
@@ -97,27 +108,31 @@ dat_att %>%
   tidy() %>%
   filter(group != "Average") %>%
   mutate(group = factor(group, levels = as.character(sort(as.numeric(group))))) %>%
-  ggplot(aes(y = estimate, x = group, ymin = conf.low, ymax = conf.high))+
-  geom_linerange()+
-  geom_point(size = 1.5)+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g},e_{max}=2)$"),
-       x = latex2exp::TeX("Gruppe ($\\tilde{g}$)"))
+  ggplot(aes(y = estimate, x = group, ymin = conf.low, ymax = conf.high)) +
+  geom_linerange() +
+  geom_point(size = 1.5) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    y = latex2exp::TeX("$ATT_{group}^{bal}(\\tilde{g},e_{max}=2)$"),
+    x = latex2exp::TeX("Gruppe ($\\tilde{g}$)")
+  )
 ggsave("./output/plots/did/plot_did_example_agg_group.pdf", width = 2, height = 3, device = cairo_pdf)
 
 dat_att %>%
   aggte(type = "calendar") %>%
   tidy() %>%
-  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high))+
-  geom_linerange()+
-  geom_point(size = 1.5)+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = latex2exp::TeX("Zeit ($\\tilde{t}$)"),
-       y = latex2exp::TeX("$ATT_{cal}(\\tilde{t})$"))
+  ggplot(aes(x = time, y = estimate, ymin = conf.low, ymax = conf.high)) +
+  geom_linerange() +
+  geom_point(size = 1.5) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = latex2exp::TeX("Zeit ($\\tilde{t}$)"),
+    y = latex2exp::TeX("$ATT_{cal}(\\tilde{t})$")
+  )
 ggsave("./output/plots/did/plot_did_example_agg_calendar.pdf", width = 2, height = 3, device = cairo_pdf)
 ```
 
@@ -130,24 +145,27 @@ Was auffällt: Mit vielen Gruppen (Achtung, nicht Gruppen im Sinne von CS21) ist
 [Hier](https://chat.maulwurf.fun/share/rny9CO7eNsA-r35oMip_z) eine Erklärung von o1
 
 ```{r}
-dat <- simulate_panel(n_ids = 100000, n_time = 10, base_slopes = c(1.01,1),
-                      treatment_groups = tibble(group = 1, 
-                                                treatment_time = 5, 
-                                                treatment_multiplier = 2, 
-                                                treatment_jump = 0),
-                      seed = 1
-                      )
+dat <- simulate_panel(
+  n_ids = 100000, n_time = 10, base_slopes = c(1.01, 1),
+  treatment_groups = tibble(
+    group = 1,
+    treatment_time = 5,
+    treatment_multiplier = 2,
+    treatment_jump = 0
+  ),
+  seed = 1
+)
 
-cs21 = att_gt(
+cs21 <- att_gt(
   yname         = "y",
   tname         = "time",
   idname        = "id",
   gname         = "first_treat",
   control_group = "nevertreated",
-  clustervars   = "id", 
+  clustervars   = "id",
   data          = dat,
   base_period   = "universal"
-  )
+)
 cs21$Wpval
 
 cs21_agg_dyn <- aggte(cs21, type = "dynamic", min_e = -5, max_e = 5)
@@ -159,27 +177,29 @@ cs21_agg_dyn <- aggte(cs21, type = "dynamic", min_e = -5, max_e = 5)
 
 dat %>%
   filter(id %in% c(1:3, 50000:50002)) %>%
-  ggplot(aes(x = time, y = y, color = as.factor(first_treat), group = as.factor(id)))+
-  geom_line()+
-  scale_x_continuous(breaks = 1:10)+
-  theme_bw()+
-  theme(legend.position = "none")+
+  ggplot(aes(x = time, y = y, color = as.factor(first_treat), group = as.factor(id))) +
+  geom_line() +
+  scale_x_continuous(breaks = 1:10) +
+  theme_bw() +
+  theme(legend.position = "none") +
   labs(x = "Zeit", y = "Zielgröße", color = element_blank())
 ggsave("./output/plots/did/plot_did_simulation.pdf", width = 3, height = 3, device = cairo_pdf)
 
-cs21_agg_dyn %>% 
+cs21_agg_dyn %>%
   tidy() %>%
   mutate(is_treated = event.time >= 0) %>%
-  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
-  geom_linerange()+
-  geom_point(size = 1.5)+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  #coord_cartesian(xlim = c(-6, 10))+
-  scale_x_continuous(breaks = seq(-4, 5, 1))+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = "Zeit (relativ)",
-       y = "ATT")
+  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated)) +
+  geom_linerange() +
+  geom_point(size = 1.5) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  # coord_cartesian(xlim = c(-6, 10))+
+  scale_x_continuous(breaks = seq(-4, 5, 1)) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = "Zeit (relativ)",
+    y = "ATT"
+  )
 ggsave("./output/plots/did/plot_did_simulation_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
@@ -195,18 +215,19 @@ ggsave("./output/plots/did/plot_did_simulation_agg_dyn.pdf", width = 3, height =
 # cs21_agg_dyn_honest_smooth
 
 
-cs21_agg_dyn_honest_rel <- honest_did(es = cs21_agg_dyn,
-                          e = 1,
-                          type="relative_magnitude",
-                          Mbarvec = seq(from = 24, to = 26, by = 0.25),
-                          #monotonicityDirection = "increasing",
-                          method = "Conditional",
-                          #gridPoints = 5e3,
-                          #grid.ub = 1e2, grid.lb = -1e2
-                          )
+cs21_agg_dyn_honest_rel <- honest_did(
+  es = cs21_agg_dyn,
+  e = 1,
+  type = "relative_magnitude",
+  Mbarvec = seq(from = 24, to = 26, by = 0.25),
+  # monotonicityDirection = "increasing",
+  method = "Conditional",
+  # gridPoints = 5e3,
+  # grid.ub = 1e2, grid.lb = -1e2
+)
 cs21_agg_dyn_honest_rel
 # Drop 0 as that is not really allowed.
-#cs21_agg_dyn_honest_rel$robust_ci <- cs21_agg_dyn_honest_rel$robust_ci[-1,]
+# cs21_agg_dyn_honest_rel$robust_ci <- cs21_agg_dyn_honest_rel$robust_ci[-1,]
 
 ## -----------------------------------------------------------------------------
 # make sensitivity analysis plots
@@ -214,11 +235,12 @@ cs21_agg_dyn_honest_rel
 #                       cs21_agg_dyn_honest_smooth$orig_ci)
 
 createSensitivityPlot_relativeMagnitudes(cs21_agg_dyn_honest_rel$robust_ci,
-                                         cs21_agg_dyn_honest_rel$orig_ci,
-                                         add_xAxis = FALSE)+
-  geom_hline(yintercept = 0, linetype = "dashed")+
-  theme_bw()+
-  theme(legend.position = "none")+
+  cs21_agg_dyn_honest_rel$orig_ci,
+  add_xAxis = FALSE
+) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_bw() +
+  theme(legend.position = "none") +
   labs(y = "ATT")
 ggsave("./output/plots/did/plot_did_simulation_agg_dyn_honest.pdf", width = 5, height = 2.5, device = cairo_pdf)
 ```
@@ -229,25 +251,28 @@ Beispiel: Bei einer kleinen Stichprobe (kleines `n_ids`) und einem niedrigen `tr
 # Simulation kleiner Datensatz
 
 ```{r}
-dat_small <- simulate_panel(n_ids = 100, n_time = 10, base_slopes = c(1.2,1),
-                            treatment_percentage = 0.2,
-                            treatment_groups = tibble(group = 1, 
-                                                      treatment_time = 5, 
-                                                      treatment_multiplier = 2, 
-                                                      treatment_jump = 0),
-                            seed = 1
-                            )
+dat_small <- simulate_panel(
+  n_ids = 100, n_time = 10, base_slopes = c(1.2, 1),
+  treatment_percentage = 0.2,
+  treatment_groups = tibble(
+    group = 1,
+    treatment_time = 5,
+    treatment_multiplier = 2,
+    treatment_jump = 0
+  ),
+  seed = 1
+)
 
-cs21_small = att_gt(
+cs21_small <- att_gt(
   yname         = "y",
   tname         = "time",
   idname        = "id",
   gname         = "first_treat",
   control_group = "nevertreated",
-  clustervars   = "id", 
+  clustervars   = "id",
   data          = dat_small,
   base_period   = "universal"
-  )
+)
 cs21_small$Wpval
 
 cs21_small_agg_dyn <- aggte(cs21_small, type = "dynamic", min_e = -5, max_e = 5)
@@ -257,19 +282,21 @@ cs21_small_agg_dyn <- aggte(cs21_small, type = "dynamic", min_e = -5, max_e = 5)
 #| fig-width: 3
 #| fig-height: 3
 
-cs21_small_agg_dyn %>% 
+cs21_small_agg_dyn %>%
   tidy() %>%
   mutate(is_treated = event.time >= 0) %>%
-  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated))+
-  geom_linerange()+
-  geom_point(size = 1.5)+
-  geom_hline(aes(yintercept = 0), linetype = "dashed")+
-  #coord_cartesian(xlim = c(-6, 10))+
-  scale_x_continuous(breaks = seq(-4, 5, 1))+
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(x = latex2exp::TeX("Zeit relativ ($e$)"),
-       y = latex2exp::TeX("$ATT_{dyn}(e)$"))
+  ggplot(aes(x = event.time, y = estimate, ymin = conf.low, ymax = conf.high, color = is_treated)) +
+  geom_linerange() +
+  geom_point(size = 1.5) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  # coord_cartesian(xlim = c(-6, 10))+
+  scale_x_continuous(breaks = seq(-4, 5, 1)) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(
+    x = latex2exp::TeX("Zeit relativ ($e$)"),
+    y = latex2exp::TeX("$ATT_{dyn}(e)$")
+  )
 ggsave("./output/plots/did/plot_did_simulation_small_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
@@ -277,27 +304,29 @@ ggsave("./output/plots/did/plot_did_simulation_small_agg_dyn.pdf", width = 3, he
 #| fig-width: 3
 #| fig-height: 3
 
-cs21_small_agg_dyn_honest_rel <- honest_did(es = cs21_small_agg_dyn,
-                          e = 1,
-                          type="relative_magnitude",
-                          Mbarvec = seq(from = 0, to = 2, by = 0.25),
-                          #monotonicityDirection = "increasing",
-                          method = "Conditional",
-                          #gridPoints = 5e3,
-                          #grid.ub = 1e2, grid.lb = -1e2
-                          )
-#cs21_small_agg_dyn_honest_rel
+cs21_small_agg_dyn_honest_rel <- honest_did(
+  es = cs21_small_agg_dyn,
+  e = 1,
+  type = "relative_magnitude",
+  Mbarvec = seq(from = 0, to = 2, by = 0.25),
+  # monotonicityDirection = "increasing",
+  method = "Conditional",
+  # gridPoints = 5e3,
+  # grid.ub = 1e2, grid.lb = -1e2
+)
+# cs21_small_agg_dyn_honest_rel
 
 # Drop 0 as that is not really allowed.
-cs21_small_agg_dyn_honest_rel$robust_ci <- cs21_small_agg_dyn_honest_rel$robust_ci[-1,]
+cs21_small_agg_dyn_honest_rel$robust_ci <- cs21_small_agg_dyn_honest_rel$robust_ci[-1, ]
 
 ## -----------------------------------------------------------------------------
 createSensitivityPlot_relativeMagnitudes(cs21_small_agg_dyn_honest_rel$robust_ci,
-                                         cs21_small_agg_dyn_honest_rel$orig_ci,
-                                         add_xAxis = FALSE)+
-  geom_hline(yintercept = 0, linetype = "dashed")+
-  theme_bw()+
-  theme(legend.position = "none")+
+  cs21_small_agg_dyn_honest_rel$orig_ci,
+  add_xAxis = FALSE
+) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_bw() +
+  theme(legend.position = "none") +
   labs(y = latex2exp::TeX("$ATT_{dyn}(e=1)$"))
 ggsave("./output/plots/did/plot_did_simulation_small_agg_dyn_honest.pdf", width = 3, height = 3, device = cairo_pdf)
 ```

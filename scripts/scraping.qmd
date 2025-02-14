@@ -100,8 +100,9 @@ fetch_api <- function(geometry) {
       print(geometry)
       return(NULL)
     }
-    if (length(content$features) == 0)
+    if (length(content$features) == 0) {
       return(NULL)
+    }
 
     data_geom <- content %>%
       pluck("features") %>%
@@ -137,16 +138,16 @@ deutschland_grid_cells <- deutschland %>%
   st_make_grid(n = c(96, 96), square = TRUE, what = "polygons") %>%
   st_as_sf() %>%
   st_filter(deutschland)
-  st_geometry() %>%
+st_geometry() %>%
   map(~ as.list(st_bbox(.)))
 
 # Process in chunks
 chunk_size <- 200
-grid_chunks <- split(deutschland_grid_cells, ceiling(seq_along(deutschland_grid_cells)/chunk_size))
+grid_chunks <- split(deutschland_grid_cells, ceiling(seq_along(deutschland_grid_cells) / chunk_size))
 
 # Process each chunk
 plan(multisession, workers = 4)
-for(i in seq_along(grid_chunks)) {
+for (i in seq_along(grid_chunks)) {
   str_glue("{i} von {length(grid_chunks)}") %>% print()
 
   chunk_result <- future_map(grid_chunks[[i]], fetch_api, .progress = TRUE) %>% list_rbind()
@@ -168,10 +169,12 @@ Für Zeitpunkte ab 2022 runde ich den Mittelpunkt jeder Zelle auf die nächste 5
 Durch die Aufteilung von 250m auf 100m entstehen viele Zellen, die es in den 100m Daten nicht gibt. Beispielsweise in einem kleinen Dorf, bei dem alle Häuser in einer 100m sowie auch der 250m Zelle liegen. Dort würden dann ca. 6 Zellen statt einer entstehen. Aus diesem Grund führe ich einen Inner-Join mit den 202312 Daten durch. Dadurch lösche ich alle überflüssigen Zellen, die durch die Aufteilung entstehen.
 
 ```{r}
-dataset_old <- list.files(path = "./data/processed/Breitbandatlas/Rohdaten",
-                           pattern = "raster_chunk_.*\\.parquet",
-                           full.names = TRUE) %>%
-    open_dataset()
+dataset_old <- list.files(
+  path = "./data/processed/Breitbandatlas/Rohdaten",
+  pattern = "raster_chunk_.*\\.parquet",
+  full.names = TRUE
+) %>%
+  open_dataset()
 
 arrow_colnames_sorted <- dataset_old %>%
   slice_sample(n = 1) %>%
@@ -181,21 +184,27 @@ arrow_colnames_sorted <- dataset_old %>%
   gtools::mixedsort()
 
 # Jahre mit 100m Raster
-for(d in dates %>% head(-6) %>% unname()) {
+for (d in dates %>%
+  head(-6) %>%
+  unname()) {
   print(d)
 
   dataset_old %>%
     filter(date == d) %>%
-    rename(x_mp_raw = x_mp,
-           y_mp_raw = y_mp) %>%
-    mutate(x_mp = floor(x_mp_raw / 100) * 100 + 50,
-           y_mp = floor(y_mp_raw / 100) * 100 + 50) %>%
+    rename(
+      x_mp_raw = x_mp,
+      y_mp_raw = y_mp
+    ) %>%
+    mutate(
+      x_mp = floor(x_mp_raw / 100) * 100 + 50,
+      y_mp = floor(y_mp_raw / 100) * 100 + 50
+    ) %>%
     select(date, x_mp, y_mp, all_of(arrow_colnames_sorted)) %>%
     distinct() %>%
     group_by(date) %>%
     write_dataset("./data/processed/Breitbandatlas/Raster_100m")
 
-    gc()
+  gc()
 }
 
 # Jahre vor 2022 mit 250m Raster, das aufgeteilt werden muss
@@ -207,13 +216,17 @@ data_202312 <- open_dataset("./data/processed/Breitbandatlas/Raster_100m/") %>%
   distinct() %>%
   collect()
 
-for(d in dates %>% tail(6) %>% unname()) {
+for (d in dates %>%
+  tail(6) %>%
+  unname()) {
   print(d)
 
   data <- dataset_old %>%
     filter(date == d) %>%
-    rename(x_mp_raw = x_mp,
-           y_mp_raw = y_mp) %>%
+    rename(
+      x_mp_raw = x_mp,
+      y_mp_raw = y_mp
+    ) %>%
     distinct() %>%
     collect()
 
@@ -244,7 +257,7 @@ breitband_100m_arrow %>%
   summarise(down_fn_hh_ftthb_1000 = sum(down_fn_hh_ftthb_1000, na.rm = TRUE)) %>%
   collect() %>%
   mutate(date = ym(date)) %>%
-  ggplot(aes(x = date, y = down_fn_hh_ftthb_1000))+
+  ggplot(aes(x = date, y = down_fn_hh_ftthb_1000)) +
   geom_line()
 
 breitband_100m_arrow %>%
