@@ -33,6 +33,7 @@ add_laea_grid <- function(obj, size = c("1km", "100m"), x_mp = "x_mp", y_mp = "y
   sf_obj <- sf::st_as_sf(
     obj,
     coords = c(x_mp, y_mp),
+    remove = FALSE,
     crs = laea_crs
   )
 
