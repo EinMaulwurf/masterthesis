@@ -462,46 +462,51 @@ ggsave("./output/plots/karten/plot_darmstadt_zensus_missing.pdf", width = 3, hei
 Zellen mit vollständigem Panel bei den Kauf/Miet Daten
 
 ```{r}
+#| fig-width: 3
+#| fig-height: 3
+
 stadt_beispiel_1_bbox <- get_stadt("Runkel") %>% st_bbox()
 stadt_beispiel_2_bbox <- get_stadt("Darmstadt") %>% st_bbox()
 
-read_parquet("./data/processed/RWI_GEO_RED/data_miete_complete.parquet") %>%
-  group_by(x_mp, y_mp) %>%
-  summarise(
-    is_complete = sum(n_cell_date == 0) <= 0,
-    .groups = "drop"
-  ) %>%
+read_parquet("./data/processed/RWI_GEO_RED/data_miete_final.parquet") %>%
   filter(
     x_mp %>% between(stadt_beispiel_1_bbox["xmin"], stadt_beispiel_1_bbox["xmax"]),
     y_mp %>% between(stadt_beispiel_1_bbox["ymin"], stadt_beispiel_1_bbox["ymax"])
   ) %>%
-  add_laea_grid(size = 1000) %>%
+  group_by(x_mp, y_mp) %>%
+  count() %>%
+  ungroup() %>%
+  mutate(anteil = n / max(n)) %>%
+  add_laea_grid() %>%
   ggplot() +
-  ggspatial::annotation_map_tile(zoomin = 0, type = "osm", cachedir = "./.cache") +
-  geom_sf(aes(fill = is_complete), color = NA, alpha = .5) +
-  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple")) +
-  scale_alpha_manual(values = c(0.8, 1)) +
+  ggspatial::annotation_map_tile(zoomin = 0, type = "osm") +
+  geom_sf(aes(fill = anteil), color = NA, alpha = .6) +
+  scale_fill_viridis_c() +
   theme_void() +
+  labs(fill = "Vollständig") +
   theme(legend.position = "right")
 
-read_parquet("./data/processed/RWI_GEO_RED/data_miete_complete.parquet") %>%
-  group_by(x_mp, y_mp) %>%
-  summarise(
-    is_complete = sum(n_cell_date == 0) <= 0,
-    .groups = "drop"
-  ) %>%
+ggsave("./output/plots/karten/plot_runkel_miete_completeness.pdf", width = 3, height = 3)
+
+read_parquet("./data/processed/RWI_GEO_RED/data_miete_final.parquet") %>%
   filter(
     x_mp %>% between(stadt_beispiel_2_bbox["xmin"], stadt_beispiel_2_bbox["xmax"]),
     y_mp %>% between(stadt_beispiel_2_bbox["ymin"], stadt_beispiel_2_bbox["ymax"])
   ) %>%
-  add_laea_grid(size = 1000) %>%
+  group_by(x_mp, y_mp) %>%
+  count() %>%
+  ungroup() %>%
+  mutate(anteil = n / max(n)) %>%
+  add_laea_grid() %>%
   ggplot() +
-  ggspatial::annotation_map_tile(zoomin = 0, type = "osm", cachedir = "./.cache") +
-  geom_sf(aes(fill = is_complete), color = NA, alpha = .5) +
-  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "purple")) +
-  scale_alpha_manual(values = c(0.8, 1)) +
+  ggspatial::annotation_map_tile(zoomin = 0, type = "osm") +
+  geom_sf(aes(fill = anteil), color = NA, alpha = .6) +
+  scale_fill_viridis_c() +
   theme_void() +
+  labs(fill = "Vollständig") +
   theme(legend.position = "right")
+
+ggsave("./output/plots/karten/plot_darmstadt_miete_completeness.pdf", width = 3, height = 3)
 ```
 
 ## Interaktive Karte mit Leaflet
@@ -579,9 +584,9 @@ ggsave("./output/plots/karten/plot_deutschland_einkommen_delta.pdf", width = 3, 
 
 set.seed(1)
 
-data_kauf_complete <- read_parquet("./data/processed/RWI_GEO_RED/data_kauf_complete.parquet")
+data_kauf_final <- read_parquet("./data/processed/RWI_GEO_RED/data_kauf_final.parquet")
 
-data_kauf_complete %>%
+data_kauf_final %>%
   filter(date_pseudo_halbjahr == 1) %>%
   mutate(
     einkommen = einkommen / 1000,
@@ -612,7 +617,6 @@ data_kauf_complete %>%
 
 ggsave("./output/plots/plot_erklärende_variablen.pdf", width = 8, height = 8)
 ```
-
 
 # Summary Statistics
 
