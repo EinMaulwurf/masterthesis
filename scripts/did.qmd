@@ -323,8 +323,20 @@ models_räumlich_miete_agg_dyn_tidy <- models_räumlich_miete %>%
   bind_rows(.id = "model")
 
 # Save results
-write_parquet(models_räumlich_miete_agg_dyn_tidy, "./data/processed/Sonstige/models_räumlich_miete_agg_dyn_tidy.parquet")
-#models_räumlich_miete_agg_dyn_tidy <- read_parquet("./data/processed/Sonstige/models_räumlich_miete_agg_dyn_tidy.parquet")
+write_rds(
+  models_räumlich_miete,
+  "./data/processed/did/models_räumlich_miete.rds", 
+  compress = "gz"
+)
+write_rds(
+  models_räumlich_miete_agg_dyn_tidy,
+  "./data/processed/did/models_räumlich_miete_agg_dyn_tidy.rds", 
+  compress = "gz"
+)
+
+# Load results
+# models_räumlich_miete <- read_rds("./data/processed/did/models_räumlich_miete.rds")
+# models_räumlich_miete_agg_dyn_tidy <- read_rds("./data/processed/did/models_räumlich_miete_agg_dyn_tidy.rds")
 ```
 
 ```{r}
@@ -440,8 +452,20 @@ models_räumlich_kauf_agg_dyn_tidy <- models_räumlich_kauf %>%
   bind_rows(.id = "model")
 
 # Save results
-write_parquet(models_räumlich_kauf_agg_dyn_tidy, "./data/processed/Sonstige/models_räumlich_kauf_agg_dyn_tidy.parquet")
-#models_räumlich_kauf_agg_dyn_tidy <- read_parquet("./data/processed/Sonstige/models_räumlich_kauf_agg_dyn_tidy.parquet")
+write_rds(
+  models_räumlich_kauf,
+  "./data/processed/did/models_räumlich_kauf.rds", 
+  compress = "gz"
+)
+write_rds(
+  models_räumlich_kauf_agg_dyn_tidy,
+  "./data/processed/did/models_räumlich_kauf_agg_dyn_tidy.rds", 
+  compress = "gz"
+)
+
+# Load results
+# models_räumlich_kauf <- read_rds("./data/processed/did/models_räumlich_kauf.rds")
+# models_räumlich_kauf_agg_dyn_tidy <- read_rds("./data/processed/did/models_räumlich_kauf_agg_dyn_tidy.rds")
 ```
 
 ```{r}
@@ -475,8 +499,7 @@ gc()
 
 ```{r}
 # First, create a base parameter list with your default settings
-base_params_miete <- list(
-  data = data_miete_complete %>% filter(n_cell_date > 0),
+base_params_alternative_miete <- list(
   yname = "mean_mietekalt_m2",
   tname = "date_pseudo_halbjahr",
   idname = "xy_mp",
@@ -494,41 +517,64 @@ base_params_miete <- list(
 )
 
 # Define your model variations
-model_specs_miete <- list(
+model_specs_alternative_miete <- list(
   # Bevorzugte Spezifikation
   model1 = list(
-    # Keine Änderung
+    data = data_miete_complete %>% filter(n_cell_date > 0)
   ),
   # Individuelles Clustering
   model2 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0),
     clustervars = c("xy_mp")
   ),
   # Never-Treated Controlgroup
   model3 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0),
     control_group = "nevertreated"
   ),
   # Keine erklärenden Variablen
   model4 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0),
     xformla = NULL
   ),
   # Keine Gewichtung nach Anzahl Haushalte
   model5 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0),
     weightsname = NULL
-  )#,
-  # Completed Panel | Gibt Probleme mit der modifyList() Funktion
-  # model6 = list(
-  #   data = data_miete_complete,
-  #   allow_unbalanced_panel = FALSE
-  # ),
+  ),
+  # Mit complete panel
+  model6 = list(
+    data = data_miete_complete,
+    allow_unbalanced_panel = FALSE
+  ),
+  # Nur Zellen mit vielen Angeboten (90% Quantil)
+  model7 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0, n_cell > 150),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
+  ),
+  # Ohne imputierte Werte
+  model8 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0, !imputed)
+  ),
+  # Estimation Method: Inverse Probability Weighting
+  model9 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0),
+    est_method = "ipw"
+  ),
+  # Estimation Method: Outcome Regression
+  model10 = list(
+    data = data_miete_complete %>% filter(n_cell_date > 0),
+    est_method = "reg"
+  )
 )
 
 # Run all models
-models_miete <- model_specs_miete %>%
-  map(~modifyList(base_params_miete, .x)) %>%
+models_alternative_miete <- model_specs_alternative_miete %>%
+  map(~modifyList(base_params_alternative_miete, .x)) %>%
   map(~do.call(att_gt, .x), .progress = TRUE)
 
 # Calculate dynamig aggregation
-models_miete_agg_dyn_tidy <- models_miete %>%
+models_alternative_miete_agg_dyn_tidy <- models_alternative_miete %>%
   purrr::map(
     ~did::aggte(.x, type = "dynamic"),
     .progress = TRUE
@@ -537,12 +583,24 @@ models_miete_agg_dyn_tidy <- models_miete %>%
   bind_rows(.id = "model")
 
 # Save results
-write_parquet(models_miete_agg_dyn_tidy, "./data/processed/Sonstige/models_miete_agg_dyn_tidy.parquet")
-#models_miete_agg_dyn_tidy <- read_parquet("./data/processed/Sonstige/models_miete_agg_dyn_tidy.parquet")
+write_rds(
+  models_alternative_miete,
+  "./data/processed/did/models_alternative_miete.rds", 
+  compress = "xz"
+)
+write_rds(
+  models_alternative_miete_agg_dyn_tidy,
+  "./data/processed/did/models_alternative_miete_agg_dyn_tidy.rds", 
+  compress = "xz"
+)
+
+# Load results
+# models_alternative_miete <- read_rds("./data/processed/did/models_alternative_miete.rds")
+# models_alternative_miete_agg_dyn_tidy <- read_rds("./data/processed/did/models_alternative_miete_agg_dyn_tidy.rds")
 ```
 
 ```{r}
-models_miete_agg_dyn_tidy %>%
+models_alternative_miete_agg_dyn_tidy %>%
   mutate(number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
          name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)) %>%
   filter(event.time == 2) %>%
@@ -563,8 +621,7 @@ ggsave("./output/plots/did/plot_did_alternative_miete.pdf", width = 3, height = 
 
 ```{r}
 # First, create a base parameter list with your default settings
-base_params_kauf <- list(
-  data = data_kauf_complete %>% filter(n_cell_date > 0),
+base_params_alternative_kauf <- list(
   yname = "mean_kaufpreis",
   tname = "date_pseudo_halbjahr",
   idname = "xy_mp",
@@ -582,41 +639,64 @@ base_params_kauf <- list(
 )
 
 # Define your model variations
-model_specs_kauf <- list(
+model_specs_alternative_kauf <- list(
   # Bevorzugte Spezifikation
   model1 = list(
-    # Keine Änderung
+    data = data_kauf_complete %>% filter(n_cell_date > 0)
   ),
   # Individuelles Clustering
   model2 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0),
     clustervars = c("xy_mp")
   ),
   # Never-Treated Controlgroup
   model3 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0),
     control_group = "nevertreated"
   ),
   # Keine erklärenden Variablen
   model4 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0),
     xformla = NULL
   ),
   # Keine Gewichtung nach Anzahl Haushalte
   model5 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0),
     weightsname = NULL
-  )#,
-  # Completed Panel | Gibt Probleme mit der modifyList() Funktion
-  # model6 = list(
-  #   data = data_miete_complete,
-  #   allow_unbalanced_panel = FALSE
-  # ),
+  ),
+  # Mit complete panel
+  model6 = list(
+    data = data_kauf_complete,
+    allow_unbalanced_panel = FALSE
+  ),
+  # Nur Zellen mit vielen Angeboten (90% Quantil)
+  model7 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0, n_cell > 150),
+    xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
+  ),
+  # Ohne imputierte Werte
+  model8 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0, !imputed)
+  ),
+  # Estimation Method: Inverse Probability Weighting
+  model9 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0),
+    est_method = "ipw"
+  ),
+  # Estimation Method: Outcome Regression
+  model10 = list(
+    data = data_kauf_complete %>% filter(n_cell_date > 0),
+    est_method = "reg"
+  )
 )
 
 # Run all models
-models_kauf <- model_specs_kauf %>%
-  map(~modifyList(base_params_kauf, .x)) %>%
+models_alternative_kauf <- model_specs_alternative_kauf %>%
+  map(~modifyList(base_params_alternative_kauf, .x)) %>%
   map(~do.call(att_gt, .x), .progress = TRUE)
 
 # Calculate dynamig aggregation
-models_kauf_agg_dyn_tidy <- models_kauf %>%
+models_alternative_kauf_agg_dyn_tidy <- models_alternative_kauf %>%
   purrr::map(
     ~did::aggte(.x, type = "dynamic"),
     .progress = TRUE
@@ -625,12 +705,24 @@ models_kauf_agg_dyn_tidy <- models_kauf %>%
   bind_rows(.id = "model")
 
 # Save results
-write_parquet(models_kauf_agg_dyn_tidy, "./data/processed/Sonstige/models_kauf_agg_dyn_tidy.parquet")
-#models_kauf_agg_dyn_tidy <- read_parquet("./data/processed/Sonstige/models_kauf_agg_dyn_tidy.parquet")
+write_rds(
+  models_alternative_kauf,
+  "./data/processed/did/models_alternative_kauf.rds", 
+  compress = "xz"
+)
+write_rds(
+  models_alternative_kauf_agg_dyn_tidy,
+  "./data/processed/did/models_alternative_kauf_agg_dyn_tidy.rds", 
+  compress = "xz"
+)
+
+# Load results
+# models_alternative_kauf <- read_rds("./data/processed/did/models_alternative_kauf.rds")
+# models_alternative_kauf_agg_dyn_tidy <- read_rds("./data/processed/did/models_alternative_kauf_agg_dyn_tidy.rds")
 ```
 
 ```{r}
-models_kauf_agg_dyn_tidy %>%
+models_alternative_kauf_agg_dyn_tidy %>%
   mutate(number_clean = str_extract(model, "\\d+$") %>% as.numeric(),
          name_clean = paste0("(", as.roman(number_clean), ")") %>% fct_reorder(number_clean, .desc = TRUE)) %>%
   filter(event.time == 2) %>%
