@@ -55,8 +55,6 @@ mod_miete <- data_miete_final %>%
     base_period = "varying",
     clustervars = c("xy_mp", "plz"),
     biter = 1000,
-    pl = TRUE,
-    cores = 6,
     allow_unbalanced_panel = TRUE,
     print_details = FALSE
   )
@@ -144,8 +142,6 @@ mod_kauf <- data_kauf_final %>%
     base_period = "varying",
     clustervars = c("xy_mp", "plz"),
     biter = 1000,
-    pl = TRUE,
-    cores = 6,
     allow_unbalanced_panel = TRUE,
     print_details = FALSE
   )
@@ -246,8 +242,6 @@ base_params_subset_miete <- list(
   est_method = "dr",
   base_period = "varying",
   clustervars = c("xy_mp", "plz"),
-  pl = TRUE,
-  cores = 6,
   allow_unbalanced_panel = TRUE
 )
 
@@ -300,9 +294,10 @@ model_specs_subset_miete <- list(
   )
 )
 
+mirai::daemons(4)
 models_räumlich_miete <- model_specs_subset_miete %>%
   map(~modifyList(base_params_subset_miete, .x)) %>%
-  map(~do.call(att_gt, .x), .progress = TRUE)
+  map(~do.call(did::att_gt, .x), .progress = TRUE, .parallel = TRUE)
 
 gc()
 
@@ -310,10 +305,12 @@ gc()
 models_räumlich_miete_agg_dyn_tidy <- models_räumlich_miete %>%
   purrr::map(
     ~did::aggte(.x, type = "dynamic"),
-    .progress = TRUE
+    .progress = TRUE,
+    .parallel = TRUE
   ) %>%
   map(tidy) %>%
   bind_rows(.id = "model")
+mirai::daemons(0)
 
 # Save results
 write_rds(
@@ -368,8 +365,6 @@ base_params_subset_kauf <- list(
   est_method = "dr",
   base_period = "varying",
   clustervars = c("xy_mp", "plz"),
-  pl = TRUE,
-  cores = 6,
   allow_unbalanced_panel = TRUE
 )
 
@@ -429,9 +424,10 @@ model_specs_subset_kauf <- list(
   )
 )
 
+mirai::daemons(4)
 models_räumlich_kauf <- model_specs_subset_kauf %>%
   map(~modifyList(base_params_subset_kauf, .x)) %>%
-  map(~do.call(att_gt, .x), .progress = TRUE)
+  map(~do.call(did::att_gt, .x), .progress = TRUE, .parallel = TRUE)
 
 gc()
 
@@ -439,10 +435,12 @@ gc()
 models_räumlich_kauf_agg_dyn_tidy <- models_räumlich_kauf %>%
   purrr::map(
     ~did::aggte(.x, type = "dynamic"),
-    .progress = TRUE
+    .progress = TRUE,
+    .parallel = TRUE
   ) %>%
   map(tidy) %>%
   bind_rows(.id = "model")
+mirai::daemons(0)
 
 # Save results
 write_rds(
@@ -504,8 +502,6 @@ base_params_alternative_miete <- list(
   est_method = "dr",
   base_period = "varying",
   clustervars = c("xy_mp", "plz"),
-  pl = TRUE,
-  cores = 6,
   allow_unbalanced_panel = TRUE
 )
 
@@ -562,18 +558,21 @@ model_specs_alternative_miete <- list(
 )
 
 # Run all models
+mirai::daemons(4)
 models_alternative_miete <- model_specs_alternative_miete %>%
   map(~modifyList(base_params_alternative_miete, .x)) %>%
-  map(~do.call(att_gt, .x), .progress = TRUE)
+  map(~do.call(did::att_gt, .x), .progress = TRUE, .parallel = TRUE)
 
 # Calculate dynamig aggregation
 models_alternative_miete_agg_dyn_tidy <- models_alternative_miete %>%
   purrr::map(
     ~did::aggte(.x, type = "dynamic"),
-    .progress = TRUE
+    .progress = TRUE,
+    .parallel = TRUE
   ) %>%
   map(tidy) %>%
   bind_rows(.id = "model")
+mirai::daemons(0)
 
 # Save results
 write_rds(
@@ -626,8 +625,6 @@ base_params_alternative_kauf <- list(
   est_method = "dr",
   base_period = "varying",
   clustervars = c("xy_mp", "plz"),
-  pl = TRUE,
-  cores = 6,
   allow_unbalanced_panel = TRUE
 )
 
@@ -684,18 +681,21 @@ model_specs_alternative_kauf <- list(
 )
 
 # Run all models
+mirai::daemons(4)
 models_alternative_kauf <- model_specs_alternative_kauf %>%
   map(~modifyList(base_params_alternative_kauf, .x)) %>%
-  map(~do.call(att_gt, .x), .progress = TRUE)
+  map(~do.call(did::att_gt, .x), .progress = TRUE, .parallel = TRUE)
 
 # Calculate dynamig aggregation
 models_alternative_kauf_agg_dyn_tidy <- models_alternative_kauf %>%
   purrr::map(
     ~did::aggte(.x, type = "dynamic"),
-    .progress = TRUE
+    .progress = TRUE,
+    .parallel = TRUE
   ) %>%
   map(tidy) %>%
   bind_rows(.id = "model")
+mirai::daemons(0)
 
 # Save results
 write_rds(
@@ -724,7 +724,7 @@ models_alternative_kauf_agg_dyn_tidy %>%
   geom_point(size = 1.5)+
   geom_linerange()+
   geom_vline(xintercept = 0, linetype = "dashed")+
-  scale_x_continuous(breaks = seq(-60000, 60000, by = 20000), labels = scales::label_number(scale = 1/1000))+
+  scale_x_continuous(breaks = seq(-100000, 100000, by = 25000), labels = scales::label_number(scale = 1/1000))+
   theme_bw()+
   labs(x = latex2exp::TeX("$ATT_{dyn}(e=2)$: Kaufpreis (1000€)"),
        y = "Modell")
@@ -763,8 +763,6 @@ mod_kauf_honest_did <- data_kauf_final %>%
     base_period = "universal",
     clustervars = c("xy_mp", "plz"),
     biter = 100,
-    pl = TRUE,
-    cores = 6,
     allow_unbalanced_panel = FALSE,
     print_details = FALSE
   )
