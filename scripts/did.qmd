@@ -325,12 +325,12 @@ models_räumlich_miete_agg_dyn_tidy <- models_räumlich_miete %>%
 # Save results
 write_rds(
   models_räumlich_miete,
-  "./data/processed/did/models_räumlich_miete.rds", 
+  "./data/processed/did/models_räumlich_miete.rds",
   compress = "gz"
 )
 write_rds(
   models_räumlich_miete_agg_dyn_tidy,
-  "./data/processed/did/models_räumlich_miete_agg_dyn_tidy.rds", 
+  "./data/processed/did/models_räumlich_miete_agg_dyn_tidy.rds",
   compress = "gz"
 )
 
@@ -454,12 +454,12 @@ models_räumlich_kauf_agg_dyn_tidy <- models_räumlich_kauf %>%
 # Save results
 write_rds(
   models_räumlich_kauf,
-  "./data/processed/did/models_räumlich_kauf.rds", 
+  "./data/processed/did/models_räumlich_kauf.rds",
   compress = "gz"
 )
 write_rds(
   models_räumlich_kauf_agg_dyn_tidy,
-  "./data/processed/did/models_räumlich_kauf_agg_dyn_tidy.rds", 
+  "./data/processed/did/models_räumlich_kauf_agg_dyn_tidy.rds",
   compress = "gz"
 )
 
@@ -585,12 +585,12 @@ models_alternative_miete_agg_dyn_tidy <- models_alternative_miete %>%
 # Save results
 write_rds(
   models_alternative_miete,
-  "./data/processed/did/models_alternative_miete.rds", 
+  "./data/processed/did/models_alternative_miete.rds",
   compress = "xz"
 )
 write_rds(
   models_alternative_miete_agg_dyn_tidy,
-  "./data/processed/did/models_alternative_miete_agg_dyn_tidy.rds", 
+  "./data/processed/did/models_alternative_miete_agg_dyn_tidy.rds",
   compress = "xz"
 )
 
@@ -707,12 +707,12 @@ models_alternative_kauf_agg_dyn_tidy <- models_alternative_kauf %>%
 # Save results
 write_rds(
   models_alternative_kauf,
-  "./data/processed/did/models_alternative_kauf.rds", 
+  "./data/processed/did/models_alternative_kauf.rds",
   compress = "xz"
 )
 write_rds(
   models_alternative_kauf_agg_dyn_tidy,
-  "./data/processed/did/models_alternative_kauf_agg_dyn_tidy.rds", 
+  "./data/processed/did/models_alternative_kauf_agg_dyn_tidy.rds",
   compress = "xz"
 )
 
@@ -857,7 +857,7 @@ hd_cs_smooth_never <- honest_did(es = CS_es_never_cond,
 hd_cs_smooth_never
 
 
-hd_cs_rm_never <- honest_did(es = CS_es_never_cond, 
+hd_cs_rm_never <- honest_did(es = CS_es_never_cond,
                           e = 0,
                           type="relative_magnitude")
 hd_cs_rm_never
