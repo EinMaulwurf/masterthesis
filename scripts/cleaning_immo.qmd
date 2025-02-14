@@ -243,7 +243,7 @@ erklärende_imp %>%
 
 ## Kauf
 
-Hier werden die Kauf-Daten zu einem Index auf Rasterebene aggregiert. Im Idealfall gibt es pro Zelle für jede Zeitperiode (halbes Jahr) genügend Beobachtungen, aus denen dann der Mittelwert bestimmt wird. Dies ist jedoch für viele Zellen (in ländlicheren Gegenden) nicht der Fall. Daher erstelle ich mit `tidyr::complete()` zuerst alle Kombinationen aus den Zeitperioden und Zellen. Anschließend werden die fehlenden Daten mit `tidyr::fill()` aufgefüllt. Damit es aber später nachvollziehbar bleibt, gibt es die `n_cell` und `n_cell_date` Variablen, die zeigen wieviele Beobachtungen es für die Zelle insgesamt bzw. zu jeden Zeitpunkt gibt.
+Hier werden die Kauf-Daten zu einem Index auf Rasterebene aggregiert. Im Idealfall gibt es pro Zelle für jede Zeitperiode (halbes Jahr) genügend Beobachtungen, aus denen dann der Mittelwert bestimmt wird. Außerdem ermittle ich noch weitere erklärende Variablen (z.B. `median_baujahr`) für alle Zellen. Diese sollen Zeitinvariat sein, wie die oben berechneten erklärenden Variablen. Zum Schluss werden die Daten gejoint und abgespeichert.
 
 ```{r}
 # Einlesen
@@ -260,33 +260,41 @@ data_kauf_imp <- data_kauf %>%
   mice::complete() %>%
   as_tibble()
 
-# Aggregieren und vervollständigen
-data_kauf_complete <- data_kauf_imp %>%
+# Zeitabhängig
+data_kauf_zeitabhängig <- data_kauf_imp %>%
+  arrow_table() %>%
   group_by(date_pseudo_halbjahr, x_mp, y_mp) %>%
-  summarise(mean_kaufpreis = mean(kaufpreis),
-            n_cell_date = n(),
-            median_baujahr = median(baujahr),
-            median_wohnflaeche = median(wohnflaeche),
-            median_zimmeranzahl = median(zimmeranzahl),
-            .groups = "drop") %>%
-  arrange(x_mp, y_mp, date_pseudo_halbjahr) %>%
-  group_by(x_mp, y_mp) %>%
-  mutate(n_cell = sum(n_cell_date)) %>%
-  ungroup() %>%
+  summarise(
+    mean_kaufpreis = mean(kaufpreis),
+    n_cell_date = n(),
+    .groups = "drop"
+  ) %>%
   mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
-  complete(xy_mp, date_pseudo_halbjahr) %>%
-  group_by(xy_mp) %>%
-  fill(everything(), -n_cell_date, .direction = "downup") %>%
-  ungroup() %>%
-  mutate(n_cell_date = replace_na(n_cell_date, 0)) %>%
+  collect()
+
+# Zeitunabhängig
+data_kauf_zeitunabhängig <- data_kauf_imp %>%
+  #arrow_table() %>%
+  group_by(x_mp, y_mp) %>%
+  summarise(
+    median_baujahr = median(baujahr),
+    median_wohnflaeche = median(wohnflaeche),
+    median_zimmeranzahl = median(zimmeranzahl),
+    n_cell = n(),
+    .groups = "drop"
+  )
+
+# Finales joinen
+data_kauf_final <- data_kauf_zeitabhängig %>%
+  left_join(data_kauf_zeitunabhängig, by = join_by(x_mp, y_mp)) %>%
   inner_join(erklärende_imp, by = join_by(x_mp, y_mp)) %>%
   inner_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
   mutate(got_fiber_date = replace_na(got_fiber_date, 0),
-         got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))
+         got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)) %>%
+  arrange(x_mp, y_mp, date_pseudo_halbjahr)
 
-data_kauf_complete %>%
-  write_parquet("./data/processed/RWI_GEO_RED/data_kauf_complete.parquet")
+data_kauf_final %>% write_parquet("./data/processed/RWI_GEO_RED/data_kauf_final.parquet")
 ```
 
 ## Miete
@@ -308,31 +316,39 @@ data_miete_imp <- data_miete %>%
   mice::complete() %>%
   as_tibble()
 
-# Aggregieren und vervollständigen
-data_miete_complete <- data_miete_imp %>%
+# Zeitabhängig
+data_miete_zeitabhängig <- data_miete_imp %>%
+  arrow_table() %>%
   group_by(date_pseudo_halbjahr, x_mp, y_mp) %>%
-  summarise(mean_mietekalt_m2 = mean(mietekalt_m2),
-            n_cell_date = n(),
-            median_baujahr = median(baujahr),
-            median_wohnflaeche = median(wohnflaeche),
-            median_zimmeranzahl = median(zimmeranzahl),
-            .groups = "drop") %>%
-  arrange(x_mp, y_mp, date_pseudo_halbjahr) %>%
-  group_by(x_mp, y_mp) %>%
-  mutate(n_cell = sum(n_cell_date)) %>%
-  ungroup() %>%
+  summarise(
+    mean_mietekalt_m2 = mean(mietekalt_m2),
+    n_cell_date = n(),
+    .groups = "drop"
+  ) %>%
   mutate(xy_mp = (x_mp-500)*10 + (y_mp-500)/1000) %>%
-  complete(xy_mp, date_pseudo_halbjahr) %>%
-  group_by(xy_mp) %>%
-  fill(everything(), -n_cell_date, .direction = "downup") %>%
-  ungroup() %>%
-  mutate(n_cell_date = replace_na(n_cell_date, 0)) %>%
+  collect()
+
+# Zeitunabhängig
+data_miete_zeitunabhängig <- data_miete_imp %>%
+  #arrow_table() %>%
+  group_by(x_mp, y_mp) %>%
+  summarise(
+    median_baujahr = median(baujahr),
+    median_wohnflaeche = median(wohnflaeche),
+    median_zimmeranzahl = median(zimmeranzahl),
+    n_cell = n(),
+    .groups = "drop"
+  )
+
+# Finales joinen
+data_miete_final <- data_miete_zeitabhängig %>%
+  left_join(data_miete_zeitunabhängig, by = join_by(x_mp, y_mp)) %>%
   inner_join(erklärende_imp, by = join_by(x_mp, y_mp)) %>%
   inner_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
   mutate(got_fiber_date = replace_na(got_fiber_date, 0),
-         got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0))
+         got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)) %>%
+  arrange(x_mp, y_mp, date_pseudo_halbjahr)
 
-data_miete_complete %>%
-  write_parquet("./data/processed/RWI_GEO_RED/data_miete_complete.parquet")
+data_miete_final %>% write_parquet("./data/processed/RWI_GEO_RED/data_miete_final.parquet")
 ```
