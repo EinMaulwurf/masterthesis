@@ -23,15 +23,14 @@ source("./src/R/honest_did_helper.R")
 ```{r}
 dates_pseudo_halbjahr <- read_parquet("./data/processed/Sonstige/dates_pseudo_halbjahr.parquet")
 
-data_miete_complete <- read_parquet("./data/processed/RWI_GEO_RED/data_miete_complete.parquet")
-data_kauf_complete <- read_parquet("./data/processed/RWI_GEO_RED/data_kauf_complete.parquet")
+data_miete_final <- read_parquet("./data/processed/RWI_GEO_RED/data_miete_final.parquet")
+data_kauf_final <- read_parquet("./data/processed/RWI_GEO_RED/data_kauf_final.parquet")
 
 base_formula <- ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
 ```
 
 # Bevorzugte Spezifikation
 
-- Keine `fill`ed in Zellen
 - Clustering auf Ebene der PLZ
 - Controlgroup not-yet-treated
 - Erklärende Variable `median_baujahr`
@@ -40,10 +39,7 @@ base_formula <- ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + ge
 ## Miete
 
 ```{r}
-mod_miete <- data_miete_complete %>%
-  filter(n_cell_date > 0) %>%
-  #filter(n_cell > 10) %>%
-  #filter(!gemeindetyp_name %in% c("Großstadt")) %>%
+mod_miete <- data_miete_final %>%
   att_gt(
     data = .,
     yname = "mean_mietekalt_m2",
@@ -132,10 +128,7 @@ ggsave("./output/plots/did/plot_did_miete_agg_calendar.pdf", width = 3, height =
 ## Kauf
 
 ```{r}
-mod_kauf <- data_kauf_complete %>%
-  filter(n_cell_date > 0) %>%
-  #filter(n_cell > 10) %>%
-  #filter(!gemeindetyp_name %in% c("Großstadt")) %>%
+mod_kauf <- data_kauf_final %>%
   att_gt(
     data = .,
     yname = "mean_kaufpreis",
@@ -260,48 +253,48 @@ base_params_subset_miete <- list(
 
 model_specs_subset_miete <- list(
   model1 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0)
+    data = data_miete_final
   ),
   model2 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Großstadt"),
+    data = data_miete_final %>% filter(gemeindetyp_name == "Großstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model3 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Mittelstadt"),
+    data = data_miete_final %>% filter(gemeindetyp_name == "Mittelstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model4 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Größere Kleinstadt"),
+    data = data_miete_final %>% filter(gemeindetyp_name == "Größere Kleinstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model5 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Kleine Kleinstadt"),
+    data = data_miete_final %>% filter(gemeindetyp_name == "Kleine Kleinstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model6 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>% filter(gemeindetyp_name == "Landgemeinde"),
+    data = data_miete_final %>% filter(gemeindetyp_name == "Landgemeinde"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model7 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>%
+    data = data_miete_final %>%
       left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(is_osten)
   ),
   model8 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>%
+    data = data_miete_final %>%
       left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(!is_osten)
   ),
   model9 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0, anteil_efh > 0.9)
+    data = data_miete_final %>% filter(anteil_efh > 0.9)
   ),
   model10 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0, anteil_efh <= 0.9)
+    data = data_miete_final %>% filter(anteil_efh <= 0.9)
   ),
   model11 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>%
+    data = data_miete_final %>%
       anti_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp))
   ),
   model12 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0) %>%
+    data = data_miete_final %>%
       inner_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   )
@@ -382,55 +375,55 @@ base_params_subset_kauf <- list(
 
 model_specs_subset_kauf <- list(
   model1 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0)
+    data = data_kauf_final
   ),
   model2 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+    data = data_kauf_final %>%
       filter(gemeindetyp_name == "Großstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + anteil_efh # Probleme mit Singularität, deswegen eigentümerquote, einkommen und einkommen_delta raus
   ),
   model3 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+    data = data_kauf_final %>%
       filter(gemeindetyp_name == "Mittelstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model4 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+    data = data_kauf_final %>%
       filter(gemeindetyp_name == "Größere Kleinstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model5 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+    data = data_kauf_final %>%
       filter(gemeindetyp_name == "Kleine Kleinstadt"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model6 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+    data = data_kauf_final %>%
       filter(gemeindetyp_name == "Landgemeinde"),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model7 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+    data = data_kauf_final %>%
       left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(is_osten),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + anteil_efh
   ),
   model8 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+    data = data_kauf_final %>%
       left_join(cells_bundesländer, by = join_by(x_mp, y_mp)) %>% filter(!is_osten)
   ),
   model9 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0, anteil_efh > 0.9)
+    data = data_kauf_final %>% filter(anteil_efh > 0.9)
   ),
   model10 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0, anteil_efh <= 0.9)
+    data = data_kauf_final %>% filter(anteil_efh <= 0.9)
   ),
   model11 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+    data = data_kauf_final %>%
       anti_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + gemeindetyp_name + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   model12 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0) %>%
+    data = data_kauf_final %>%
       inner_join(coords_schlechtes_internet, by = join_by(x_mp, y_mp)),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   )
@@ -520,50 +513,50 @@ base_params_alternative_miete <- list(
 model_specs_alternative_miete <- list(
   # Bevorzugte Spezifikation
   model1 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0)
+    data = data_miete_final
   ),
   # Individuelles Clustering
   model2 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0),
+    data = data_miete_final,
     clustervars = c("xy_mp")
   ),
   # Never-Treated Controlgroup
   model3 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0),
+    data = data_miete_final,
     control_group = "nevertreated"
   ),
   # Keine erklärenden Variablen
   model4 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0),
+    data = data_miete_final,
     xformla = NULL
   ),
   # Keine Gewichtung nach Anzahl Haushalte
   model5 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0),
+    data = data_miete_final,
     weightsname = NULL
   ),
   # Mit complete panel
   model6 = list(
-    data = data_miete_complete,
+    data = data_miete_final,
     allow_unbalanced_panel = FALSE
   ),
   # Nur Zellen mit vielen Angeboten (90% Quantil)
   model7 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0, n_cell > 150),
+    data = data_miete_final %>% filter(n_cell > 150),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   # Ohne imputierte Werte
   model8 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0, !imputed)
+    data = data_miete_final %>% filter(!imputed)
   ),
   # Estimation Method: Inverse Probability Weighting
   model9 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0),
+    data = data_miete_final,
     est_method = "ipw"
   ),
   # Estimation Method: Outcome Regression
   model10 = list(
-    data = data_miete_complete %>% filter(n_cell_date > 0),
+    data = data_miete_final,
     est_method = "reg"
   )
 )
@@ -642,50 +635,50 @@ base_params_alternative_kauf <- list(
 model_specs_alternative_kauf <- list(
   # Bevorzugte Spezifikation
   model1 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0)
+    data = data_kauf_final
   ),
   # Individuelles Clustering
   model2 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0),
+    data = data_kauf_final,
     clustervars = c("xy_mp")
   ),
   # Never-Treated Controlgroup
   model3 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0),
+    data = data_kauf_final,
     control_group = "nevertreated"
   ),
   # Keine erklärenden Variablen
   model4 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0),
+    data = data_kauf_final,
     xformla = NULL
   ),
   # Keine Gewichtung nach Anzahl Haushalte
   model5 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0),
+    data = data_kauf_final,
     weightsname = NULL
   ),
   # Mit complete panel
   model6 = list(
-    data = data_kauf_complete,
+    data = data_kauf_final,
     allow_unbalanced_panel = FALSE
   ),
   # Nur Zellen mit vielen Angeboten (90% Quantil)
   model7 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0, n_cell > 150),
+    data = data_kauf_final %>% filter(n_cell > 150),
     xformla = ~ median_baujahr + median_wohnflaeche + median_zimmeranzahl + durchschnittsalter + anzahl_haushalte + einkommen + einkommen_delta + eigentuemerquote + anteil_efh
   ),
   # Ohne imputierte Werte
   model8 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0, !imputed)
+    data = data_kauf_final %>% filter(!imputed)
   ),
   # Estimation Method: Inverse Probability Weighting
   model9 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0),
+    data = data_kauf_final,
     est_method = "ipw"
   ),
   # Estimation Method: Outcome Regression
   model10 = list(
-    data = data_kauf_complete %>% filter(n_cell_date > 0),
+    data = data_kauf_final,
     est_method = "reg"
   )
 )
@@ -747,17 +740,14 @@ ggsave("./output/plots/did/plot_did_alternative_kauf.pdf", width = 3, height = 3
 
 ```{r}
 #set.seed(1)
-sample_cells <- data_kauf_complete %>%
+sample_cells <- data_kauf_final %>%
   filter(n_cell > 100) %>%
   distinct(xy_mp) %>%
   slice_sample(n = 1000) %>%
   pull()
 
-mod_kauf_honest_did <- data_kauf_complete %>%
+mod_kauf_honest_did <- data_kauf_final %>%
   filter(xy_mp %in% sample_cells) %>%
-  #filter(n_cell_date > 0) %>%
-  #filter(n_cell > 10) %>%
-  #filter(!gemeindetyp_name %in% c("Großstadt")) %>%
   att_gt(
     data = .,
     yname = "mean_kaufpreis",
@@ -887,8 +877,7 @@ library(staggered)
 Einzelne Werte, demnach wäre beim Kauf ein Preiszuwachs statistisch signifikant, bei Miete aber nicht.
 
 ```{r}
-data_miete_complete %>%
-  #filter(n_cell_date > 0) %>%
+data_miete_final %>%
   staggered(df = .,
             i = "xy_mp",
             t = "date_pseudo_halbjahr",
@@ -899,8 +888,7 @@ data_miete_complete %>%
          conf.high = estimate+1.96*se,
          is_significant = sign(conf.low) == sign(conf.high))
 
-data_kauf_complete %>%
-  #filter(n_cell_date > 0) %>%
+data_kauf_final %>%
   staggered(df = .,
             i = "xy_mp",
             t = "date_pseudo_halbjahr",
@@ -913,8 +901,7 @@ data_kauf_complete %>%
 ```
 
 ```{r}
-data_kauf_complete %>%
-  #filter(n_cell_date > 0) %>%
+data_kauf_final %>%
   staggered(df = .,
             i = "xy_mp",
             t = "date_pseudo_halbjahr",
@@ -932,8 +919,7 @@ data_kauf_complete %>%
        y = "ATT",
        title = element_blank())
 
-data_miete_complete %>%
-  #filter(n_cell_date > 0) %>%
+data_miete_final %>%
   staggered(df = .,
             i = "xy_mp",
             t = "date_pseudo_halbjahr",
@@ -960,7 +946,7 @@ did2s_staggered <- did2s::event_study(
   tname         = "date_pseudo_halbjahr",
   idname        = "xy_mp",
   gname         = "got_fiber_date_pseudo_halbjahr",
-  data          = data_kauf_complete,
+  data          = data_kauf_final,
   estimator = c("staggered") # TWFE
 )
 
