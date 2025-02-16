@@ -509,6 +509,77 @@ read_parquet("./data/processed/RWI_GEO_RED/data_miete_final.parquet") %>%
 ggsave("./output/plots/karten/plot_darmstadt_miete_completeness.pdf", width = 3, height = 3)
 ```
 
+Event-Study: Hier zwei Plots um zu zeigen, warum wir nicht einfach auf eine "Event-Study" schauen können. Demnach würde ein Glasfaseranschluss einen großen Wertverlust mit sich bringen. Wahrscheinlich liegt das aber nur daran, dass die meisten Glasfaseranschlüsse direkt vor dem Immobilienmarktcrash in 2022 kamen.
+
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+
+data_kauf_final <- read_parquet("./data/processed/RWI_GEO_RED/data_kauf_final.parquet")
+dates_pseudo_halbjahr <- read_parquet("./data/processed/Sonstige/dates_pseudo_halbjahr.parquet")
+
+# Plot: Event-Study Kaufpreis
+
+data_kauf_final %>%
+  mutate(date_delta = date_pseudo_halbjahr - got_fiber_date_pseudo_halbjahr) %>%
+  select(date_delta, xy_mp, kaufpreis = mean_kaufpreis, n_cell_date) %>%
+  group_by(date_delta) %>%
+  summarise(mean_kaufpreis = weighted.mean(kaufpreis, w = n_cell_date, na.rm = TRUE)) %>%
+  ggplot(aes(x = date_delta, y = mean_kaufpreis)) +
+  geom_line() +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  coord_cartesian(ylim = c(0, 500000), xlim = c(-10, 6)) +
+  scale_y_continuous(labels = scales::label_number(scale = 1 / 1000)) +
+  scale_x_continuous(
+    breaks = seq(-10, 10, by = 2), 
+    labels = seq(-10, 10, by = 2) / 2
+  ) +
+  theme_bw() +
+  labs(
+    x = "Jahre bis Glasfaserausbau",
+    y = "Kaufpreis (1000€)"
+  )
+
+ggsave("./output/plots/plot_event_study_kaufpreis.pdf", width = 3, height = 3, device = cairo_pdf)
+
+# Plot: Kaufpreis vs Neu-Glasfaser
+
+data_kauf_final %>%
+  group_by(date_pseudo_halbjahr) %>%
+  summarise(mean_kaufpreis = weighted.mean(mean_kaufpreis, w = n_cell_date, na.rm = TRUE)) %>%
+  left_join(
+    data_kauf_final %>%
+      count(got_fiber_date_pseudo_halbjahr) %>%
+      filter(got_fiber_date_pseudo_halbjahr != 0) %>%
+      rename(
+        date_pseudo_halbjahr = got_fiber_date_pseudo_halbjahr,
+        n_got_fiber = n
+      ),
+    by = join_by(date_pseudo_halbjahr)
+  ) %>%
+  left_join(dates_pseudo_halbjahr %>% filter(date %% 100 %in% c(6, 12)),
+    by = join_by(date_pseudo_halbjahr)
+  ) %>%
+  ggplot(aes(x = ym(date))) +
+  geom_col(aes(y = n_got_fiber * 5)) +
+  geom_line(aes(y = mean_kaufpreis)) +
+  coord_cartesian(ylim = c(0, 500000)) +
+  scale_y_continuous(
+    sec.axis = sec_axis(
+      ~ . / 5,
+      name = "Neue Glasfaseranschlüsse (1000)",
+      labels = scales::label_number(scale = 1 / 1000),
+      breaks = seq(0, 100000, by = 20000)
+    ),
+    labels = scales::label_number(scale = 1 / 1000),
+    breaks = seq(0, 500000, by = 100000)
+  ) +
+  theme_bw() +
+  labs(x = "Jahr", y = "Kaufpreis (1000€)")
+
+ggsave("./output/plots/plot_kaufpreis_neu_glasfaser.pdf", width = 3, height = 3, device = cairo_pdf)
+```
+
 ## Interaktive Karte mit Leaflet
 
 ```{r}
