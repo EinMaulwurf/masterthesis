@@ -30,10 +30,11 @@ options(modelsummary_factory_default = "latex")
 
 Alle verwendeten packages mit Zitationen in separate bib-Datei exportieren
 ```{r}
-repmis::LoadandCite(
-  bibtex = TRUE,
-  file = "./r-references.bib"
-)
+renv::dependencies(quiet = TRUE) %>% 
+  distinct(package = Package) %>% 
+  arrange(str_to_lower(package)) %>%
+  pull(package) %>%
+  repmis::LoadandCite(pkgs = ., bibtex = TRUE, file = "./r-references.bib")
 ```
 
 # Daten laden
