@@ -549,13 +549,13 @@ ggsave("./output/plots/plot_event_study_kaufpreis.pdf", width = 3, height = 3, d
 # Plot: Kaufpreis vs Neu-Glasfaser
 
 data_kauf_final %>%
-  filter(got_fiber_date_pseudo_halbjahr != 0) %>%
+  #filter(got_fiber_date_pseudo_halbjahr != 0) %>%
   group_by(date_pseudo_halbjahr) %>%
   summarise(mean_kaufpreis = weighted.mean(mean_kaufpreis, w = n_cell_date, na.rm = TRUE)) %>%
   left_join(
     data_kauf_final %>%
       count(got_fiber_date_pseudo_halbjahr) %>%
-      filter(got_fiber_date_pseudo_halbjahr != 0) %>%
+      #filter(got_fiber_date_pseudo_halbjahr != 0) %>%
       rename(
         date_pseudo_halbjahr = got_fiber_date_pseudo_halbjahr,
         n_got_fiber = n
@@ -1034,4 +1034,45 @@ open_dataset("./data/processed/RWI_GEO_RED/data_miete.parquet") %>%
 
 # `cairo_pdf` wird benötigt, um das € im PDF korrekt darzustellen
 ggsave("./output/plots/plot_boxplot_variablen_miete.pdf", width = 5, height = 4, device = cairo_pdf)
+```
+
+Anzahl Angebote nach Jahr
+
+```{r}
+#| fig-width: 5
+#| fig-height: 4
+
+bind_rows(
+  open_dataset("./data/processed/RWI_GEO_RED/data_kauf.parquet") %>%
+    mutate(date = ajahr * 100 + amonat) %>%
+    count(date) %>%
+    collect() %>%
+    mutate(type = "Kauf", time = "Monat"),
+  open_dataset("./data/processed/RWI_GEO_RED/data_kauf.parquet") %>%
+    mutate(amonat_halbjahr = if_else(amonat <= 6, 1, 7)) %>%
+    mutate(date = ajahr * 100 + amonat_halbjahr) %>%
+    count(date) %>%
+    collect() %>%
+    mutate(type = "Kauf", time = "Halbjahr"),
+  open_dataset("./data/processed/RWI_GEO_RED/data_miete.parquet") %>%
+    mutate(date = ajahr * 100 + amonat) %>%
+    count(date) %>%
+    collect() %>%
+    mutate(type = "Miete", time = "Monat"),
+  open_dataset("./data/processed/RWI_GEO_RED/data_miete.parquet") %>%
+    mutate(amonat_halbjahr = if_else(amonat <= 6, 1, 7)) %>%
+    mutate(date = ajahr * 100 + amonat_halbjahr) %>%
+    count(date) %>%
+    collect() %>%
+    mutate(type = "Miete", time = "Halbjahr"),
+) %>%
+  ggplot(aes(x = ym(date), y = n, color = type))+
+  geom_line()+
+  facet_wrap(~time, scales = "free_y", nrow = 2)+
+  scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
+  theme_bw()+
+  theme(legend.position = "top") +
+  labs(x = "Jahr", y = "Angebote (1000)", color = element_blank())
+
+ggsave("./output/plots/plot_anzahl_angebote.pdf", width = 5, height = 4, device = cairo_pdf)
 ```
