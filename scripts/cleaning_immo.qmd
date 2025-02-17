@@ -199,6 +199,8 @@ dates_pseudo_halbjahr <- tibble(date = seq(
 
 dates_pseudo_halbjahr %>%
   write_parquet("./data/processed/Sonstige/dates_pseudo_halbjahr.parquet")
+
+# dates_pseudo_halbjahr <- read_parquet("./data/processed/Sonstige/dates_pseudo_halbjahr.parquet")
 ```
 
 ## Erklärende Variablen
@@ -259,6 +261,8 @@ erklärende_imp <- cells_zensus_sonst %>%
 
 erklärende_imp %>%
   write_parquet("./data/processed/Sonstige/erklärende_imp.parquet")
+
+# erklärende_imp <- read_parquet("./data/processed/Sonstige/erklärende_imp.parquet")
 ```
 
 ## Kauf
@@ -268,6 +272,9 @@ Hier werden die Kauf-Daten zu einem Index auf Rasterebene aggregiert. Im Idealfa
 ```{r}
 # Einlesen
 data_kauf <- read_parquet("./data/processed/RWI_GEO_RED/data_kauf.parquet")
+dates_pseudo_halbjahr <- read_parquet("./data/processed/Sonstige/dates_pseudo_halbjahr.parquet")
+cells_plz <- read_parquet("./data/processed/Geodaten/Raster_1km_plz.parquet")
+erklärende_imp <- read_parquet("./data/processed/Sonstige/erklärende_imp.parquet")
 
 # Imputieren, insb. das Baujahr
 data_kauf_imp <- data_kauf %>%
@@ -328,6 +335,9 @@ Analog zu den Kauf-Daten.
 ```{r}
 # Einlesen
 data_miete <- read_parquet("./data/processed/RWI_GEO_RED/data_miete.parquet")
+dates_pseudo_halbjahr <- read_parquet("./data/processed/Sonstige/dates_pseudo_halbjahr.parquet")
+cells_plz <- read_parquet("./data/processed/Geodaten/Raster_1km_plz.parquet")
+erklärende_imp <- read_parquet("./data/processed/Sonstige/erklärende_imp.parquet")
 
 # Imputieren, insb. das Baujahr
 data_miete_imp <- data_miete %>%
