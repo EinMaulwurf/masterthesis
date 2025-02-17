@@ -312,10 +312,10 @@ data_kauf_final <- data_kauf_zeitabhängig %>%
   inner_join(erklärende_imp, by = join_by(x_mp, y_mp)) %>%
   inner_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
-  # mutate(
-  #   got_fiber_date = replace_na(got_fiber_date, 0),
-  #   got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)
-  # ) %>%
+  mutate(
+    got_fiber_date = replace_na(got_fiber_date, 0),
+    got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)
+  ) %>%
   arrange(x_mp, y_mp, date_pseudo_halbjahr)
 
 data_kauf_final %>% write_parquet("./data/processed/RWI_GEO_RED/data_kauf_final.parquet")
@@ -372,10 +372,10 @@ data_miete_final <- data_miete_zeitabhängig %>%
   inner_join(erklärende_imp, by = join_by(x_mp, y_mp)) %>%
   inner_join(cells_plz, by = join_by(x_mp, y_mp)) %>%
   left_join(got_fiber_dates, by = join_by(x_mp, y_mp)) %>%
-  # mutate(
-  #   got_fiber_date = replace_na(got_fiber_date, 0),
-  #   got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)
-  # ) %>%
+  mutate(
+    got_fiber_date = replace_na(got_fiber_date, 0),
+    got_fiber_date_pseudo_halbjahr = replace_na(got_fiber_date_pseudo_halbjahr, 0)
+  ) %>%
   arrange(x_mp, y_mp, date_pseudo_halbjahr)
 
 data_miete_final %>% write_parquet("./data/processed/RWI_GEO_RED/data_miete_final.parquet")
