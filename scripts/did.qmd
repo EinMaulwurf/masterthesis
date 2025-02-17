@@ -63,7 +63,7 @@ mod_miete
 # ggdid(mod_miete)
 
 tidy(mod_miete) %>%
-  left_join(dates_pseudo_halbjahr %>% filter(date %% 100 %in% c(6, 12)),
+  left_join(dates_pseudo_halbjahr %>% filter(date %% 100 %in% c(1, 7)),
     by = join_by(group == date_pseudo_halbjahr)
   ) %>%
   mutate(is_treated = time >= group) %>%
@@ -159,7 +159,7 @@ mod_kauf
 # ggdid(mod_kauf)
 
 tidy(mod_kauf) %>%
-  left_join(dates_pseudo_halbjahr %>% filter(date %% 100 %in% c(6, 12)),
+  left_join(dates_pseudo_halbjahr %>% filter(date %% 100 %in% c(1, 7)),
     by = join_by(group == date_pseudo_halbjahr)
   ) %>%
   mutate(is_treated = time >= group) %>%
