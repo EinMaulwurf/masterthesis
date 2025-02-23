@@ -22,7 +22,27 @@ library(Rcpp)
 
 Beispielabfrage der Rasterdaten für einen bestimmten Breich mit `curl`. Genau so sieht die Abfrage aus, die von der Website gesendet wird, mit einem Unterschied: Als Dateiformat wird `pbf` verwendet (`?f=pbf`).
 ```
-curl 'https://buergerplattform-prod2.production.netzda-mig.org/server/rest/services/Hosted/festnetz_010/FeatureServer/0/query?f=geojson&geometry=%7B%22xmin%22%3A467183.1168788754%2C%22ymin%22%3A5515695.96105688%2C%22xmax%22%3A469629.1017840004%2C%22ymax%22%3A5518141.945962004%7D&maxRecordCountFactor=3&orderByFields=objectid&outFields=*&outSR=25832&quantizationParameters=%7B%22extent%22%3A%7B%22spatialReference%22%3A%7B%22wkid%22%3A25832%7D%2C%22xmin%22%3A467183.1168788754%2C%22ymin%22%3A5515695.96105688%2C%22xmax%22%3A469629.1017840004%2C%22ymax%22%3A5518141.945962004%7D%2C%22mode%22%3A%22view%22%2C%22originPosition%22%3A%22upperLeft%22%2C%22tolerance%22%3A4.77731426782227%7D&resultType=tile&returnCentroid=true&returnExceededLimitFeatures=false&spatialRel=esriSpatialRelIntersects&where=1%3D1&geometryType=esriGeometryEnvelope&inSR=25832' --compressed -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:131.0) Gecko/20100101 Firefox/131.0' -H 'Accept: */*' -H 'Accept-Language: de,en-US;q=0.7,en;q=0.3' -H 'Accept-Encoding: gzip, deflate, br, zstd' -H 'Referer: https://webclient.eks.production.netzda-mig.org/' -H 'Origin: https://webclient.eks.production.netzda-mig.org' -H 'DNT: 1' -H 'Connection: keep-alive' -H 'Sec-Fetch-Dest: empty' -H 'Sec-Fetch-Mode: cors' -H 'Sec-Fetch-Site: same-site' -H 'Priority: u=4' -H 'TE: trailers' --output testdata3.geojson
+curl 'https://brgp.prod.gigabit-grundbuch.online/server/rest/services/Hosted/festnetz_011/FeatureServer/0/query?f=geojson&geometry=%7B%22xmin%22%3A469934.84989714104%2C%22ymin%22%3A5530371.870487629%2C%22xmax%22%3A470087.72395371133%2C%22ymax%22%3A5530524.7445442%7D&maxRecordCountFactor=3&orderByFields=objectid&outFields=*&outSR=25832&quantizationParameters=%7B%22extent%22%3A%7B%22spatialReference%22%3A%7B%22wkid%22%3A25832%7D%2C%22xmin%22%3A469934.84989714104%2C%22ymin%22%3A5530371.870487629%2C%22xmax%22%3A470087.72395371133%2C%22ymax%22%3A5530524.7445442%7D%2C%22mode%22%3A%22view%22%2C%22originPosition%22%3A%22upperLeft%22%2C%22tolerance%22%3A0.29858214173889186%7D&resultType=tile&returnCentroid=true&returnExceededLimitFeatures=false&spatialRel=esriSpatialRelIntersects&where=1%3D1&geometryType=esriGeometryEnvelope&inSR=25832' \
+  -H 'accept: */*' \
+  -H 'accept-language: de,en-US;q=0.9,en;q=0.8' \
+  -H 'cache-control: no-cache' \
+  -H 'dnt: 1' \
+  -H 'origin: https://webclient-brgp.prod.k8s.gigabit-grundbuch.online' \
+  -H 'pragma: no-cache' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://webclient-brgp.prod.k8s.gigabit-grundbuch.online/' \
+  -H 'sec-ch-ua: "Chromium";v="133", "Not(A:Brand";v="99"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: same-site' \
+  -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36'
+```
+
+Der Breitbandatlas scheint sich hin und wieder zu ändern, wodurch die obige Abfrage möglicherweise nicht mehr funktioniert. In diesem Fall öffnet man die Breitbandatlas-Karte, zoomt herein bis auf die Rasterebene und öffnet dann die Entwickler-Tools im Browser (F12). Im Network Tab sieht man dann, wenn man die Karte verschiebt sodass neue Teile geladen werden, viele Einträge aufpoppen. Einträge mit einem Namen wie `query?f=pbf&geometry=` sind dann die Anfragen für die interessanten Daten. Auf diese kann man Rechtsklick -> Copy -> Copy as cURL machen. Dann sollte man einen Befehl wie oben erhalten. Dort muss nur noch das `?f=pbf` zu `?f=geojson` geändert werden, um eine lesbare Antwort zu erhalten:
+```
+{"features":[{"centroid":{"type":"Point","coordinates":[475750.00000000093,5522450]},"geometry":{"type":"Polygon","coordinates":[[[475700.00000000093,5522399.999999998],[475800.00000000093,5522399.999999998],[475800.00000000093,5522500.000000002],[475700.00000000093,5522500.000000002],[475700.00000000093,5522399.999999998]]]},"id":23681,"type":"Feature","properties":{"down_fn_hh_hfc_400":100,"down_fn_gew_ftthb_16":0E-8,"down_fn_gwg_fttc_100":null,........
 ```
 
 Um Daten für verschiedene Jahre zu erhalten, kann der `festnetz_XXX` Teil angepasst werden:
@@ -40,13 +60,18 @@ Es könnte auch `outFields=*` angepasst werden, z.B. mit `outFields=down_fn_hh_f
 
 ```{r}
 # Base request template
-base_req <- request("https://buergerplattform-prod2.production.netzda-mig.org") %>%
+base_req <- request("https://brgp.prod.gigabit-grundbuch.online") %>%
   req_url_path_append("server/rest/services/Hosted") %>%
   req_headers(
-    `User-Agent` = "Mozilla/5.0",
+    `User-Agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
     `Accept` = "*/*",
-    `Origin` = "https://webclient.eks.production.netzda-mig.org/",
-    `Referer` = "https://webclient.eks.production.netzda-mig.org/"
+    `Origin` = "https://webclient-brgp.prod.k8s.gigabit-grundbuch.online",
+    `Referer` = "https://webclient-brgp.prod.k8s.gigabit-grundbuch.online/",
+    `cache-control` = "no-cache",
+    `pragma` = "no-cache",
+    `sec-ch-ua` = '"Chromium";v="133", "Not(A:Brand";v="99"',
+    `sec-ch-ua-mobile` = "?0",
+    `sec-ch-ua-platform` = '"macOS"'
   ) %>%
   req_url_query(
     f = "geojson",
@@ -148,11 +173,18 @@ grid_chunks <- split(deutschland_grid_cells, ceiling(seq_along(deutschland_grid_
 # Process each chunk
 plan(multisession, workers = 4)
 for (i in seq_along(grid_chunks)) {
+  chunk_file_path <- str_glue("./data/processed/Breitbandatlas/Rohdaten/raster_chunk_{i}.parquet")
+  
+  if(file.exists(chunk_file_path)) {
+    str_glue("Skipping chunk {i}, already present") %>% print()
+    next
+  }
+  
   str_glue("{i} von {length(grid_chunks)}") %>% print()
 
   chunk_result <- future_map(grid_chunks[[i]], fetch_api, .progress = TRUE) %>% list_rbind()
 
-  write_parquet(chunk_result, str_glue("./data/processed/Breitbandatlas/Rohdaten/raster_chunk_{i}.parquet"))
+  write_parquet(chunk_result, chunk_file_path)
   rm(chunk_result)
   gc()
 }
