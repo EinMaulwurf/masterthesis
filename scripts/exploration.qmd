@@ -30,6 +30,10 @@ options(modelsummary_factory_default = "latex")
 
 Alle verwendeten packages mit Zitationen in separate bib-Datei exportieren
 ```{r}
+#| message: false
+#| warning: false
+#| eval: false
+
 renv::dependencies(quiet = TRUE) %>% 
   distinct(package = Package) %>% 
   arrange(str_to_lower(package)) %>%
