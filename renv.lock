@@ -602,119 +602,6 @@
       "Maintainer": "Tyler Hunt <thunt@snapfinance.com>",
       "Repository": "CRAN"
     },
-    "R.cache": {
-      "Package": "R.cache",
-      "Version": "0.16.0",
-      "Source": "Repository",
-      "Depends": [
-        "R (>= 2.14.0)"
-      ],
-      "Imports": [
-        "utils",
-        "R.methodsS3 (>= 1.8.1)",
-        "R.oo (>= 1.24.0)",
-        "R.utils (>= 2.10.1)",
-        "digest (>= 0.6.13)"
-      ],
-      "Title": "Fast and Light-Weight Caching (Memoization) of Objects and Results to Speed Up Computations",
-      "Authors@R": "c(person(\"Henrik\", \"Bengtsson\", role=c(\"aut\", \"cre\", \"cph\"), email = \"henrikb@braju.com\"))",
-      "Author": "Henrik Bengtsson [aut, cre, cph]",
-      "Maintainer": "Henrik Bengtsson <henrikb@braju.com>",
-      "Description": "Memoization can be used to speed up repetitive and computational expensive function calls.  The first time a function that implements memoization is called the results are stored in a cache memory.  The next time the function is called with the same set of parameters, the results are momentarily retrieved from the cache avoiding repeating the calculations.  With this package, any R object can be cached in a key-value storage where the key can be an arbitrary set of R objects.  The cache memory is persistent (on the file system).",
-      "License": "LGPL (>= 2.1)",
-      "LazyLoad": "TRUE",
-      "URL": "https://github.com/HenrikBengtsson/R.cache",
-      "BugReports": "https://github.com/HenrikBengtsson/R.cache/issues",
-      "RoxygenNote": "7.2.1",
-      "NeedsCompilation": "no",
-      "Repository": "CRAN",
-      "Encoding": "UTF-8"
-    },
-    "R.methodsS3": {
-      "Package": "R.methodsS3",
-      "Version": "1.8.2",
-      "Source": "Repository",
-      "Depends": [
-        "R (>= 2.13.0)"
-      ],
-      "Imports": [
-        "utils"
-      ],
-      "Suggests": [
-        "codetools"
-      ],
-      "Title": "S3 Methods Simplified",
-      "Authors@R": "c(person(\"Henrik\", \"Bengtsson\", role=c(\"aut\", \"cre\", \"cph\"), email = \"henrikb@braju.com\"))",
-      "Author": "Henrik Bengtsson [aut, cre, cph]",
-      "Maintainer": "Henrik Bengtsson <henrikb@braju.com>",
-      "Description": "Methods that simplify the setup of S3 generic functions and S3 methods.  Major effort has been made in making definition of methods as simple as possible with a minimum of maintenance for package developers.  For example, generic functions are created automatically, if missing, and naming conflict are automatically solved, if possible.  The method setMethodS3() is a good start for those who in the future may want to migrate to S4.  This is a cross-platform package implemented in pure R that generates standard S3 methods.",
-      "License": "LGPL (>= 2.1)",
-      "LazyLoad": "TRUE",
-      "URL": "https://github.com/HenrikBengtsson/R.methodsS3",
-      "BugReports": "https://github.com/HenrikBengtsson/R.methodsS3/issues",
-      "NeedsCompilation": "no",
-      "Repository": "CRAN",
-      "Encoding": "UTF-8"
-    },
-    "R.oo": {
-      "Package": "R.oo",
-      "Version": "1.27.0",
-      "Source": "Repository",
-      "Depends": [
-        "R (>= 2.13.0)",
-        "R.methodsS3 (>= 1.8.2)"
-      ],
-      "Imports": [
-        "methods",
-        "utils"
-      ],
-      "Suggests": [
-        "tools"
-      ],
-      "Title": "R Object-Oriented Programming with or without References",
-      "Authors@R": "c(person(\"Henrik\", \"Bengtsson\", role=c(\"aut\", \"cre\", \"cph\"), email = \"henrikb@braju.com\"))",
-      "Author": "Henrik Bengtsson [aut, cre, cph]",
-      "Maintainer": "Henrik Bengtsson <henrikb@braju.com>",
-      "Description": "Methods and classes for object-oriented programming in R with or without references.  Large effort has been made on making definition of methods as simple as possible with a minimum of maintenance for package developers.  The package has been developed since 2001 and is now considered very stable.  This is a cross-platform package implemented in pure R that defines standard S3 classes without any tricks.",
-      "License": "LGPL (>= 2.1)",
-      "LazyLoad": "TRUE",
-      "URL": "https://github.com/HenrikBengtsson/R.oo",
-      "BugReports": "https://github.com/HenrikBengtsson/R.oo/issues",
-      "NeedsCompilation": "no",
-      "Repository": "CRAN",
-      "Encoding": "UTF-8"
-    },
-    "R.utils": {
-      "Package": "R.utils",
-      "Version": "2.12.3",
-      "Source": "Repository",
-      "Depends": [
-        "R (>= 2.14.0)",
-        "R.oo"
-      ],
-      "Imports": [
-        "methods",
-        "utils",
-        "tools",
-        "R.methodsS3"
-      ],
-      "Suggests": [
-        "datasets",
-        "digest (>= 0.6.10)"
-      ],
-      "Title": "Various Programming Utilities",
-      "Authors@R": "c(person(\"Henrik\", \"Bengtsson\", role=c(\"aut\", \"cre\", \"cph\"), email = \"henrikb@braju.com\"))",
-      "Author": "Henrik Bengtsson [aut, cre, cph]",
-      "Maintainer": "Henrik Bengtsson <henrikb@braju.com>",
-      "Description": "Utility functions useful when programming and developing R packages.",
-      "License": "LGPL (>= 2.1)",
-      "LazyLoad": "TRUE",
-      "URL": "https://henrikbengtsson.github.io/R.utils/, https://github.com/HenrikBengtsson/R.utils",
-      "BugReports": "https://github.com/HenrikBengtsson/R.utils/issues",
-      "NeedsCompilation": "no",
-      "Repository": "CRAN",
-      "Encoding": "UTF-8"
-    },
     "R6": {
       "Package": "R6",
       "Version": "2.5.1",
@@ -7670,15 +7557,14 @@
       "Encoding": "UTF-8",
       "Roxygen": "list(markdown = TRUE)",
       "RoxygenNote": "7.3.2",
+      "Author": "Hadley Wickham [aut, cre] (<https://orcid.org/0000-0003-4757-117X>), Lionel Henry [aut], Posit Software, PBC [cph, fnd] (https://ror.org/03wc8by49)",
+      "Maintainer": "Hadley Wickham <hadley@posit.co>",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "purrr",
       "RemoteUsername": "tidyverse",
       "RemoteRef": "HEAD",
-      "RemoteSha": "9c8beb4e648e64ec3e3ca816df0baeaaf693d1a4",
-      "NeedsCompilation": "yes",
-      "Author": "Hadley Wickham [aut, cre] (<https://orcid.org/0000-0003-4757-117X>), Lionel Henry [aut], Posit Software, PBC [cph, fnd] (https://ror.org/03wc8by49)",
-      "Maintainer": "Hadley Wickham <hadley@posit.co>"
+      "RemoteSha": "9c8beb4e648e64ec3e3ca816df0baeaaf693d1a4"
     },
     "qrng": {
       "Package": "qrng",
@@ -8188,38 +8074,6 @@
       "Author": "Kevin Ushey [aut, cre] (<https://orcid.org/0000-0003-2880-7407>), Hadley Wickham [aut] (<https://orcid.org/0000-0003-4757-117X>), Posit Software, PBC [cph, fnd]",
       "Maintainer": "Kevin Ushey <kevin@rstudio.com>",
       "Repository": "CRAN"
-    },
-    "repmis": {
-      "Package": "repmis",
-      "Version": "0.5",
-      "Source": "Repository",
-      "Type": "Package",
-      "Title": "Miscellaneous Tools for Reproducible Research",
-      "Description": "Tools to load 'R' packages and automatically generate BibTeX files citing them as well as load and cache plain-text and 'Excel' formatted data stored on 'GitHub', and from other sources.",
-      "Date": "2016-02-06",
-      "Authors@R": "c( person(\"Christopher\", \"Gandrud\", email = \"christopher.gandrud@gmail.com\", role = c(\"aut\", \"cre\")) )",
-      "License": "GPL (>= 3)",
-      "Depends": [
-        "R (>= 3.0.0)"
-      ],
-      "URL": "http://cran.r-project.org/package=repmis",
-      "BugReports": "https://github.com/christophergandrud/repmis/issues",
-      "Imports": [
-        "data.table",
-        "digest",
-        "httr",
-        "plyr",
-        "R.cache"
-      ],
-      "Suggests": [
-        "xlsx"
-      ],
-      "RoxygenNote": "5.0.1",
-      "NeedsCompilation": "no",
-      "Author": "Christopher Gandrud [aut, cre]",
-      "Maintainer": "Christopher Gandrud <christopher.gandrud@gmail.com>",
-      "Repository": "CRAN",
-      "Encoding": "UTF-8"
     },
     "reprex": {
       "Package": "reprex",
@@ -9335,7 +9189,8 @@
       "NeedsCompilation": "yes",
       "Author": "Terry M Therneau [aut, cre], Thomas Lumley [ctb, trl] (original S->R port and R maintainer until 2009), Atkinson Elizabeth [ctb], Crowson Cynthia [ctb]",
       "Maintainer": "Terry M Therneau <therneau.terry@mayo.edu>",
-      "Repository": "CRAN"
+      "Repository": "RSPM",
+      "Encoding": "UTF-8"
     },
     "svglite": {
       "Package": "svglite",

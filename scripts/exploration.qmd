@@ -34,8 +34,8 @@ Alle verwendeten packages mit Zitationen in separate bib-Datei exportieren
 #| warning: false
 #| eval: false
 
-renv::dependencies(quiet = TRUE) %>% 
-  distinct(package = Package) %>% 
+renv::dependencies(quiet = TRUE) %>%
+  distinct(package = Package) %>%
   arrange(str_to_lower(package)) %>%
   pull(package) %>%
   repmis::LoadandCite(pkgs = ., bibtex = TRUE, file = "./r-references.bib")
@@ -554,13 +554,13 @@ ggsave("./output/plots/plot_event_study_kaufpreis.pdf", width = 3, height = 3, d
 # Plot: Kaufpreis vs Neu-Glasfaser
 
 data_kauf_final %>%
-  #filter(got_fiber_date_pseudo_halbjahr != 0) %>%
+  # filter(got_fiber_date_pseudo_halbjahr != 0) %>%
   group_by(date_pseudo_halbjahr) %>%
   summarise(mean_kaufpreis = weighted.mean(mean_kaufpreis, w = n_cell_date, na.rm = TRUE)) %>%
   left_join(
     data_kauf_final %>%
       count(got_fiber_date_pseudo_halbjahr) %>%
-      #filter(got_fiber_date_pseudo_halbjahr != 0) %>%
+      # filter(got_fiber_date_pseudo_halbjahr != 0) %>%
       rename(
         date_pseudo_halbjahr = got_fiber_date_pseudo_halbjahr,
         n_got_fiber = n
@@ -1071,11 +1071,11 @@ bind_rows(
     collect() %>%
     mutate(type = "Miete", time = "Halbjahr"),
 ) %>%
-  ggplot(aes(x = ym(date), y = n, color = type))+
-  geom_line()+
-  facet_wrap(~time, scales = "free_y", nrow = 2)+
-  scale_y_continuous(labels = scales::label_number(scale = 1/1000))+
-  theme_bw()+
+  ggplot(aes(x = ym(date), y = n, color = type)) +
+  geom_line() +
+  facet_wrap(~time, scales = "free_y", nrow = 2) +
+  scale_y_continuous(labels = scales::label_number(scale = 1 / 1000)) +
+  theme_bw() +
   theme(legend.position = "top") +
   labs(x = "Jahr", y = "Angebote (1000)", color = element_blank())
 

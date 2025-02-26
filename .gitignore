@@ -10,6 +10,7 @@ Organisatorisches/*
 rosm.cache/
 r-references.bib
 .cache
+inst
 
 # History files
 .Rhistory
