@@ -1,6 +1,8 @@
 ---
 title: "Aufbereiten der Zensusdaten"
 format: html
+execute:
+  eval: false
 ---
 
 # Setup

@@ -1,6 +1,8 @@
 ---
 title: "Aufbereiten der Immobilienmarktdaten"
 format: html
+execute:
+  eval: false
 ---
 
 # Setup

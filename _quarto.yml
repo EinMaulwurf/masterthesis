@@ -1,0 +1,46 @@
+project:
+  type: website
+  render:
+    - "*.qmd"
+
+website:
+  title: "Lorem"
+  sidebar:
+    style: "docked"
+    #collapse-level: 1
+    search: true
+    contents:
+      - href: scripts/scraping.qmd
+        text: "Scraping Breitbandatlas"
+      - section: "Datenaufbereitung"
+        contents:
+          - href: scripts/cleaning_zensus.qmd
+            text: "Aufbereitung Zensus"
+          - href: scripts/cleaning_breitband.qmd
+            text: "Aufbereitung Breitbandatlas"
+          - href: scripts/cleaning_sonstige.qmd
+          - href: scripts/cleaning_immo.qmd
+      - href: scripts/exploration.qmd
+        text: "Explorative Datenanalyse"
+      - href: scripts/simulations.qmd
+        text: "Simulationen"
+      - href: scripts/did.qmd
+        text: "DiD"
+      - href: scripts/did_crosssection.qmd
+        text: "DiD Crossection"
+
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+    toc: true
+    number-sections: true
+    #css: styles.css
+    html-math-method: katex
+    code-link: true
+    anchor-sections: true
+    fig-cap-location: margin
+    reference-location: margin
+    footnotes-hover: true
+    highlight-style: monokai

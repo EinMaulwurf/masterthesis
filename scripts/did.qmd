@@ -1,6 +1,9 @@
 ---
 title: "did"
 format: html
+execute:
+  eval: false
+  cache: false
 ---
 
 # Setup
@@ -333,16 +336,16 @@ models_räumlich_miete_agg_dyn_tidy <- models_räumlich_miete %>%
 mirai::daemons(0)
 
 # Save results
-write_rds(
-  models_räumlich_miete,
-  "./data/processed/did/models_räumlich_miete.rds",
-  compress = "gz"
-)
-write_rds(
-  models_räumlich_miete_agg_dyn_tidy,
-  "./data/processed/did/models_räumlich_miete_agg_dyn_tidy.rds",
-  compress = "gz"
-)
+# write_rds(
+#   models_räumlich_miete,
+#   "./data/processed/did/models_räumlich_miete.rds",
+#   compress = "gz"
+# )
+# write_rds(
+#   models_räumlich_miete_agg_dyn_tidy,
+#   "./data/processed/did/models_räumlich_miete_agg_dyn_tidy.rds",
+#   compress = "gz"
+# )
 
 # Load results
 # models_räumlich_miete <- read_rds("./data/processed/did/models_räumlich_miete.rds")
@@ -467,16 +470,16 @@ models_räumlich_kauf_agg_dyn_tidy <- models_räumlich_kauf %>%
 mirai::daemons(0)
 
 # Save results
-write_rds(
-  models_räumlich_kauf,
-  "./data/processed/did/models_räumlich_kauf.rds",
-  compress = "gz"
-)
-write_rds(
-  models_räumlich_kauf_agg_dyn_tidy,
-  "./data/processed/did/models_räumlich_kauf_agg_dyn_tidy.rds",
-  compress = "gz"
-)
+# write_rds(
+#   models_räumlich_kauf,
+#   "./data/processed/did/models_räumlich_kauf.rds",
+#   compress = "gz"
+# )
+# write_rds(
+#   models_räumlich_kauf_agg_dyn_tidy,
+#   "./data/processed/did/models_räumlich_kauf_agg_dyn_tidy.rds",
+#   compress = "gz"
+# )
 
 # Load results
 # models_räumlich_kauf <- read_rds("./data/processed/did/models_räumlich_kauf.rds")
@@ -603,16 +606,16 @@ models_alternative_miete_agg_dyn_tidy <- models_alternative_miete %>%
 mirai::daemons(0)
 
 # Save results
-write_rds(
-  models_alternative_miete,
-  "./data/processed/did/models_alternative_miete.rds",
-  compress = "xz"
-)
-write_rds(
-  models_alternative_miete_agg_dyn_tidy,
-  "./data/processed/did/models_alternative_miete_agg_dyn_tidy.rds",
-  compress = "xz"
-)
+# write_rds(
+#   models_alternative_miete,
+#   "./data/processed/did/models_alternative_miete.rds",
+#   compress = "xz"
+# )
+# write_rds(
+#   models_alternative_miete_agg_dyn_tidy,
+#   "./data/processed/did/models_alternative_miete_agg_dyn_tidy.rds",
+#   compress = "xz"
+# )
 
 # Load results
 # models_alternative_miete <- read_rds("./data/processed/did/models_alternative_miete.rds")
@@ -730,16 +733,16 @@ models_alternative_kauf_agg_dyn_tidy <- models_alternative_kauf %>%
 mirai::daemons(0)
 
 # Save results
-write_rds(
-  models_alternative_kauf,
-  "./data/processed/did/models_alternative_kauf.rds",
-  compress = "xz"
-)
-write_rds(
-  models_alternative_kauf_agg_dyn_tidy,
-  "./data/processed/did/models_alternative_kauf_agg_dyn_tidy.rds",
-  compress = "xz"
-)
+# write_rds(
+#   models_alternative_kauf,
+#   "./data/processed/did/models_alternative_kauf.rds",
+#   compress = "xz"
+# )
+# write_rds(
+#   models_alternative_kauf_agg_dyn_tidy,
+#   "./data/processed/did/models_alternative_kauf_agg_dyn_tidy.rds",
+#   compress = "xz"
+# )
 
 # Load results
 # models_alternative_kauf <- read_rds("./data/processed/did/models_alternative_kauf.rds")

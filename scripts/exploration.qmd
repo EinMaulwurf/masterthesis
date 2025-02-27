@@ -1,6 +1,8 @@
 ---
-title: "exploration"
+title: "Explorative Datenanalyse"
 format: "html"
+execute:
+  cache: true
 ---
 
 # Setup
@@ -48,6 +50,8 @@ renv::dependencies(quiet = TRUE) %>%
 Ich verwende nicht die Geodaten von GISCO, da diese aus dem Jahr 2016 sind und es seit dem wohl einige Änderungen bei Gemeinden, insbesondere in Thüringen gegeben hat. Das gab Probleme mit den Daten zur Raumgliederung vom BBSR. Daher lade ich hier die [Daten](https://gdz.bkg.bund.de/index.php/default/digitale-geodaten/verwaltungsgebiete/verwaltungsgebiete-1-250-000-mit-einwohnerzahlen-stand-31-12-vg250-ew-31-12.html) vom Bundesamt für Kartographie und Geodäsie mit Stand 31.12.2023
 
 ```{r}
+#| output: false
+
 st_layers("./data/raw/Geodaten/DE_VG250.gpkg")
 
 deutschland <- st_read("./data/raw/Geodaten/DE_VG250.gpkg", layer = "v_vg250_sta", as_tibble = TRUE) %>%
@@ -148,7 +152,8 @@ darmstadt %>%
   make_laea_grid(size = "1km") %>%
   ggplot() +
   geom_sf(fill = NA) +
-  geom_sf(data = darmstadt, color = "red")
+  geom_sf(data = darmstadt, color = "red")+
+  theme_bw()
 ```
 
 Füge Grid zu Daten hinzu
@@ -161,7 +166,8 @@ get_breitband_stadt("Darmstadt", size = "1km", variables = down_fn_hh_ftthb_1000
   add_laea_grid(size = "1km") %>%
   ggplot() +
   geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA) +
-  scale_fill_viridis_c()
+  scale_fill_viridis_c()+
+  theme_bw()
 ```
 
 # Visualisierungen
@@ -169,22 +175,22 @@ get_breitband_stadt("Darmstadt", size = "1km", variables = down_fn_hh_ftthb_1000
 ## Breitbanddaten
 
 ```{r}
-get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000) %>%
+get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000, size = "100m") %>%
   filter(date == 202312) %>%
-  add_laea_grid() %>%
+  add_laea_grid(size = "100m") %>%
   ggplot() +
   geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA) +
   scale_fill_viridis_c() +
   theme_void()
 
-get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000) %>%
+get_breitband_stadt("Berlin", variables = down_fn_hh_ftthb_1000, size = "100m") %>%
   filter(date %in% c(202312, 202206)) %>%
   arrange(x_mp, y_mp, date) %>%
   group_by(x_mp, y_mp) %>%
   mutate(delta = down_fn_hh_ftthb_1000 - lag(down_fn_hh_ftthb_1000, n = 1)) %>%
   ungroup() %>%
   filter(date == 202312) %>%
-  add_laea_grid() %>%
+  add_laea_grid(size = "100m") %>%
   ggplot() +
   geom_sf(aes(fill = delta), color = NA) +
   scale_fill_viridis_c() +
@@ -196,6 +202,7 @@ Ganz Deutschland mit 1km Quadraten
 ```{r}
 #| fig-width: 5
 #| fig-height: 7
+#| eval: false
 
 p <- breitband_1km_arrow %>%
   filter(date == 202312) %>%
@@ -229,6 +236,8 @@ ggsave("./output/plot_de_glasfaser_202406_1km.pdf", plot = p, width = 5, height 
 Vergleich über Jahre. Hier habe ich festgestellt, dass bis einschließlich 07.2021 ein 250m Raster verwendet wird.
 
 ```{r}
+#| eval: false
+
 stadt <- "Hamburg"
 
 breitband_dates <- get_breitband_stadt(stadt, size = "100m", variables = down_fn_hh_ftthb_1000) %>%
@@ -264,6 +273,8 @@ for (d in breitband_dates) {
 Jeztzt ganz Deutschland über die Jahre
 
 ```{r}
+#| eval: false
+
 breitband_dates <- breitband_1km_arrow %>%
   distinct(date) %>%
   arrange(date) %>%
@@ -301,6 +312,8 @@ for (d in breitband_dates) {
 Jetzt Karte mit maximal verfügbarer Geschwindigkeit
 
 ```{r}
+#| eval: false
+
 breitband_dates <- breitband_1km_arrow %>%
   distinct(date) %>%
   arrange(date) %>%
@@ -356,12 +369,13 @@ breitband_1km_haushalte_aggregiert <- breitband_1km_arrow %>%
   group_by(date) %>%
   summarise(haushalte_fiber = sum(has_fiber * anzahl_haushalte, na.rm = TRUE))
 
-breitband_1km_haushalte_aggregiert %>%
-  ggplot(aes(x = ym(date), y = haushalte_fiber)) +
-  geom_line() +
-  geom_point() +
-  scale_x_date() +
-  scale_y_continuous(labels = scales::label_number())
+# breitband_1km_haushalte_aggregiert %>%
+#   ggplot(aes(x = ym(date), y = haushalte_fiber)) +
+#   geom_line() +
+#   geom_point() +
+#   scale_x_date() +
+#   scale_y_continuous(labels = scales::label_number())+
+#   theme_bw()
 
 # Nochmal mit 100m Raster
 zensus_haushalte_100m <- zensus_arrow %>%
@@ -379,12 +393,13 @@ breitband_100m_haushalte_aggregiert <- breitband_100m_arrow %>%
   group_by(date) %>%
   summarise(haushalte_fiber = sum(has_fiber * anzahl_haushalte, na.rm = TRUE))
 
-breitband_100m_haushalte_aggregiert %>%
-  ggplot(aes(x = ym(date), y = haushalte_fiber)) +
-  geom_line() +
-  geom_point() +
-  scale_x_date() +
-  scale_y_continuous(labels = scales::label_number())
+# breitband_100m_haushalte_aggregiert %>%
+#   ggplot(aes(x = ym(date), y = haushalte_fiber)) +
+#   geom_line() +
+#   geom_point() +
+#   scale_x_date() +
+#   scale_y_continuous(labels = scales::label_number())+
+#   theme_bw()
 
 # Gesamt
 rbind(
@@ -396,7 +411,8 @@ rbind(
   geom_line() +
   geom_point() +
   scale_y_continuous(labels = scales::label_number(scale = 1 / 1e6)) +
-  scale_x_date(breaks = "1 year")
+  scale_x_date(breaks = "1 year")+
+  theme_bw()
 ```
 
 Zuwächse an FTTHB über die Zeit
@@ -429,7 +445,7 @@ zensus_arrow %>%
   mutate(anzahl_haushalte = insgesamt_bevoelkerung / durchschn_hh_groesse) %>%
   collect() %>%
   mutate(zensus_na = is.na(durchschn_hh_groesse)) %>%
-  add_laea_grid() %>%
+  add_laea_grid(size = "100m") %>%
   ggplot() +
   ggspatial::annotation_map_tile(zoomin = 0, type = "osm") +
   geom_sf(aes(fill = zensus_na, alpha = zensus_na), color = NA) +
@@ -450,7 +466,7 @@ zensus_arrow %>%
   mutate(anzahl_haushalte = insgesamt_bevoelkerung / durchschn_hh_groesse) %>%
   collect() %>%
   mutate(zensus_na = is.na(durchschn_hh_groesse)) %>%
-  add_laea_grid() %>%
+  add_laea_grid(size = "100m") %>%
   ggplot() +
   ggspatial::annotation_map_tile(zoomin = 0, type = "osm") +
   geom_sf(aes(fill = zensus_na, alpha = zensus_na), color = NA) +
@@ -662,13 +678,14 @@ data_miete_final %>%
 ggsave("./output/plots/plot_miete_neu_glasfaser.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
 
-
 ## Interaktive Karte mit Leaflet
 
 ```{r}
-data_leaflet <- get_breitband_stadt("Darmstadt", variables = down_fn_hh_ftthb_1000) %>%
+#| eval: false
+
+data_leaflet <- get_breitband_stadt("Darmstadt", variables = down_fn_hh_ftthb_1000, size = "100m") %>%
   filter(date == 202312) %>%
-  add_laea_grid() %>%
+  add_laea_grid(size = "100m") %>%
   st_transform(4326)
 
 # Create a continuous palette function
@@ -777,6 +794,8 @@ ggsave("./output/plots/plot_erklärende_variablen.pdf", width = 8, height = 8)
 ## Breitbanddaten
 
 ```{r}
+#| eval: false
+
 # 100m
 breitband_100m_arrow %>%
   select(date, down_fn_hh_ftthb_1000) %>%
@@ -863,6 +882,8 @@ ggsave("./output/plots/plot_verteilung_glasfaser_2018_2024.pdf", width = 5, heig
 Summary Statistics für alle Variablen
 
 ```{r}
+#| eval: false
+
 breitband_1km_arrow_summarised <- breitband_1km_arrow %>%
   group_by(date) %>%
   collect() %>%
@@ -952,6 +973,24 @@ zensus_haushalte_1km <- zensus_arrow %>%
   filter(!is.na(anzahl_haushalte)) %>%
   collect()
 
+gemeinden %>%
+  left_join(gemeinden_bbsr, by = join_by(ags == gem_kennziffer)) %>%
+  st_simplify(dTolerance = 100) %>%
+  ggplot() +
+  geom_sf(aes(fill = gemeindetyp_name), color = NA) +
+  geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5) +
+  geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2) +
+  scale_fill_viridis_d() +
+  theme_void() +
+  theme(legend.position = "right") +
+  labs(fill = element_blank())
+
+ggsave("./output/plots/karten/plot_bbsr_gemeindetypen.pdf", width = 5, height = 4)
+```
+
+```{r}
+#| eval: false
+
 breitband_1km_arrow %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
   filter(date == 202406) %>%
@@ -975,20 +1014,6 @@ breitband_1km_arrow %>%
     na = "-"
   ) %>%
   cat()
-
-gemeinden %>%
-  left_join(gemeinden_bbsr, by = join_by(ags == gem_kennziffer)) %>%
-  st_simplify(dTolerance = 100) %>%
-  ggplot() +
-  geom_sf(aes(fill = gemeindetyp_name), color = NA) +
-  geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5) +
-  geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2) +
-  scale_fill_viridis_d() +
-  theme_void() +
-  theme(legend.position = "right") +
-  labs(fill = element_blank())
-
-ggsave("./output/plots/karten/plot_bbsr_gemeindetypen.pdf", width = 5, height = 4)
 ```
 
 ## Immobilienmarktdaten

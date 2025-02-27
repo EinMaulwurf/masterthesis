@@ -11,6 +11,10 @@ rosm.cache/
 r-references.bib
 .cache
 inst
+*_files
+_output
+_site
+*.bak
 
 # History files
 .Rhistory
@@ -61,3 +65,5 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+/.quarto/

@@ -1,6 +1,9 @@
 ---
 title: "Simulationen"
 format: html
+execute:
+  eval: true
+  cache: true
 ---
 
 # Setup

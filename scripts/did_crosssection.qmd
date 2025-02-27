@@ -1,6 +1,8 @@
 ---
-title: "did_crosssection"
+title: "DiD Analyse mit Crossectional Data"
 format: html
+execute:
+  eval: false
 ---
 
 [link](https://bcallaway11.github.io/did/articles/did-basics.html#repeated-cross-sections)
