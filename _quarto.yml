@@ -2,9 +2,10 @@ project:
   type: website
   render:
     - "*.qmd"
+    - "!*test*"
 
 website:
-  title: "Lorem"
+  title: "Masterthesis"
   sidebar:
     style: "docked"
     #collapse-level: 1
