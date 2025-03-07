@@ -15,6 +15,7 @@ inst
 _output
 _site
 *.bak
+digest.txt
 
 # History files
 .Rhistory

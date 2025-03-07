@@ -3,4 +3,37 @@ title: "Startseite"
 format: html
 ---
 
-Hallo und wilkommen
+```{=html}
+<style>
+.banner {
+  width: 100%;
+  max-height: 200px; /* Adjust as needed */
+  object-fit: cover;
+  margin-bottom: 1em;
+  border-radius: 10px; /* Optional: Rounded corners */
+}
+</style>
+```
+
+```{=html}
+<img src="data/processed/Sonstige/pexels-jeswin-2856012.jpg" alt="Project Banner" class="banner">
+```
+
+## Übersicht
+
+Dieses Projekt dokumentiert die Aufbereitung und Analyse verschiedener Datensätze, darunter Breitbandverfügbarkeit, Immobilienpreise und Zensusdaten.  Ziel ist es, die Auswirkungen von Breitbandausbau (insbesondere Glasfaser) auf den Immobilienmarkt in Deutschland zu untersuchen.
+
+::: {.callout-tip}
+## Navigiere durch das Projekt
+
+Die einzelnen Schritte der Datenaufbereitung und explorative Analysen findest du in der linken Seitenleiste.<br>
+Jeder Eintrag dort führt dich zu einem separaten Dokument mit Code, Ergebnissen und Visualisierungen.
+:::
+
+## Verwendete Datensätze
+
+Für diese Analyse wurden mehrere Datensätze kombiniert. Die Daten zur Breitbandverfügbarkeit stammen aus dem [Breitbandatlas der Bundesnetzagentur](https://gigabitgrundbuch.bund.de/GIGA/DE/Breitbandatlas/start.html), der detaillierte Informationen über die Verfügbarkeit verschiedener Breitbandtechnologien auf Rasterebene bereitstellt. Immobilienpreisdaten (Miet- und Kaufpreise) wurden vom [RWI - Leibniz-Institut für Wirtschaftsforschung](https://www.rwi-essen.de/en/research-advice/further/research-data-center-ruhr-fdz/data-sets/rwi-geo-red/x-real-estate-data-and-price-indices) bezogen (RWI-GEO-RED Datensatz). Zusätzlich wurden [Zensusdaten](https://www.zensus2022.de/DE/Ergebnisse-des-Zensus/_inhalt.html) (z.B. Bevölkerungsdichte, Haushaltsgröße, Gebäudetypen) verwendet, um sozioökonomische und demografische Faktoren zu berücksichtigen.
+
+## Vorgehen und Methodik
+
+Das Projekt umfasst mehrere Schritte, von der Datenaufbereitung (Scraping, Cleaning, Imputation) über die explorative Datenanalyse bis hin zur eigentlichen kausalen Analyse. Die Kernmethodik ist die *Difference-in-Differences* (DiD) Methode nach [Callaway & Sant'Anna (2021)](https://www.sciencedirect.com/science/article/abs/pii/S0304407620303948). Diese Methode ermöglicht es, den kausalen Effekt des Glasfaserausbaus auf die Immobilienpreise zu schätzen, indem die Preisentwicklung in Gebieten mit und ohne Ausbau verglichen wird. Die Implementierung erfolgt mit dem Paket [`{did}`](https://bcallaway11.github.io/did/).

@@ -6,6 +6,7 @@ project:
 
 website:
   title: "Masterthesis"
+  repo-url: "https://github.com/andrewheiss/ath-quarto"
   sidebar:
     style: "docked"
     #collapse-level: 1
