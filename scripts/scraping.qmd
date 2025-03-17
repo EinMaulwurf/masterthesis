@@ -48,6 +48,7 @@ Der Breitbandatlas scheint sich hin und wieder zu ändern, wodurch die obige Abf
 ```
 
 Um Daten für verschiedene Jahre zu erhalten, kann der `festnetz_XXX` Teil angepasst werden:
+
 - `festnetz_001` für 12.2018
 - `festnetz_002` für 06.2019
 - `festnetz_003` für 12.2019

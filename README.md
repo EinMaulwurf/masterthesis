@@ -1,5 +1,7 @@
 # Masterthesis: Der Einfluss des Glasfaserausbaus auf Miet- und Kaufpreise im deutschen Wohnimmobilienmarkt
 
+Siehe [https://master.maulwurf.fun/](https://master.maulwurf.fun/) für eine gerenderte Version des Codes.
+
 Dieses Repository enthält den Code und die Analysen für meine Masterarbeit. Ziel der Arbeit ist es, den Einfluss eines Glasfaseranschlusses auf den Wert einer Immobilie zu untersuchen. Dafür werden Daten zum Glasfaserausbau mit Immobilienmarktdaten von ImmoScout verknüpft und mit einer Difference-in-Differences Methode analysiert.
 
 Die eigentlichen Daten und generierten Outputs (hauptsächlich Grafiken und Tabellen) werden aufgrund ihrer Größe nicht direkt über Git versioniert. Stattdessen verwende ich Symlinks zu einem OneDrive-Ordner, der diese Dateien speichert. Dadurch ist gewährleistet, dass die Daten und Ergebnisse immer verfügbar sind und automatisch gesichert werden. Die Symlinks sollten entsprechend an das eigene System angepasst werden, wenn das Projekt heruntergeladen wird.
