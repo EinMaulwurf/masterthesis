@@ -185,7 +185,7 @@ dat %>%
   scale_x_continuous(breaks = 1:10) +
   theme_bw() +
   theme(legend.position = "none") +
-  labs(x = "Zeit", y = "Zielgröße", color = element_blank())
+  labs(x = latex2exp::TeX("Zeit ($t$)"), y = "Zielgröße", color = element_blank())
 ggsave("./output/plots/did/plot_did_simulation.pdf", width = 3, height = 3, device = cairo_pdf)
 
 cs21_agg_dyn %>%
@@ -200,8 +200,8 @@ cs21_agg_dyn %>%
   theme_bw() +
   theme(legend.position = "none") +
   labs(
-    x = "Zeit (relativ)",
-    y = "ATT"
+    x = latex2exp::TeX("Zeit relativ ($e$)"),
+    y = latex2exp::TeX("$ATT_{dyn}(e)$")
   )
 ggsave("./output/plots/did/plot_did_simulation_agg_dyn.pdf", width = 3, height = 3, device = cairo_pdf)
 ```
@@ -237,14 +237,27 @@ cs21_agg_dyn_honest_rel
 # createSensitivityPlot(cs21_agg_dyn_honest_smooth$robust_ci,
 #                       cs21_agg_dyn_honest_smooth$orig_ci)
 
-createSensitivityPlot_relativeMagnitudes(cs21_agg_dyn_honest_rel$robust_ci,
+createSensitivityPlot_relativeMagnitudes(
+  cs21_agg_dyn_honest_rel$robust_ci,
   cs21_agg_dyn_honest_rel$orig_ci,
   add_xAxis = FALSE
 ) +
   geom_hline(yintercept = 0, linetype = "dashed") +
   theme_bw() +
   theme(legend.position = "none") +
-  labs(y = "ATT")
+  labs(y = latex2exp::TeX("$ATT_{dyn}(e=1)$"))
+
+# cs21_agg_dyn_honest_rel$robust_ci %>%
+#   select(Mbar, lb, ub) %>%
+#   ggplot(aes(x = Mbar, ymin = lb, ymax = ub))+
+#   geom_errorbar(width = 0.15)+
+#   geom_hline(yintercept = 0, linetype = "dashed")+
+#   theme_bw()+
+#   labs(
+#     x = latex2exp::TeX("$\\bar{M}$"),
+#     y = latex2exp::TeX("$ATT_{dyn}(e=1)$")
+#   )
+
 ggsave("./output/plots/did/plot_did_simulation_agg_dyn_honest.pdf", width = 5, height = 2.5, device = cairo_pdf)
 ```
 
@@ -323,7 +336,8 @@ cs21_small_agg_dyn_honest_rel <- honest_did(
 cs21_small_agg_dyn_honest_rel$robust_ci <- cs21_small_agg_dyn_honest_rel$robust_ci[-1, ]
 
 ## -----------------------------------------------------------------------------
-createSensitivityPlot_relativeMagnitudes(cs21_small_agg_dyn_honest_rel$robust_ci,
+createSensitivityPlot_relativeMagnitudes(
+  cs21_small_agg_dyn_honest_rel$robust_ci,
   cs21_small_agg_dyn_honest_rel$orig_ci,
   add_xAxis = FALSE
 ) +
