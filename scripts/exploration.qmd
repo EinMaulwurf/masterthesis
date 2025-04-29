@@ -212,7 +212,7 @@ p <- breitband_1km_arrow %>%
   filter(date == 202312) %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
   collect() %>%
-  add_laea_grid(size = 1000) %>%
+  add_laea_grid(size = "1km") %>%
   ggplot() +
   geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA) +
   geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5) +
@@ -254,7 +254,7 @@ for (d in breitband_dates) {
 
   p <- get_breitband_stadt(stadt, size = "100m", variables = down_fn_hh_ftthb_1000) %>%
     filter(date == d) %>%
-    add_laea_grid(size = 100) %>%
+    add_laea_grid(size = "100m") %>%
     ggplot() +
     geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA) +
     geom_sf(data = get_stadt(stadt), fill = NA, color = "grey30", linewidth = .5) +
@@ -292,7 +292,7 @@ for (d in breitband_dates) {
     filter(date == d) %>%
     select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
     collect() %>%
-    add_laea_grid(size = 1000) %>%
+    add_laea_grid(size = "1km") %>%
     ggplot() +
     geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA) +
     geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .8) +
@@ -329,7 +329,7 @@ for (d in breitband_dates) {
 
   p <- breitband_1km_max_speed %>%
     filter(date == d) %>%
-    add_laea_grid(size = 1000) %>%
+    add_laea_grid(size = "1km") %>%
     ggplot() +
     geom_sf(aes(fill = max_speed_all), color = NA) +
     geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .8) +
