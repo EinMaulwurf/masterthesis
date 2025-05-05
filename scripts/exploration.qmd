@@ -209,14 +209,15 @@ Ganz Deutschland mit 1km Quadraten
 #| eval: false
 
 p <- breitband_1km_arrow %>%
-  filter(date == 202312) %>%
+  filter(date == 202406) %>%
   select(date, x_mp, y_mp, down_fn_hh_ftthb_1000) %>%
+  mutate(down_fn_hh_ftthb_1000 = round(down_fn_hh_ftthb_1000)) %>%
   collect() %>%
   add_laea_grid(size = "1km") %>%
   ggplot() +
   geom_sf(aes(fill = down_fn_hh_ftthb_1000), color = NA) +
-  geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5) +
-  geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2) +
+  geom_sf(data = deutschland %>% st_simplify(dTolerance = 500), fill = NA, color = "black", linewidth = .5) +
+  geom_sf(data = bundesländer %>% st_simplify(dTolerance = 500), fill = NA, color = "grey30", linewidth = .2) +
   scale_fill_viridis_c() +
   theme_void() +
   theme(
@@ -234,7 +235,7 @@ p <- breitband_1km_arrow %>%
     ticks.colour = "black" # Make tick marks black
   ))
 
-ggsave("./output/plot_de_glasfaser_202406_1km.pdf", plot = p, width = 5, height = 7)
+ggsave("./output/plot_de_glasfaser_202406_1km.pdf", plot = p, width = 5, height = 7, device = cairo_pdf)
 ```
 
 Vergleich über Jahre. Hier habe ich festgestellt, dass bis einschließlich 07.2021 ein 250m Raster verwendet wird.
@@ -977,19 +978,21 @@ zensus_haushalte_1km <- zensus_arrow %>%
   filter(!is.na(anzahl_haushalte)) %>%
   collect()
 
-gemeinden %>%
+p <- gemeinden %>%
   left_join(gemeinden_bbsr, by = join_by(ags == gem_kennziffer)) %>%
-  st_simplify(dTolerance = 100) %>%
+  group_by(gemeindetyp_name) %>%
+  summarise(geometry = st_union(geom)) %>%
+  st_simplify(dTolerance = 500) %>%
   ggplot() +
   geom_sf(aes(fill = gemeindetyp_name), color = NA) +
-  geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5) +
   geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2) +
+  geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5) +
   scale_fill_viridis_d() +
   theme_void() +
   theme(legend.position = "right") +
   labs(fill = element_blank())
 
-ggsave("./output/plots/karten/plot_bbsr_gemeindetypen.pdf", width = 5, height = 4)
+ggsave("./output/plots/karten/plot_bbsr_gemeindetypen.pdf", plot = p, width = 5, height = 4)
 ```
 
 ```{r}
