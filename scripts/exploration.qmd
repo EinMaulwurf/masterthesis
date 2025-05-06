@@ -1113,3 +1113,27 @@ bind_rows(
 
 ggsave("./output/plots/plot_anzahl_angebote.pdf", width = 5, height = 4, device = cairo_pdf)
 ```
+
+Anzahl Angebote nach Typ (Kauf/Miete vs Haus/Wohnung)
+
+```{r}
+data_counts_anzeige_gebäudetyp <- bind_rows(
+  open_dataset("./data/processed/RWI_GEO_RED/data_miete.parquet") %>%
+    #filter(ajahr == 2023) %>%
+    count(typ) %>%
+    mutate(anzeige = "Miete", .before = 1) %>%
+    collect(),
+  open_dataset("./data/processed/RWI_GEO_RED/data_kauf.parquet") %>%
+    #filter(ajahr == 2023) %>%
+    count(typ) %>%
+    mutate(anzeige = "Kauf", .before = 1) %>%
+    collect()
+)
+
+data_counts_anzeige_gebäudetyp %>%
+  pivot_wider(names_from = typ, values_from = n)
+
+data_counts_anzeige_gebäudetyp %>%
+  mutate(anteil = n / sum(n), .keep = "unused") %>%
+  pivot_wider(names_from = typ, values_from = anteil)
+```
