@@ -17,6 +17,8 @@ _site
 *.bak
 digest.txt
 deploy.sh
+pyproject.toml
+uv.lock
 
 # History files
 .Rhistory
