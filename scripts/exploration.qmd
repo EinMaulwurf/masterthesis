@@ -726,6 +726,8 @@ kreise %>%
   st_simplify(dTolerance = 200) %>%
   ggplot() +
   geom_sf(aes(fill = einkommen_cut), color = NA) +
+  geom_sf(data = bundesländer %>% st_simplify(dTolerance = 500), fill = NA, color = "grey30", linewidth = .2) +
+  geom_sf(data = deutschland %>% st_simplify(dTolerance = 500), fill = NA, color = "black", linewidth = .5) +
   scale_fill_viridis_d() +
   theme_void() +
   theme(legend.position = "top") +
@@ -743,6 +745,8 @@ kreise %>%
   st_simplify(dTolerance = 200) %>%
   ggplot() +
   geom_sf(aes(fill = einkommen_delta_cut), color = NA) +
+  geom_sf(data = bundesländer %>% st_simplify(dTolerance = 500), fill = NA, color = "grey30", linewidth = .2) +
+  geom_sf(data = deutschland %>% st_simplify(dTolerance = 500), fill = NA, color = "black", linewidth = .5) +
   scale_fill_viridis_d() +
   theme_void() +
   theme(legend.position = "top") +
@@ -985,8 +989,8 @@ p <- gemeinden %>%
   st_simplify(dTolerance = 500) %>%
   ggplot() +
   geom_sf(aes(fill = gemeindetyp_name), color = NA) +
-  geom_sf(data = bundesländer, fill = NA, color = "grey30", linewidth = .2) +
-  geom_sf(data = deutschland, fill = NA, color = "black", linewidth = .5) +
+  geom_sf(data = bundesländer %>% st_simplify(dTolerance = 500), fill = NA, color = "grey30", linewidth = .2) +
+  geom_sf(data = deutschland %>% st_simplify(dTolerance = 500), fill = NA, color = "black", linewidth = .5) +
   scale_fill_viridis_d() +
   theme_void() +
   theme(legend.position = "right") +
