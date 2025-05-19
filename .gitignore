@@ -1,8 +1,8 @@
 # Own Additions
 
-scripts/data
-scripts/output
-scripts/src
+#scripts/data
+#scripts/output
+#scripts/src
 #Daten/*
 #Output/*
 Organisatorisches/*

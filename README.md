@@ -73,4 +73,7 @@ Jegliche neu installierten Packages werden automatisch in dieser Projektumgebung
 ## Sonstige Hinweise:
 
 Damit die Pfade korrekt funktionieren, muss das root-directory als working-directory gesetzt sein. Das passiert automatisch, wenn die `Masterthesis.Rproj` Datei geöffnet wird.
+
 Außerdem muss in RStudio `Settings -> R Markdown -> Evaluate Chunks in Directory: Project` gesetzt sein. Nur so gilt auch das korrekte working-directory für interaktives Ausführen von Code in Chunks.
+
+Die verwendeten Daten sind über OneDrive synchronisiert und gesichert. Dafür sind symlinks vorhanden, damit die R-Skripte auf diese zugreifen können, ohne dass lange Pfade verwendet werden müssen. Diese symlinks müssen auf einem neuen System natürlich angepasst werden.
